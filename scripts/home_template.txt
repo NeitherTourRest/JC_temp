@@ -1,0 +1,143 @@
+<template>
+  <DefaultLayout>
+    <div class="home-page">
+      <section class="hero">
+        <div class="hero-content">
+          <h1>探索昌平，发现精彩</h1>
+          <p>发现昌平的美食、景点、游记与出行路线</p>
+          <div class="hero-search">
+            <el-input v-model="searchKeyword" size="large" placeholder="搜索景点、美食、游记..." clearable @keyup.enter="handleSearch">
+              <template #append><el-button type="primary" @click="handleSearch">搜索</el-button></template>
+            </el-input>
+          </div>
+        </div>
+      </section>
+      <section class="stats-bar">
+        <div class="stat-item"><span class="stat-num">{{ stats.spots }}</span><span>景点</span></div>
+        <div class="stat-item"><span class="stat-num">{{ stats.diaries }}</span><span>游记</span></div>
+        <div class="stat-item"><span class="stat-num">10+</span><span>用户</span></div>
+      </section>
+      <section class="section">
+        <h2>分类浏览</h2>
+        <div class="cat-grid">
+          <div v-for="item in categories" :key="item.name" class="cat-card" @click="$router.push(item.path)">
+            <div class="cat-icon" :style="{background: item.color}">{{ item.icon }}</div>
+            <span>{{ item.name }}</span>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-header">
+          <h2>热门景点</h2>
+          <el-button text type="primary" @click="$router.push('/spots')">查看全部</el-button>
+        </div>
+        <div class="h-scroll">
+          <div v-for="s in featuredSpots" :key="s.id" class="h-card" @click="$router.push('/spots/' + s.id)">
+            <div class="h-card-img" :style="{background: colors[s.id % colors.length]}">
+              <span class="h-badge">{{ s.category }}</span>
+            </div>
+            <div class="h-card-body">
+              <h4>{{ s.name }}</h4>
+              <span>⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-header">
+          <h2>最新游记</h2>
+          <el-button text type="primary" @click="$router.push('/diaries')">查看全部</el-button>
+        </div>
+        <div class="diary-list">
+          <div v-for="d in recentDiaries" :key="d.id" class="diary-card" @click="$router.push('/diaries/' + d.id)">
+            <div class="diary-img" v-if="d.images?.length"><img :src="d.images[0]" /></div>
+            <div class="diary-img-placeholder" v-else>📝</div>
+            <div class="diary-body">
+              <h4>{{ d.title }}</h4>
+              <p>{{ (d.content || '').substring(0, 120) }}{{ (d.content || '').length > 120 ? '...' : '' }}</p>
+              <div class="diary-footer">
+                <span>⭐ {{ d.avgRating?.toFixed(1) || '—' }}</span>
+                <span>{{ d.createdAt ? d.createdAt.substring(0, 10) : '' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </DefaultLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { diaryApi } from '@/api/diaryApi'
+import { spotApi } from '@/api/spotApi'
+import type { SpotResponse, DiaryResponse } from '@/types/api'
+
+const searchKeyword = ref('')
+const featuredSpots = ref<SpotResponse[]>([])
+const recentDiaries = ref<DiaryResponse[]>([])
+const stats = ref({ spots: 0, diaries: 0 })
+const colors = ['#4fc3f7', '#81c784', '#ffb74d', '#e57373', '#ba68c8', '#4db6ac']
+const categories = [
+  { name: '景点', path: '/spots', icon: '🏞️', color: '#e3f2fd' },
+  { name: '美食', path: '/foods', icon: '🍜', color: '#fff3e0' },
+  { name: '游记', path: '/diaries', icon: '📓', color: '#e8f5e9' },
+  { name: '导航', path: '/navigation', icon: '🗺️', color: '#fce4ec' },
+  { name: 'AI', path: '/ai/chat', icon: '🤖', color: '#f3e5f5' },
+]
+
+function handleSearch() { if (searchKeyword.value.trim()) window.location.href = '/spots?keyword=' + encodeURIComponent(searchKeyword.value) }
+
+onMounted(async () => {
+  try {
+    const [s, d] = await Promise.all([spotApi.search({ size: 8 }).catch(() => null), diaryApi.list({ size: 5 }).catch(() => null)])
+    if (s?.data?.data?.content) featuredSpots.value = s.data.data.content
+    if (d?.data?.data?.content) recentDiaries.value = d.data.data.content
+    const sc = await spotApi.search({ size: 1 }).catch(() => null)
+    if (sc?.data?.data?.totalElements) stats.value.spots = sc.data.data.totalElements
+    if (d?.data?.data?.totalElements) stats.value.diaries = d.data.data.totalElements
+  } catch {}
+})
+</script>
+
+<style scoped>
+.home-page { max-width: 1200px; margin: 0 auto; }
+.hero { min-height: 360px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d47a1, #4a148c, #00695c); border-radius: 16px; margin-bottom: 20px; }
+.hero-content { text-align: center; padding: 40px 20px; color: #fff; }
+.hero-content h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 6px; }
+.hero-content p { opacity: 0.85; margin-bottom: 20px; }
+.hero-search { max-width: 480px; margin: 0 auto; }
+.hero-search :deep(.el-input__wrapper) { border-radius: 24px !important; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important; }
+.stats-bar { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+.stat-item { text-align: center; padding: 16px 24px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); min-width: 100px; }
+.stat-num { display: block; font-size: 1.5rem; font-weight: 700; color: #1a237e; }
+.stat-item span:last-child { font-size: 13px; color: #888; }
+.section { margin-bottom: 28px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+.cat-card { text-align: center; padding: 14px 8px; border-radius: 12px; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.cat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.cat-icon { font-size: 1.6rem; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 6px; }
+.cat-card span { font-size: 13px; font-weight: 600; }
+.h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+.h-card { min-width: 170px; border-radius: 12px; overflow: hidden; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0; }
+.h-card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.h-card-img { height: 90px; padding: 6px; display: flex; justify-content: flex-end; }
+.h-badge { background: rgba(255,255,255,0.9); padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.h-card-body { padding: 8px 12px; }
+.h-card-body h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.h-card-body span { font-size: 12px; color: #888; }
+.diary-list { display: flex; flex-direction: column; gap: 10px; }
+.diary-card { display: flex; border-radius: 12px; overflow: hidden; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.diary-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.diary-img { width: 150px; min-height: 110px; flex-shrink: 0; }
+.diary-img img { width: 100%; height: 100%; object-fit: cover; }
+.diary-img-placeholder { width: 150px; min-height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #f5f5f5; flex-shrink: 0; }
+.diary-body { padding: 12px 16px; flex: 1; }
+.diary-body h4 { margin: 0 0 4px; font-size: 1rem; font-weight: 600; }
+.diary-body p { font-size: 13px; color: #666; margin: 0; line-height: 1.5; }
+.diary-footer { display: flex; gap: 10px; font-size: 12px; color: #999; margin-top: 6px; }
+@media (max-width: 768px) { .hero { min-height: 280px; } .hero-content h1 { font-size: 1.5rem; } .diary-card { flex-direction: column; } .diary-img, .diary-img-placeholder { width: 100%; height: 130px; } }
+</style>

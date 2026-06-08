@@ -1,0 +1,51 @@
+<template>
+  <DefaultLayout>
+    <div class="food-page">
+      <div class="toolbar glass-sm" style="padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <el-input v-model="keyword" placeholder="Search food..." clearable class="search-inp" @keyup.enter="search"><template #prefix><span style="color:rgba(255,255,255,0.4)">&#128269;</span></template></el-input>
+        <div class="cats">
+          <button v-for="c in cats" :key="c" :class="['cat-btn', {active: activeCat === c}]" @click="filter(c)">{{ c }}</button>
+        </div>
+      </div>
+      <div v-if="loading" class="empty">Loading...</div>
+      <div v-else-if="!foods.length" class="empty">No foods found</div>
+      <div v-else class="grid">
+        <div v-for="f in foods" :key="f.id" class="card glass" @click="$router.push('/foods/' + f.id)">
+          <div class="card-top" :style="{background: colors[f.id % colors.length]}"><span class="card-cuisine">{{ f.cuisine || 'Food' }}</span></div>
+          <div class="card-body">
+            <h3>{{ f.name }}</h3>
+            <p v-if="f.restaurantName" class="rest">@ {{ f.restaurantName }}</p>
+            <div class="foot"><span>&#11088; {{ f.avgRating?.toFixed(1) || '—' }}</span><span>&#128065; {{ f.popularity }}</span><span v-if="f.priceRange">{{ f.priceRange }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DefaultLayout>
+</template>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'; import DefaultLayout from '@/layouts/DefaultLayout.vue'; import type { FoodResponse } from '@/types/api'
+const foods = ref<FoodResponse[]>([]); const loading = ref(false); const keyword = ref(''); const activeCat = ref('All')
+const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6']
+const cats = ['All', 'Chinese', 'Western', 'Japanese', 'Korean', 'Fast Food']
+function search() {}; function filter(c: string) { activeCat.value = c }
+async function fetch() { loading.value = true; try { /* API */ } catch {} finally { loading.value = false } }
+onMounted(fetch)
+</script>
+<style scoped>
+.food-page { padding: 0; }
+.search-inp { width: 260px; }
+.cats { display: flex; gap: 6px; flex-wrap: wrap; }
+.cat-btn { padding: 4px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border-radius: 8px; font-size: 12px; cursor: pointer; }
+.cat-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.cat-btn.active { background: rgba(232,121,249,0.2); border-color: rgba(232,121,249,0.4); color: #e879f9; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card { overflow: hidden; cursor: pointer; border-radius: 14px; }
+.card:hover { background: rgba(255,255,255,0.12); }
+.card-top { height: 60px; padding: 6px; display: flex; justify-content: flex-end; }
+.card-cuisine { background: rgba(0,0,0,0.4); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 10px; }
+.card-body { padding: 12px; }
+.card-body h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.rest { font-size: 12px; color: rgba(255,255,255,0.4); margin: 0; }
+.foot { display: flex; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+.empty { text-align: center; padding: 60px; color: rgba(255,255,255,0.4); }
+</style>

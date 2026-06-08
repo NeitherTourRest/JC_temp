@@ -1,0 +1,89 @@
+<template>
+  <DefaultLayout>
+    <div class="diary-page">
+      <div class="toolbar glass-sm" style="padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+        <div class="tabs">
+          <button :class="['tab', {active: tab === 'all'}]" @click="tab='all';fetch()">&#128293; All</button>
+          <button :class="['tab', {active: tab === 'mine'}]" @click="tab='mine';fetch()">&#128214; Mine</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <el-input v-model="keyword" placeholder="Search..." clearable class="search-inp" @keyup.enter="search"><template #prefix><span style="color:rgba(255,255,255,0.4)">&#128269;</span></template></el-input>
+          <el-button type="primary" @click="$router.push('/diaries/new')">+ Write</el-button>
+        </div>
+      </div>
+      <div v-if="loading" class="empty">Loading...</div>
+      <div v-else-if="!diaries.length" class="empty">No diaries yet</div>
+      <div v-else class="grid">
+        <div v-for="d in diaries" :key="d.id" class="card glass" @click="$router.push('/diaries/' + d.id)">
+          <div v-if="d.images?.length" class="card-img"><img :src="d.images[0]" /></div>
+          <div v-else class="card-img-placeholder">&#128221;</div>
+          <div class="card-body">
+            <div class="card-badges">
+              <span v-if="d.images?.length" class="badge badge-cyan">&#128247; {{ d.images.length }}</span>
+              <span v-if="d.videoMeta" class="badge badge-yellow">&#127916;</span>
+              <span v-if="d.musicUrl" class="badge badge-green">&#127925;</span>
+            </div>
+            <h3>{{ d.title }}</h3>
+            <p class="card-desc">{{ (d.content || '').substring(0, 100) }}{{ (d.content || '').length > 100 ? '...' : '' }}</p>
+            <div class="card-foot">
+              <span>&#11088; {{ d.avgRating?.toFixed(1) || '—' }}</span>
+              <span>&#128065; {{ d.popularity }}</span>
+              <span>{{ d.createdAt?.substring(0,10) || '' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DefaultLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { diaryApi } from '@/api/diaryApi'
+import type { DiaryResponse } from '@/types/api'
+
+const diaries = ref<DiaryResponse[]>([])
+const loading = ref(false)
+const keyword = ref('')
+const tab = ref('all')
+
+async function fetch() {
+  loading.value = true
+  try {
+    const r = tab.value === 'mine' ? await diaryApi.mine({ size: 30 }) : await diaryApi.list({ size: 30 })
+    diaries.value = r.data.data.content || []
+  } catch {} finally { loading.value = false }
+}
+function search() {
+  if (!keyword.value.trim()) { fetch(); return }
+  loading.value = true
+  diaryApi.search(keyword.value).then(r => { diaries.value = r.data.data.content || [] }).finally(() => loading.value = false)
+}
+onMounted(fetch)
+</script>
+
+<style scoped>
+.diary-page { padding: 0; }
+.tabs { display: flex; gap: 4px; }
+.tab { padding: 6px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); border-radius: 8px; cursor: pointer; font-size: 13px; }
+.tab:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+.tab.active { background: rgba(34,211,238,0.15); border-color: rgba(34,211,238,0.3); color: #22d3ee; }
+.search-inp { width: 200px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.card { overflow: hidden; cursor: pointer; border-radius: 14px; }
+.card:hover { background: rgba(255,255,255,0.12); }
+.card-img { height: 160px; overflow: hidden; }
+.card-img img { width: 100%; height: 100%; object-fit: cover; }
+.card-img-placeholder { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: rgba(255,255,255,0.03); }
+.card-body { padding: 14px; }
+.card-badges { display: flex; gap: 6px; margin-bottom: 6px; }
+.badge { padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+.badge-cyan { background: rgba(34,211,238,0.15); color: #22d3ee; }
+.badge-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.badge-green { background: rgba(52,211,153,0.15); color: #34d399; }
+.card-body h3 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
+.card-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+.card-foot { display: flex; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+.empty { text-align: center; padding: 60px; color: rgba(255,255,255,0.4); }
+</style>

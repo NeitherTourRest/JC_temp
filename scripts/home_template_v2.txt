@@ -1,0 +1,88 @@
+<template>
+  <DefaultLayout>
+    <div class="dashboard">
+      <div class="stats-grid">
+        <div v-for="s in stats" :key="s.label" class="stat-card glass">
+          <div class="stat-icon" :style="{background: s.color}">{{ s.icon }}</div>
+          <div>
+            <p class="stat-value">{{ s.value }}</p>
+            <p class="stat-label">{{ s.label }}</p>
+            <p class="stat-change" :style="{color: s.changeColor}">{{ s.change }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="glass" style="padding:20px">
+          <div class="card-header"><h3>Popular Spots</h3><button class="ghost-btn" @click="goSpots">View All</button></div>
+          <div v-for="s in spots" :key="s.id" class="list-item" @click="goSpot(s.id)">
+            <div class="item-avatar" :style="{background: colors[s.id % colors.length]}">{{ s.name[0] }}</div>
+            <div class="item-info"><p class="item-name">{{ s.name }}</p><p class="item-meta">{{ s.category }}  &#11088; {{ s.avgRating?.toFixed(1) || '&mdash;' }}</p></div>
+            <span class="item-stat">&#128065; {{ s.popularity }}</span>
+          </div>
+        </div>
+        <div class="glass" style="padding:20px">
+          <div class="card-header"><h3>Recent Diaries</h3><button class="ghost-btn" @click="goDiaries">View All</button></div>
+          <div v-for="d in diaries" :key="d.id" class="list-item" @click="goDiary(d.id)">
+            <div class="item-avatar">{{ d.images?.length ? '📷' : '📝' }}</div>
+            <div class="item-info"><p class="item-name">{{ d.title }}</p><p class="item-meta">{{ d.createdAt?.substring(0,10) || '' }}</p></div>
+            <span class="item-stat">&#11088; {{ d.avgRating?.toFixed(1) || '&mdash;' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DefaultLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { spotApi } from '@/api/spotApi'
+import { diaryApi } from '@/api/diaryApi'
+import type { SpotResponse, DiaryResponse } from '@/types/api'
+
+const router = useRouter()
+const spots = ref<SpotResponse[]>([])
+const diaries = ref<DiaryResponse[]>([])
+const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6']
+const stats = [
+  { icon: '🏞️', label: 'Total Spots', value: '206', change: '+12%', changeColor: '#34d399', color: 'rgba(34,211,238,0.2)' },
+  { icon: '📓', label: 'Diaries', value: '50', change: '+5%', changeColor: '#34d399', color: 'rgba(52,211,153,0.2)' },
+]
+
+function goSpots() { router.push('/spots') }
+function goSpot(id: number) { router.push('/spots/' + id) }
+function goDiaries() { router.push('/diaries') }
+function goDiary(id: string) { router.push('/diaries/' + id) }
+
+onMounted(async () => {
+  try {
+    const [s, d] = await Promise.all([spotApi.search({ size: 5 }), diaryApi.list({ size: 5 })])
+    if (s?.data?.data?.content) spots.value = s.data.data.content
+    if (d?.data?.data?.content) diaries.value = d.data.data.content
+  } catch {}
+})
+</script>
+
+<style scoped>
+.dashboard { display: flex; flex-direction: column; gap: 20px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.stat-card { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 14px; }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+.stat-value { font-size: 1.4rem; font-weight: 700; }
+.stat-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+.stat-change { font-size: 12px; margin-top: 2px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-header h3 { font-size: 1rem; font-weight: 600; }
+.ghost-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 4px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+.ghost-btn:hover { background: rgba(255,255,255,0.1); }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; cursor: pointer; }
+.list-item:hover { background: rgba(255,255,255,0.06); }
+.item-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+.item-stat { font-size: 12px; color: rgba(255,255,255,0.5); flex-shrink: 0; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+</style>

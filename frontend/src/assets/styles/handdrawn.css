@@ -1,0 +1,189 @@
+/* Pop Art + Frosted Glass Hybrid - Lucida Console */
+:root {
+  --pop-yellow: #ffdd00;
+  --pop-pink: #ff69b4;
+  --pop-blue: #00bfff;
+  --pop-green: #00e676;
+  --pop-red: #ff3b3b;
+  --pop-orange: #ff9100;
+  --text-heading: #1a1a1a;
+  --text-body: #2d2d2d;
+  --text-muted: #666;
+  --text-link: #ff1493;
+  /* Pixel-art variable aliases (used by NavigationView) mapped to Pop Art palette */
+  --pixel-black: #1a1a1a;
+  --pixel-cream: #fffef5;
+  --pixel-white: #ffffff;
+  --pixel-green: #00e676;
+  --pixel-green-dark: #00c853;
+  --pixel-green-light: #69f0ae;
+  --pixel-green-bright: #b9f6ca;
+  --pixel-blue: #00bfff;
+  --pixel-red: #ff3b3b;
+  --pixel-purple: #e879f9;
+  --pixel-yellow: #ffdd00;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Lucida Console', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  background: #fffef5;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.03) 2px, transparent 2px), radial-gradient(circle, rgba(255,105,180,0.03) 2px, transparent 2px);
+  background-size: 16px 16px, 16px 16px;
+  background-position: 0 0, 8px 8px;
+  color: var(--text-body);
+}
+
+/* Typography hierarchy */
+h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); letter-spacing: 1px; }
+h2 { font-size: 1.4rem; font-weight: 600; color: var(--text-heading); }
+h3 { font-size: 1.15rem; font-weight: 600; color: var(--text-heading); }
+h4 { font-size: 1rem; font-weight: 600; color: var(--text-heading); }
+p  { font-size: 14px; color: var(--text-body); }
+
+/* Small text */
+.text-sm { font-size: 12px; color: var(--text-muted); }
+.text-xs { font-size: 11px; color: var(--text-muted); }
+
+/* Links */
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Glass cards */
+.glass {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 12px;
+  box-shadow: 6px 6px 0 #000;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.glass:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 #000;
+}
+.glass-sm {
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.glass-sm:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+/* Buttons */
+.el-button {
+  font-family: 'Lucida Console', monospace !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  background: #fff !important;
+  border: 3px solid #000 !important;
+  color: var(--text-heading) !important;
+  border-radius: 8px !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  padding: 8px 18px !important;
+  letter-spacing: 0.5px !important;
+}
+.el-button:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000 !important; }
+.el-button--primary { background: var(--pop-yellow) !important; color: #000 !important; border-color: #000 !important; }
+.el-button--danger { background: var(--pop-red) !important; color: #fff !important; }
+.el-button--success { background: var(--pop-green) !important; color: #000 !important; }
+.el-button--warning { background: var(--pop-orange) !important; color: #000 !important; }
+.el-button--small { font-size: 12px !important; padding: 5px 12px !important; }
+.el-button--large { font-size: 15px !important; padding: 10px 24px !important; }
+
+/* Inputs */
+.el-input__wrapper {
+  border: 3px solid #000 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+.el-input__inner { font-family: 'Lucida Console', monospace !important; font-size: 14px !important; color: var(--text-body) !important; }
+.el-input__wrapper.is-focus { border-color: var(--pop-blue) !important; box-shadow: 4px 4px 0 var(--pop-blue) !important; }
+
+/* Cards */
+.el-card { border: 3px solid #000 !important; border-radius: 12px !important; box-shadow: 6px 6px 0 #000 !important; background: #fff !important; }
+
+/* Tags */
+.el-tag {
+  border: 2px solid #000 !important;
+  border-radius: 8px !important;
+  font-family: 'Lucida Console', monospace !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px !important;
+}
+.el-tag--primary { background: var(--pop-yellow) !important; color: #000 !important; }
+.el-tag--warning { background: var(--pop-orange) !important; color: #000 !important; }
+.el-tag--success { background: var(--pop-green) !important; color: #000 !important; }
+.el-tag--danger { background: var(--pop-red) !important; color: #fff !important; }
+.el-tag--small { font-size: 10px !important; padding: 0 6px !important; }
+
+/* Dialog */
+.el-dialog { border: 4px solid #000 !important; border-radius: 16px !important; box-shadow: 8px 8px 0 #000 !important; background: #fff !important; }
+.el-dialog__header { background: var(--pop-yellow) !important; border-bottom: 3px solid #000 !important; }
+.el-dialog__title { font-family: 'Lucida Console', monospace !important; font-size: 16px !important; font-weight: 700 !important; color: #000 !important; letter-spacing: 1px !important; }
+.el-dialog__body { font-size: 14px !important; color: var(--text-body) !important; }
+
+/* Select */
+.el-select { font-family: 'Lucida Console', monospace !important; }
+.el-select-dropdown__item { font-family: 'Lucida Console', monospace !important; font-size: 13px !important; }
+.el-select-dropdown__item.selected { background: var(--pop-yellow) !important; color: #000 !important; }
+
+/* Tabs */
+.el-tabs__item { font-family: 'Lucida Console', monospace !important; font-size: 14px !important; font-weight: 600 !important; color: var(--text-muted) !important; }
+.el-tabs__item.is-active { color: var(--text-heading) !important; }
+.el-tabs__active-bar { background: var(--pop-pink) !important; height: 3px !important; }
+
+/* Page header text */
+.page-header h2, .detail-page h1, .hero h1, .brand-title { font-size: 1.6rem !important; font-weight: 700 !important; color: var(--text-heading) !important; letter-spacing: 1px !important; }
+.header-desc, .hero p, .brand-sub { font-size: 12px !important; color: var(--text-muted) !important; font-weight: 400 !important; }
+
+/* Card titles */
+.card-header h3, .spot-body h3, .card-body h3, .list-item .item-name { font-size: 14px !important; font-weight: 600 !important; color: var(--text-heading) !important; }
+
+/* Metadata text */
+.item-meta, .card-desc, .spot-desc, .card-foot, .spot-foot, .stat-label { font-size: 12px !important; color: var(--text-muted) !important; }
+
+/* Stat numbers */
+.stat-value { font-size: 1.5rem !important; font-weight: 700 !important; color: var(--text-heading) !important; }
+.stat-change { font-size: 12px !important; }
+
+/* Sidebar nav */
+.nav-btn { font-family: 'Lucida Console', monospace !important; font-size: 13px !important; font-weight: 500 !important; }
+.nav-group-title { font-family: 'Lucida Console', monospace !important; font-size: 10px !important; font-weight: 700 !important; color: var(--text-muted) !important; letter-spacing: 2px !important; text-transform: uppercase !important; }
+
+/* Nav tabs in page */
+.tab { font-family: 'Lucida Console', monospace !important; font-size: 13px !important; font-weight: 600 !important; }
+.cat-btn { font-family: 'Lucida Console', monospace !important; font-size: 12px !important; font-weight: 500 !important; }
+
+/* Search placeholder */
+::placeholder { color: #999 !important; font-family: 'Lucida Console', monospace !important; font-size: 13px !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--pop-yellow); border: 2px solid #000; }
+::-webkit-scrollbar-thumb { background: var(--pop-blue); border: 2px solid #000; }
+::-webkit-scrollbar-thumb:hover { background: var(--pop-pink); }
+
+/* Empty states */
+.empty, .loading-msg, .center { font-family: 'Lucida Console', monospace !important; font-size: 14px !important; color: var(--text-muted) !important; }
+.loading-msg { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px 20px; }
+.loading-spinner { width: 20px; height: 20px; border: 3px solid #000; border-top-color: var(--pop-yellow); border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-msg { text-align: center; padding: 40px 20px; color: var(--pop-red); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.error-msg .error-icon { font-size: 2rem; }
+
+/* Suppress any remaining Element Plus border-radius leakage */
+.el-popper, .el-select-dropdown, .el-message-box, .el-notification,
+.el-dropdown-menu, .el-cascader-menu, .el-date-picker,
+.el-picker-panel, .el-popover, .el-tooltip__trigger { border-radius: 8px !important; }
+.el-message { border-radius: 10px !important; }
+
+/* Utility overrides */
+.auth-card h1 { font-size: 1.5rem !important; font-weight: 700 !important; color: var(--text-heading) !important; letter-spacing: 1px !important; }
+.auth-switch { font-size: 13px !important; color: var(--text-muted) !important; }
+.diary-content { font-size: 15px !important; line-height: 1.8 !important; }

@@ -1,0 +1,55 @@
+# ── API Keys (NEVER commit) ──────────────────────────────
+**/ai-api-key.properties
+**/apikey*.properties
+**/api-key*.properties
+token.txt
+*.token
+
+# ── Backend: Maven Build ─────────────────────────────────
+JC/target/
+**/target/
+*.class
+*.jar
+*.war
+
+# ── Frontend: npm Build ──────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+backend*.log
+frontend*.log
+boot.err
+boot.log
+
+# ── Sisyphus Agent Workspace ─────────────────────────────
+.sisyphus/
+.pic/
+.doc/
+skills/
+
+# ── IDE & Editor ─────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ── Temp / Cache ─────────────────────────────────────────
+temp/
+**/__pycache__/
+*.pyc
+
+# ── Environment ──────────────────────────────────────────
+.env
+.env.local
+.env.production
+
+# ── OS-specific ──────────────────────────────────────────
+Desktop.ini
+*.swp
+*.swo
+*~

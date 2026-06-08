@@ -1,0 +1,45 @@
+package com.journeycraft.jc.algorithm;
+
+import com.journeycraft.jc.navigation.graph.Graph;
+import com.journeycraft.jc.navigation.graph.GraphEdge;
+import com.journeycraft.jc.navigation.graph.GraphNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class GraphTest {
+
+    private Graph graph;
+
+    @BeforeEach
+    void setUp() {
+        graph = new Graph("test");
+        graph.addNode(new GraphNode("A", 40.0, 116.0));
+        graph.addNode(new GraphNode("B", 40.1, 116.0));
+        graph.addNode(new GraphNode("C", 40.1, 116.1));
+        
+        graph.addEdge(GraphEdge.builder().edgeId("e1").fromNodeId("A").toNodeId("B")
+                .distance(11120.0).roadType("primary").name("Road1").isOneWay(false).maxSpeed(60).build());
+        graph.addEdge(GraphEdge.builder().edgeId("e2").fromNodeId("B").toNodeId("C")
+                .distance(9500.0).roadType("secondary").name("Road2").isOneWay(false).maxSpeed(40).build());
+    }
+
+    @Test
+    void testNodeCount() { assertEquals(3, graph.getNodeCount()); }
+
+    @Test
+    void testEdgeCount() { assertEquals(4, graph.getEdgeCount()); } // 2 edges + 2 auto-reverse
+
+    @Test
+    void testFindNearestNode() {
+        var nearest = graph.findNearestNode(40.0, 116.0);
+        assertEquals("A", nearest.getNodeId());
+    }
+
+    @Test
+    void testHaversineDistance() {
+        double dist = Graph.haversineDistance(40.0, 116.0, 40.1, 116.0);
+        assertTrue(dist > 11000 && dist < 11200); // ~11.1 km
+    }
+}

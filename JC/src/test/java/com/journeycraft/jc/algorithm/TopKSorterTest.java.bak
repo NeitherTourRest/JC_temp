@@ -1,0 +1,32 @@
+package com.journeycraft.jc.algorithm;
+
+import com.journeycraft.jc.navigation.algorithm.TopKSorter;
+import org.junit.jupiter.api.Test;
+
+import java.util.Comparator;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class TopKSorterTest {
+
+    @Test
+    void testTopK() {
+        var items = List.of(5, 1, 8, 3, 9, 2, 7, 4, 6);
+        var result = TopKSorter.topK(items, 3, Comparator.naturalOrder());
+        assertEquals(List.of(9, 8, 7), result);
+    }
+
+    @Test
+    void testTopKWithKGreaterThanSize() {
+        var items = List.of(3, 1, 2);
+        var result = TopKSorter.topK(items, 10, Comparator.naturalOrder());
+        assertEquals(List.of(3, 2, 1), result);
+    }
+
+    @Test
+    void testTopKEmptyList() {
+        var result = TopKSorter.topK(List.of(), 5, Comparator.naturalOrder());
+        assertTrue(result.isEmpty());
+    }
+}

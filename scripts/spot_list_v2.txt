@@ -1,0 +1,81 @@
+<template>
+  <DefaultLayout>
+    <div class="spots-page">
+      <div class="toolbar glass-sm" style="padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <el-input v-model="keyword" placeholder="Search spots..." clearable class="search-inp" @keyup.enter="search">
+          <template #prefix><span style="color:rgba(255,255,255,0.4)">&#128269;</span></template>
+        </el-input>
+        <div class="cat-filters">
+          <button v-for="c in cats" :key="c" :class="['cat-btn', {active: activeCat === c}]" @click="filterCat(c)">{{ c }}</button>
+        </div>
+      </div>
+      <div v-if="loading" class="loading-msg">Loading...</div>
+      <div v-else-if="!spots.length" class="empty-msg">No spots found</div>
+      <div v-else class="spots-grid">
+        <div v-for="s in spots" :key="s.id" class="spot-card glass" @click="$router.push('/spots/' + s.id)">
+          <div class="spot-top" :style="{background: colors[s.id % colors.length]}">
+            <span class="spot-cat">{{ s.category }}</span>
+          </div>
+          <div class="spot-body">
+            <h3>{{ s.name }}</h3>
+            <p class="spot-desc">{{ (s.description || '').substring(0, 80) }}{{ (s.description || '').length > 80 ? '...' : '' }}</p>
+            <div class="spot-foot">
+              <span>&#11088; {{ s.avgRating?.toFixed(1) || '—' }}</span>
+              <span>&#128065; {{ s.popularity }}</span>
+              <span v-if="s.address" class="spot-addr">&#128205; {{ s.address?.substring(0, 15) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DefaultLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { spotApi } from '@/api/spotApi'
+import type { SpotResponse } from '@/types/api'
+
+const spots = ref<SpotResponse[]>([])
+const loading = ref(false)
+const keyword = ref('')
+const activeCat = ref('All')
+const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6', '#4ade80', '#f87171']
+const cats = ['All', '景点', '校园', '餐厅', '商场', '公园', '博物馆', '酒店', '体育场馆']
+
+async function fetch() {
+  loading.value = true
+  try {
+    const p: any = { size: 20 }
+    if (keyword.value) p.keyword = keyword.value
+    if (activeCat.value !== 'All') p.category = activeCat.value
+    const r = await spotApi.search(p)
+    spots.value = r.data.data.content || []
+  } catch {} finally { loading.value = false }
+}
+function search() { fetch() }
+function filterCat(c: string) { activeCat.value = c; fetch() }
+onMounted(fetch)
+</script>
+
+<style scoped>
+.spots-page { padding: 0; }
+.search-inp { width: 260px; }
+.cat-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.cat-btn { padding: 4px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border-radius: 8px; font-size: 12px; cursor: pointer; }
+.cat-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.cat-btn.active { background: rgba(34,211,238,0.2); border-color: rgba(34,211,238,0.4); color: #22d3ee; }
+.loading-msg, .empty-msg { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.4); }
+.spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.spot-card { overflow: hidden; cursor: pointer; border-radius: 14px; }
+.spot-card:hover { background: rgba(255,255,255,0.12); }
+.spot-top { height: 90px; padding: 8px; display: flex; justify-content: flex-end; }
+.spot-cat { background: rgba(0,0,0,0.4); color: #fff; padding: 2px 10px; border-radius: 8px; font-size: 11px; }
+.spot-body { padding: 14px; }
+.spot-body h3 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
+.spot-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px; line-height: 1.4; }
+.spot-foot { display: flex; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.5); flex-wrap: wrap; }
+.spot-addr { font-size: 11px; }
+@media (max-width: 768px) { .spots-grid { grid-template-columns: 1fr; } }
+</style>
