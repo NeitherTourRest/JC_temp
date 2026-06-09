@@ -10,13 +10,24 @@ public record FoodResponse(
         Long spotId, String description, String priceRange,
         Double latitude, Double longitude,
         Integer popularity, BigDecimal avgRating, Integer ratingCount,
-        String imageUrl, LocalDateTime createdAt) {
+        String imageUrl, LocalDateTime createdAt,
+        String congestionLevel) {
 
     public static FoodResponse from(Food food) {
         return new FoodResponse(food.getId(), food.getName(), food.getCuisine(),
                 food.getRestaurantName(), food.getSpotId(), food.getDescription(),
                 food.getPriceRange(), food.getLatitude(), food.getLongitude(),
                 food.getPopularity(), food.getAvgRating(), food.getRatingCount(),
-                food.getImageUrl(), food.getCreatedAt());
+                food.getImageUrl(), food.getCreatedAt(),
+                null);
+    }
+
+    public static FoodResponse withCongestion(Food food, String congestionLevel) {
+        return new FoodResponse(food.getId(), food.getName(), food.getCuisine(),
+                food.getRestaurantName(), food.getSpotId(), food.getDescription(),
+                food.getPriceRange(), food.getLatitude(), food.getLongitude(),
+                food.getPopularity(), food.getAvgRating(), food.getRatingCount(),
+                food.getImageUrl(), food.getCreatedAt(),
+                congestionLevel);
     }
 }

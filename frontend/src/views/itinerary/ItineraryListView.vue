@@ -317,10 +317,12 @@
         <p>Pick start and end dates to begin planning your days</p>
       </div>
 
-      <!-- ── Floating AI Button ────────────────────────── -->
-      <button class="ai-float-btn" title="AI Assistant" @click="openAiDialog">
-        🤖 AI
-      </button>
+      <!-- ── Floating AI Buttons ────────────────────────── -->
+      <div class="ai-float-group">
+        <button class="ai-float-btn" title="AI Plan" @click="openAiPlanDialog">📋 Plan</button>
+        <button class="ai-float-btn" title="Budget" @click="openBudgetDialog">💰 Budget</button>
+        <button class="ai-float-btn" title="AI Assistant" @click="openAiDialog">🤖 Chat</button>
+      </div>
 
       <!-- ══════════════════════════════════════════════════════
            DIALOG 1: Map Picker 🗺️
@@ -435,6 +437,92 @@
           </div>
         </div>
       </el-dialog>
+
+      <!-- ══════════════════════════════════════════════════════
+           DIALOG 4: AI Plan 📋
+           ══════════════════════════════════════════════════════ -->
+      <el-dialog v-model="aiPlanDialogVisible" title="📋 AI Trip Plan" width="700px" top="5vh" destroy-on-close>
+        <el-form label-position="top">
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="Days"><el-input-number v-model="planForm.days" :min="1" :max="14" style="width:100%" /></el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="Budget"><el-select v-model="planForm.budget" style="width:100%">
+                <el-option label="Low" value="低" /><el-option label="Medium" value="中" /><el-option label="High" value="高" />
+              </el-select></el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="Interests"><el-input v-model="planForm.interests" placeholder="e.g. nature, history, food" /></el-form-item>
+          <el-form-item label="Transport"><el-select v-model="planForm.transport" style="width:100%">
+            <el-option label="Walk" value="步行" /><el-option label="Bike" value="骑行" /><el-option label="Drive" value="驾车" />
+          </el-select></el-form-item>
+          <el-form-item label="Extra Requirements"><el-input v-model="planForm.additionalInfo" type="textarea" :rows="2" /></el-form-item>
+          <el-button type="primary" @click="generatePlan" :loading="planLoading" style="width:100%">Generate Plan</el-button>
+        </el-form>
+        <div v-if="planResult && !planLoading" class="dialog-result">
+          <h4 class="plan-title-name">{{ planResult.title }}</h4>
+          <div v-for="day in planResult.days" :key="day.day" class="day-block">
+            <strong>{{ day.date }} · {{ day.theme }}</strong>
+            <div v-for="act in day.schedule" :key="act.time" class="activity">
+              <span class="act-time">{{ act.time }}</span>
+              <span>{{ act.activity }}</span>
+              <span class="act-loc">{{ act.location }}</span>
+            </div>
+          </div>
+          <div v-if="planResult.tips?.length" class="plan-tips">
+            <p v-for="(t, i) in planResult.tips" :key="i">• {{ t }}</p>
+          </div>
+          <div v-if="planResult.estimatedCost" class="plan-cost">💰 {{ planResult.estimatedCost }}</div>
+          <el-button size="small" type="success" @click="applyPlanResult" style="margin-top:8px">Apply to Trip</el-button>
+        </div>
+      </el-dialog>
+
+      <!-- ══════════════════════════════════════════════════════
+           DIALOG 5: Budget 💰
+           ══════════════════════════════════════════════════════ -->
+      <el-dialog v-model="budgetDialogVisible" title="💰 Budget Estimate" width="700px" top="5vh" destroy-on-close>
+        <el-form label-position="top">
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="Days"><el-input-number v-model="budgetForm.days" :min="1" :max="30" style="width:100%" /></el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="People"><el-input-number v-model="budgetForm.peopleCount" :min="1" :max="20" style="width:100%" /></el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="Spots to Visit"><el-input v-model="budgetForm.spots" placeholder="e.g. 十三陵,居庸关" /></el-form-item>
+          <el-row :gutter="16">
+            <el-col :span="8">
+              <el-form-item label="Transport"><el-select v-model="budgetForm.transport" style="width:100%">
+                <el-option label="Public" value="公共交通" /><el-option label="Self-drive" value="自驾" /><el-option label="Mixed" value="混合" />
+              </el-select></el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Dining"><el-select v-model="budgetForm.diningPref" style="width:100%">
+                <el-option label="Simple" value="简餐" /><el-option label="Normal" value="普通" /><el-option label="Gourmet" value="美食体验" />
+              </el-select></el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Accommodation"><el-select v-model="budgetForm.accommodation" style="width:100%">
+                <el-option label="Budget" value="经济型" /><el-option label="Comfort" value="舒适型" /><el-option label="Luxury" value="高档" />
+              </el-select></el-form-item>
+            </el-col>
+          </el-row>
+          <el-button type="primary" @click="estimateBudget" :loading="budgetLoading" style="width:100%">Estimate Budget</el-button>
+        </el-form>
+        <div v-if="budgetResult && !budgetLoading" class="dialog-result">
+          <h4 class="budget-total">💰 Total: <span class="total-amount">{{ budgetResult.totalBudget }}</span></h4>
+          <div v-for="cat in budgetResult.categories" :key="cat.name" class="cat-row">
+            <span class="cat-name">{{ cat.name }}</span>
+            <span class="cat-amount">¥{{ cat.amount }}</span>
+            <span class="cat-detail">{{ cat.details }}</span>
+          </div>
+          <div v-if="budgetResult.suggestions?.length" class="plan-tips">
+            <p v-for="(s, i) in budgetResult.suggestions" :key="i">• {{ s }}</p>
+          </div>
+        </div>
+      </el-dialog>
     </div>
   </DefaultLayout>
 </template>
@@ -538,6 +626,18 @@ const aiInput = ref('')
 const aiLoading = ref(false)
 const aiMessages = ref<{ role: string; content: string; time: string }[]>([])
 const aiChatRef = ref<HTMLElement>()
+
+/* ── Dialog 4: AI Plan state ──────────────────────────── */
+const aiPlanDialogVisible = ref(false)
+const planForm = ref({ days: 2, interests: '自然风光,历史古迹', budget: '中', transport: '步行', additionalInfo: '' })
+const planResult = ref<any>(null)
+const planLoading = ref(false)
+
+/* ── Dialog 5: Budget state ──────────────────────────── */
+const budgetDialogVisible = ref(false)
+const budgetForm = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' })
+const budgetResult = ref<any>(null)
+const budgetLoading = ref(false)
 
 /* ───────────────────────────────────────────────────────
    List mode: data fetching
@@ -886,6 +986,57 @@ function scrollAiDown() {
       aiChatRef.value.scrollTop = aiChatRef.value.scrollHeight
     }
   })
+}
+
+/* ───────────────────────────────────────────────────────
+   Dialog 4/5: AI Plan & Budget
+   ─────────────────────────────────────────────────────── */
+function openAiPlanDialog() {
+  aiPlanDialogVisible.value = true
+  planResult.value = null
+}
+function openBudgetDialog() {
+  budgetDialogVisible.value = true
+  budgetResult.value = null
+}
+async function generatePlan() {
+  planLoading.value = true
+  planResult.value = null
+  try {
+    const res = await aiApi.plan(planForm.value)
+    planResult.value = res.data.data
+  } catch {
+    planResult.value = { title: 'Request failed', days: [], tips: ['Check AI config'], estimatedCost: '' }
+  } finally { planLoading.value = false }
+}
+async function estimateBudget() {
+  budgetLoading.value = true
+  budgetResult.value = null
+  try {
+    const res = await aiApi.budget(budgetForm.value)
+    budgetResult.value = res.data.data
+  } catch {
+    budgetResult.value = { totalBudget: 'N/A', categories: [], suggestions: ['Check AI config'] }
+  } finally { budgetLoading.value = false }
+}
+function applyPlanResult() {
+  if (!planResult.value || !planResult.value.days) return
+  // Build tripPlan days from plan result
+  tripPlan.days = planResult.value.days.map((day: any, di: number) => ({
+    date: day.date || `Day ${di + 1}`,
+    sections: {
+      attractions: (day.schedule || []).map((a: any) => ({
+        id: nextItemId(),
+        name: a.activity || '',
+        startTime: a.time || '',
+        endTime: ''
+      })),
+      dining: [],
+      notes: []
+    }
+  }))
+  ElMessage.success('Plan applied to trip')
+  aiPlanDialogVisible.value = false
 }
 
 /* ───────────────────────────────────────────────────────
@@ -1755,6 +1906,22 @@ onMounted(fetchItineraries)
   50% { content: '...'; }
   75% { content: ''; }
 }
+
+/* ── AI Plan & Budget dialog styles ──────────────────── */
+.dialog-result { margin-top: 16px; padding: 16px; border: 3px solid #000; border-radius: 8px; background: #fff; }
+.plan-title-name { font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center; }
+.day-block { margin-bottom: 12px; padding: 10px; background: #faf8f5; border: 1px dashed #000; }
+.activity { display: flex; gap: 8px; padding: 4px 0; font-size: 13px; }
+.act-time { color: #2c3e7a; font-weight: 600; width: 50px; flex-shrink: 0; }
+.act-loc { color: #666; font-size: 12px; margin-left: auto; }
+.plan-tips { margin-top: 8px; padding: 8px 12px; background: #fff8e1; border: 1px dashed #e6a23c; font-size: 12px; }
+.plan-cost { margin-top: 8px; padding: 6px 12px; background: #f0f9eb; border: 1px solid #67c23a; display: inline-block; font-size: 14px; font-weight: 600; }
+.budget-total { font-size: 18px; text-align: center; padding: 12px; margin-bottom: 12px; background: #f0f9eb; border: 1px dashed #67c23a; }
+.total-amount { color: #67c23a; font-size: 22px; }
+.cat-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+.cat-name { font-weight: 600; width: 80px; }
+.cat-amount { color: #e6a23c; font-weight: 600; width: 70px; }
+.cat-detail { color: #666; flex: 1; }
 
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 768px) {

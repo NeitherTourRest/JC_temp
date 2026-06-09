@@ -1,6 +1,8 @@
 package com.journeycraft.jc.user.service;
 
+import com.journeycraft.jc.common.exception.BadRequestException;
 import com.journeycraft.jc.common.exception.ResourceNotFoundException;
+import com.journeycraft.jc.common.util.JwtUtil;
 import com.journeycraft.jc.user.dto.*;
 import com.journeycraft.jc.user.entity.User;
 import com.journeycraft.jc.user.repository.UserPreferenceRepository;
@@ -16,6 +18,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser() {
@@ -26,13 +29,46 @@ public class UserService {
     @Transactional
     public UserResponse updateCurrentUser(UserUpdateRequest request) {
         var user = getCurrentUserEntity();
+        boolean usernameChanged = false;
+
+        if (request.username() != null && !request.username().isBlank()) {
+            // Check if username is taken by another user
+            if (!request.username().equals(user.getUsername()) &&
+                    userRepository.existsByUsername(request.username())) {
+                throw new BadRequestException("Username already taken");
+            }
+            if (!request.username().equals(user.getUsername())) {
+                usernameChanged = true;
+            }
+            user.setUsername(request.username());
+        }
+
         if (request.nickname() != null) {
             user.setNickname(request.nickname());
         }
+
+        if (request.email() != null && !request.email().isBlank()) {
+            // Check if email is taken by another user
+            if (!request.email().equals(user.getEmail()) &&
+                    userRepository.existsByEmail(request.email())) {
+                throw new BadRequestException("Email already in use");
+            }
+            user.setEmail(request.email());
+        }
+
         if (request.avatar() != null) {
             user.setAvatar(request.avatar());
         }
-        return UserResponse.from(userRepository.save(user));
+
+        user = userRepository.save(user);
+
+        // If username changed, the old JWT is invalid — generate a new one
+        if (usernameChanged) {
+            var newToken = jwtUtil.generateAccessToken(user);
+            return UserResponse.withToken(user, newToken);
+        }
+
+        return UserResponse.from(user);
     }
 
     @Transactional(readOnly = true)

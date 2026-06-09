@@ -20,8 +20,11 @@
         </div>
         <el-divider />
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="用户名">{{ profile.username }}</el-descriptions-item>
+          <el-descriptions-item label="UID">
+            <span class="uid-text">#{{ profile.id }}</span>
+          </el-descriptions-item>
           <el-descriptions-item label="昵称">{{ profile.nickname || '未设置' }}</el-descriptions-item>
+          <el-descriptions-item label="用户名">@{{ profile.username }}</el-descriptions-item>
           <el-descriptions-item label="邮箱">{{ profile.email || '未设置' }}</el-descriptions-item>
           <el-descriptions-item label="注册时间">{{ formatDate(profile.createdAt) }}</el-descriptions-item>
         </el-descriptions>
@@ -112,25 +115,41 @@
       </div>
 
       <!-- 编辑资料弹窗 -->
-      <el-dialog
-        v-model="showEditDialog"
-        title="编辑个人资料"
-        width="480px"
-        :close-on-click-modal="false"
-      >
-        <el-form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editRules"
-          label-position="top"
-        >
-          <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="editForm.nickname" placeholder="请输入昵称" maxlength="30" show-word-limit />
-          </el-form-item>
-          <el-form-item label="头像链接" prop="avatar">
-            <el-input v-model="editForm.avatar" placeholder="请输入头像图片URL" />
-          </el-form-item>
-        </el-form>
+          <el-dialog
+            v-model="showEditDialog"
+            title="编辑个人资料"
+            width="480px"
+            :close-on-click-modal="false"
+          >
+            <el-form
+              ref="editFormRef"
+              :model="editForm"
+              :rules="editRules"
+              label-position="top"
+            >
+              <el-form-item label="头像">
+                <div class="avatar-upload" @click="avatarInput?.click()">
+                  <img v-if="editForm.avatar" :src="editForm.avatar" class="avatar-preview" />
+                  <div v-else class="avatar-placeholder">
+                    <span class="upload-icon">📷</span>
+                    <span>点击上传头像</span>
+                  </div>
+                  <input ref="avatarInput" type="file" accept="image/*" hidden @change="onAvatarChange" />
+                  <div v-if="avatarUploading" class="avatar-uploading-overlay">
+                    <span>上传中...</span>
+                  </div>
+                </div>
+              </el-form-item>
+              <el-form-item label="昵称" prop="nickname">
+                <el-input v-model="editForm.nickname" placeholder="请输入昵称" maxlength="30" show-word-limit />
+              </el-form-item>
+              <el-form-item label="用户名" prop="username">
+                <el-input v-model="editForm.username" placeholder="请输入用户名" minlength="2" maxlength="50" />
+              </el-form-item>
+              <el-form-item label="邮箱" prop="email">
+                <el-input v-model="editForm.email" placeholder="请输入邮箱" type="email" />
+              </el-form-item>
+            </el-form>
         <template #footer>
           <el-button @click="showEditDialog = false">取消</el-button>
           <el-button type="primary" :loading="savingProfile" @click="handleSaveProfile">
@@ -150,6 +169,7 @@ import { Edit, SwitchButton } from '@element-plus/icons-vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { userApi } from '@/api/userApi'
+import apiClient from '@/api/axios'
 import type { UserResponse } from '@/types/api'
 import type { FormInstance, FormRules } from 'element-plus'
 
@@ -178,12 +198,21 @@ const savingPreferences = ref(false)
 const showEditDialog = ref(false)
 const savingProfile = ref(false)
 const editFormRef = ref<FormInstance>()
-const editForm = reactive({ nickname: '', avatar: '' })
+const editForm = reactive({ nickname: '', username: '', email: '', avatar: '' })
 const editRules: FormRules = {
   nickname: [
     { min: 1, max: 30, message: '昵称长度在 1 到 30 个字符之间', trigger: 'blur' }
+  ],
+  username: [
+    { min: 2, max: 50, message: '用户名长度在 2 到 50 个字符之间', trigger: 'blur' },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
+  ],
+  email: [
+    { pattern: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' }
   ]
 }
+const avatarInput = ref<HTMLInputElement>()
+const avatarUploading = ref(false)
 
 // --- 工具函数 ---
 function formatDate(dateStr?: string): string {
@@ -210,11 +239,14 @@ async function loadProfile() {
     const res = await userApi.getProfile()
     const data = res.data.data
     Object.assign(profile, data)
-    // 同步更新 auth store 中的用户信息
+    // 同步更新 auth store 中的用户信息（触发 sidebar 响应式更新）
     if (auth.user) {
       auth.user.nickname = data.nickname || ''
       auth.user.avatar = data.avatar || ''
     }
+    // 持久化到 localStorage（页面刷新后 sidebar 也能恢复）
+    if (data.nickname) localStorage.setItem('nickname', data.nickname)
+    if (data.avatar) localStorage.setItem('avatar', data.avatar)
   } catch {
     ElMessage.error('加载用户信息失败')
   }
@@ -232,6 +264,37 @@ async function loadPreferences() {
   }
 }
 
+// --- 头像上传 ---
+async function onAvatarChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('请选择图片文件')
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.warning('图片大小不能超过 5MB')
+    return
+  }
+  avatarUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await apiClient.post('/files/upload', formData)
+    const url = res.data.data?.url
+    if (url) {
+      editForm.avatar = url
+    }
+  } catch {
+    ElMessage.error('头像上传失败')
+  } finally {
+    avatarUploading.value = false
+    // Clear input so re-selecting same file triggers change
+    input.value = ''
+  }
+}
+
 // --- 保存操作 ---
 async function handleSaveProfile() {
   if (!editFormRef.value) return
@@ -241,18 +304,32 @@ async function handleSaveProfile() {
     try {
       const res = await userApi.updateProfile({
         nickname: editForm.nickname || undefined,
+        username: editForm.username || undefined,
+        email: editForm.email || undefined,
         avatar: editForm.avatar || undefined
       })
       const data = res.data.data
       Object.assign(profile, data)
       if (auth.user) {
         auth.user.nickname = data.nickname || ''
+        auth.user.username = data.username || ''
         auth.user.avatar = data.avatar || ''
       }
-      ElMessage.success('资料更新成功')
+      // Sync to localStorage
+      if (data.nickname) localStorage.setItem('nickname', data.nickname)
+      if (data.avatar) localStorage.setItem('avatar', data.avatar)
+      // If backend returned a new token (username changed), update it
+      if ((data as any).token) {
+        localStorage.setItem('accessToken', (data as any).token)
+        ElMessage.success('用户名已修改')
+      } else {
+        ElMessage.success('资料更新成功')
+      }
       showEditDialog.value = false
-    } catch {
-      ElMessage.error('更新资料失败')
+    } catch (e: any) {
+      console.error('Profile update error:', e)
+      const msg = e?.response?.data?.message || e?.message || '更新资料失败'
+      ElMessage.error(msg)
     } finally {
       savingProfile.value = false
     }
@@ -285,6 +362,8 @@ function handleLogout() {
 watch(showEditDialog, (val) => {
   if (val) {
     editForm.nickname = profile.nickname || ''
+    editForm.username = profile.username || ''
+    editForm.email = profile.email || ''
     editForm.avatar = profile.avatar || ''
   }
 })
@@ -349,6 +428,34 @@ onMounted(() => {
   margin-left: auto;
 }
 
+/* 头像上传 */
+.avatar-upload {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border: 3px solid #000;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #000;
+  background: #f5f5f5;
+}
+.avatar-upload:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; }
+.avatar-preview { width: 100%; height: 100%; object-fit: cover; }
+.avatar-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; color: #999; font-size: 12px;
+}
+.upload-icon { font-size: 28px; }
+.avatar-uploading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 600;
+}
+
 /* 偏好设置 */
 .preferences-card .card-header,
 .nav-card .card-header {
@@ -402,6 +509,13 @@ onMounted(() => {
 
 .nav-icon {
   font-size: 20px;
+}
+
+.uid-text {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #909399;
+  letter-spacing: 1px;
 }
 
 /* 退出登录 */

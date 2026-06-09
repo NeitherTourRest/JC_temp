@@ -10,7 +10,8 @@ public record UserResponse(
         String email,
         String nickname,
         String avatar,
-        LocalDateTime createdAt) {
+        LocalDateTime createdAt,
+        String token) {
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -19,6 +20,18 @@ public record UserResponse(
                 user.getEmail(),
                 user.getNickname(),
                 user.getAvatar(),
-                user.getCreatedAt());
+                user.getCreatedAt(),
+                null);
+    }
+
+    public static UserResponse withToken(User user, String token) {
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getAvatar(),
+                user.getCreatedAt(),
+                token);
     }
 }

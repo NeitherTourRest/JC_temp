@@ -1,10 +1,31 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_0_0_0.d.ts" />
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const q = ref('');
-const isLoggedIn = !!localStorage.getItem('accessToken');
+const isLoggedIn = computed(() => authStore.isAuthenticated);
+const nickname = computed(() => {
+    if (authStore.user?.nickname)
+        return authStore.user.nickname;
+    if (authStore.user?.username)
+        return authStore.user.username;
+    return localStorage.getItem('nickname') || 'User';
+});
+const avatarUrl = computed(() => {
+    if (authStore.user?.avatar)
+        return authStore.user.avatar;
+    return localStorage.getItem('avatar') || '';
+});
+const avatarLetter = computed(() => nickname.value ? nickname.value.charAt(0).toUpperCase() : '?');
+const avatarStyle = computed(() => avatarUrl.value ? {
+    backgroundImage: 'url(' + avatarUrl.value + ')',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    color: 'transparent'
+} : {});
 const navMain = [
     { path: '/spots', icon: '🏞️', label: 'Spots' },
     { path: '/foods', icon: '🍜', label: 'Food' },
@@ -26,6 +47,8 @@ let __VLS_components;
 let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['nav-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['nav-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-section']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['page-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['search-box']} */ ;
 /** @type {__VLS_StyleScopedClasses['search-box']} */ ;
@@ -125,24 +148,51 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElement
         } },
     ...{ class: "premium-btn" },
 });
-if (!__VLS_ctx.isLoggedIn) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+if (__VLS_ctx.isLoggedIn) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ onClick: (...[$event]) => {
-                if (!(!__VLS_ctx.isLoggedIn))
-                    return;
-                __VLS_ctx.$router.push('/login');
-            } },
-        ...{ class: "nav-btn" },
-    });
-}
-else {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (...[$event]) => {
-                if (!!(!__VLS_ctx.isLoggedIn))
+                if (!(__VLS_ctx.isLoggedIn))
                     return;
                 __VLS_ctx.$router.push('/profile');
             } },
-        ...{ class: "nav-btn" },
+        ...{ class: "profile-section" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "profile-avatar" },
+        ...{ style: (__VLS_ctx.avatarStyle) },
+    });
+    (__VLS_ctx.avatarLetter);
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "profile-info" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "profile-name" },
+    });
+    (__VLS_ctx.nickname);
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "profile-action" },
+    });
+}
+else {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ onClick: (...[$event]) => {
+                if (!!(__VLS_ctx.isLoggedIn))
+                    return;
+                __VLS_ctx.$router.push('/login');
+            } },
+        ...{ class: "profile-section guest" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "profile-avatar guest-avatar" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "profile-info" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "profile-name" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "profile-action" },
     });
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.main, __VLS_intrinsicElements.main)({
@@ -196,8 +246,18 @@ var __VLS_0 = {};
 /** @type {__VLS_StyleScopedClasses['premium-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['premium-desc']} */ ;
 /** @type {__VLS_StyleScopedClasses['premium-btn']} */ ;
-/** @type {__VLS_StyleScopedClasses['nav-btn']} */ ;
-/** @type {__VLS_StyleScopedClasses['nav-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-section']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-avatar']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-info']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-action']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-section']} */ ;
+/** @type {__VLS_StyleScopedClasses['guest']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-avatar']} */ ;
+/** @type {__VLS_StyleScopedClasses['guest-avatar']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-info']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-action']} */ ;
 /** @type {__VLS_StyleScopedClasses['main-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['page-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
@@ -213,6 +273,9 @@ const __VLS_self = (await import('vue')).defineComponent({
         return {
             q: q,
             isLoggedIn: isLoggedIn,
+            nickname: nickname,
+            avatarLetter: avatarLetter,
+            avatarStyle: avatarStyle,
             navMain: navMain,
             navTools: navTools,
             isActive: isActive,

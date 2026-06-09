@@ -55,6 +55,16 @@ const aiInput = ref('');
 const aiLoading = ref(false);
 const aiMessages = ref([]);
 const aiChatRef = ref();
+/* ── Dialog 4: AI Plan state ──────────────────────────── */
+const aiPlanDialogVisible = ref(false);
+const planForm = ref({ days: 2, interests: '自然风光,历史古迹', budget: '中', transport: '步行', additionalInfo: '' });
+const planResult = ref(null);
+const planLoading = ref(false);
+/* ── Dialog 5: Budget state ──────────────────────────── */
+const budgetDialogVisible = ref(false);
+const budgetForm = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' });
+const budgetResult = ref(null);
+const budgetLoading = ref(false);
 /* ───────────────────────────────────────────────────────
    List mode: data fetching
    ─────────────────────────────────────────────────────── */
@@ -398,6 +408,65 @@ function scrollAiDown() {
             aiChatRef.value.scrollTop = aiChatRef.value.scrollHeight;
         }
     });
+}
+/* ───────────────────────────────────────────────────────
+   Dialog 4/5: AI Plan & Budget
+   ─────────────────────────────────────────────────────── */
+function openAiPlanDialog() {
+    aiPlanDialogVisible.value = true;
+    planResult.value = null;
+}
+function openBudgetDialog() {
+    budgetDialogVisible.value = true;
+    budgetResult.value = null;
+}
+async function generatePlan() {
+    planLoading.value = true;
+    planResult.value = null;
+    try {
+        const res = await aiApi.plan(planForm.value);
+        planResult.value = res.data.data;
+    }
+    catch {
+        planResult.value = { title: 'Request failed', days: [], tips: ['Check AI config'], estimatedCost: '' };
+    }
+    finally {
+        planLoading.value = false;
+    }
+}
+async function estimateBudget() {
+    budgetLoading.value = true;
+    budgetResult.value = null;
+    try {
+        const res = await aiApi.budget(budgetForm.value);
+        budgetResult.value = res.data.data;
+    }
+    catch {
+        budgetResult.value = { totalBudget: 'N/A', categories: [], suggestions: ['Check AI config'] };
+    }
+    finally {
+        budgetLoading.value = false;
+    }
+}
+function applyPlanResult() {
+    if (!planResult.value || !planResult.value.days)
+        return;
+    // Build tripPlan days from plan result
+    tripPlan.days = planResult.value.days.map((day, di) => ({
+        date: day.date || `Day ${di + 1}`,
+        sections: {
+            attractions: (day.schedule || []).map((a) => ({
+                id: nextItemId(),
+                name: a.activity || '',
+                startTime: a.time || '',
+                endTime: ''
+            })),
+            dining: [],
+            notes: []
+        }
+    }));
+    ElMessage.success('Plan applied to trip');
+    aiPlanDialogVisible.value = false;
 }
 /* ───────────────────────────────────────────────────────
    Planning mode: save
@@ -1233,6 +1302,19 @@ else {
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
     }
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "ai-float-group" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (__VLS_ctx.openAiPlanDialog) },
+        ...{ class: "ai-float-btn" },
+        title: "AI Plan",
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (__VLS_ctx.openBudgetDialog) },
+        ...{ class: "ai-float-btn" },
+        title: "Budget",
+    });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (__VLS_ctx.openAiDialog) },
         ...{ class: "ai-float-btn" },
@@ -1538,6 +1620,768 @@ else {
     __VLS_175.slots.default;
     var __VLS_175;
     var __VLS_163;
+    const __VLS_180 = {}.ElDialog;
+    /** @type {[typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, ]} */ ;
+    // @ts-ignore
+    const __VLS_181 = __VLS_asFunctionalComponent(__VLS_180, new __VLS_180({
+        modelValue: (__VLS_ctx.aiPlanDialogVisible),
+        title: "📋 AI Trip Plan",
+        width: "700px",
+        top: "5vh",
+        destroyOnClose: true,
+    }));
+    const __VLS_182 = __VLS_181({
+        modelValue: (__VLS_ctx.aiPlanDialogVisible),
+        title: "📋 AI Trip Plan",
+        width: "700px",
+        top: "5vh",
+        destroyOnClose: true,
+    }, ...__VLS_functionalComponentArgsRest(__VLS_181));
+    __VLS_183.slots.default;
+    const __VLS_184 = {}.ElForm;
+    /** @type {[typeof __VLS_components.ElForm, typeof __VLS_components.elForm, typeof __VLS_components.ElForm, typeof __VLS_components.elForm, ]} */ ;
+    // @ts-ignore
+    const __VLS_185 = __VLS_asFunctionalComponent(__VLS_184, new __VLS_184({
+        labelPosition: "top",
+    }));
+    const __VLS_186 = __VLS_185({
+        labelPosition: "top",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_185));
+    __VLS_187.slots.default;
+    const __VLS_188 = {}.ElRow;
+    /** @type {[typeof __VLS_components.ElRow, typeof __VLS_components.elRow, typeof __VLS_components.ElRow, typeof __VLS_components.elRow, ]} */ ;
+    // @ts-ignore
+    const __VLS_189 = __VLS_asFunctionalComponent(__VLS_188, new __VLS_188({
+        gutter: (16),
+    }));
+    const __VLS_190 = __VLS_189({
+        gutter: (16),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_189));
+    __VLS_191.slots.default;
+    const __VLS_192 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_193 = __VLS_asFunctionalComponent(__VLS_192, new __VLS_192({
+        span: (12),
+    }));
+    const __VLS_194 = __VLS_193({
+        span: (12),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_193));
+    __VLS_195.slots.default;
+    const __VLS_196 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_197 = __VLS_asFunctionalComponent(__VLS_196, new __VLS_196({
+        label: "Days",
+    }));
+    const __VLS_198 = __VLS_197({
+        label: "Days",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_197));
+    __VLS_199.slots.default;
+    const __VLS_200 = {}.ElInputNumber;
+    /** @type {[typeof __VLS_components.ElInputNumber, typeof __VLS_components.elInputNumber, ]} */ ;
+    // @ts-ignore
+    const __VLS_201 = __VLS_asFunctionalComponent(__VLS_200, new __VLS_200({
+        modelValue: (__VLS_ctx.planForm.days),
+        min: (1),
+        max: (14),
+        ...{ style: {} },
+    }));
+    const __VLS_202 = __VLS_201({
+        modelValue: (__VLS_ctx.planForm.days),
+        min: (1),
+        max: (14),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_201));
+    var __VLS_199;
+    var __VLS_195;
+    const __VLS_204 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_205 = __VLS_asFunctionalComponent(__VLS_204, new __VLS_204({
+        span: (12),
+    }));
+    const __VLS_206 = __VLS_205({
+        span: (12),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_205));
+    __VLS_207.slots.default;
+    const __VLS_208 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_209 = __VLS_asFunctionalComponent(__VLS_208, new __VLS_208({
+        label: "Budget",
+    }));
+    const __VLS_210 = __VLS_209({
+        label: "Budget",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_209));
+    __VLS_211.slots.default;
+    const __VLS_212 = {}.ElSelect;
+    /** @type {[typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, ]} */ ;
+    // @ts-ignore
+    const __VLS_213 = __VLS_asFunctionalComponent(__VLS_212, new __VLS_212({
+        modelValue: (__VLS_ctx.planForm.budget),
+        ...{ style: {} },
+    }));
+    const __VLS_214 = __VLS_213({
+        modelValue: (__VLS_ctx.planForm.budget),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_213));
+    __VLS_215.slots.default;
+    const __VLS_216 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_217 = __VLS_asFunctionalComponent(__VLS_216, new __VLS_216({
+        label: "Low",
+        value: "低",
+    }));
+    const __VLS_218 = __VLS_217({
+        label: "Low",
+        value: "低",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_217));
+    const __VLS_220 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_221 = __VLS_asFunctionalComponent(__VLS_220, new __VLS_220({
+        label: "Medium",
+        value: "中",
+    }));
+    const __VLS_222 = __VLS_221({
+        label: "Medium",
+        value: "中",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_221));
+    const __VLS_224 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_225 = __VLS_asFunctionalComponent(__VLS_224, new __VLS_224({
+        label: "High",
+        value: "高",
+    }));
+    const __VLS_226 = __VLS_225({
+        label: "High",
+        value: "高",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_225));
+    var __VLS_215;
+    var __VLS_211;
+    var __VLS_207;
+    var __VLS_191;
+    const __VLS_228 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_229 = __VLS_asFunctionalComponent(__VLS_228, new __VLS_228({
+        label: "Interests",
+    }));
+    const __VLS_230 = __VLS_229({
+        label: "Interests",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_229));
+    __VLS_231.slots.default;
+    const __VLS_232 = {}.ElInput;
+    /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+    // @ts-ignore
+    const __VLS_233 = __VLS_asFunctionalComponent(__VLS_232, new __VLS_232({
+        modelValue: (__VLS_ctx.planForm.interests),
+        placeholder: "e.g. nature, history, food",
+    }));
+    const __VLS_234 = __VLS_233({
+        modelValue: (__VLS_ctx.planForm.interests),
+        placeholder: "e.g. nature, history, food",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_233));
+    var __VLS_231;
+    const __VLS_236 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_237 = __VLS_asFunctionalComponent(__VLS_236, new __VLS_236({
+        label: "Transport",
+    }));
+    const __VLS_238 = __VLS_237({
+        label: "Transport",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_237));
+    __VLS_239.slots.default;
+    const __VLS_240 = {}.ElSelect;
+    /** @type {[typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, ]} */ ;
+    // @ts-ignore
+    const __VLS_241 = __VLS_asFunctionalComponent(__VLS_240, new __VLS_240({
+        modelValue: (__VLS_ctx.planForm.transport),
+        ...{ style: {} },
+    }));
+    const __VLS_242 = __VLS_241({
+        modelValue: (__VLS_ctx.planForm.transport),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_241));
+    __VLS_243.slots.default;
+    const __VLS_244 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_245 = __VLS_asFunctionalComponent(__VLS_244, new __VLS_244({
+        label: "Walk",
+        value: "步行",
+    }));
+    const __VLS_246 = __VLS_245({
+        label: "Walk",
+        value: "步行",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_245));
+    const __VLS_248 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_249 = __VLS_asFunctionalComponent(__VLS_248, new __VLS_248({
+        label: "Bike",
+        value: "骑行",
+    }));
+    const __VLS_250 = __VLS_249({
+        label: "Bike",
+        value: "骑行",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_249));
+    const __VLS_252 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_253 = __VLS_asFunctionalComponent(__VLS_252, new __VLS_252({
+        label: "Drive",
+        value: "驾车",
+    }));
+    const __VLS_254 = __VLS_253({
+        label: "Drive",
+        value: "驾车",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_253));
+    var __VLS_243;
+    var __VLS_239;
+    const __VLS_256 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_257 = __VLS_asFunctionalComponent(__VLS_256, new __VLS_256({
+        label: "Extra Requirements",
+    }));
+    const __VLS_258 = __VLS_257({
+        label: "Extra Requirements",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_257));
+    __VLS_259.slots.default;
+    const __VLS_260 = {}.ElInput;
+    /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+    // @ts-ignore
+    const __VLS_261 = __VLS_asFunctionalComponent(__VLS_260, new __VLS_260({
+        modelValue: (__VLS_ctx.planForm.additionalInfo),
+        type: "textarea",
+        rows: (2),
+    }));
+    const __VLS_262 = __VLS_261({
+        modelValue: (__VLS_ctx.planForm.additionalInfo),
+        type: "textarea",
+        rows: (2),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_261));
+    var __VLS_259;
+    const __VLS_264 = {}.ElButton;
+    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+    // @ts-ignore
+    const __VLS_265 = __VLS_asFunctionalComponent(__VLS_264, new __VLS_264({
+        ...{ 'onClick': {} },
+        type: "primary",
+        loading: (__VLS_ctx.planLoading),
+        ...{ style: {} },
+    }));
+    const __VLS_266 = __VLS_265({
+        ...{ 'onClick': {} },
+        type: "primary",
+        loading: (__VLS_ctx.planLoading),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_265));
+    let __VLS_268;
+    let __VLS_269;
+    let __VLS_270;
+    const __VLS_271 = {
+        onClick: (__VLS_ctx.generatePlan)
+    };
+    __VLS_267.slots.default;
+    var __VLS_267;
+    var __VLS_187;
+    if (__VLS_ctx.planResult && !__VLS_ctx.planLoading) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "dialog-result" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.h4, __VLS_intrinsicElements.h4)({
+            ...{ class: "plan-title-name" },
+        });
+        (__VLS_ctx.planResult.title);
+        for (const [day] of __VLS_getVForSourceType((__VLS_ctx.planResult.days))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                key: (day.day),
+                ...{ class: "day-block" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({});
+            (day.date);
+            (day.theme);
+            for (const [act] of __VLS_getVForSourceType((day.schedule))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    key: (act.time),
+                    ...{ class: "activity" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "act-time" },
+                });
+                (act.time);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+                (act.activity);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "act-loc" },
+                });
+                (act.location);
+            }
+        }
+        if (__VLS_ctx.planResult.tips?.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "plan-tips" },
+            });
+            for (const [t, i] of __VLS_getVForSourceType((__VLS_ctx.planResult.tips))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+                    key: (i),
+                });
+                (t);
+            }
+        }
+        if (__VLS_ctx.planResult.estimatedCost) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "plan-cost" },
+            });
+            (__VLS_ctx.planResult.estimatedCost);
+        }
+        const __VLS_272 = {}.ElButton;
+        /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+        // @ts-ignore
+        const __VLS_273 = __VLS_asFunctionalComponent(__VLS_272, new __VLS_272({
+            ...{ 'onClick': {} },
+            size: "small",
+            type: "success",
+            ...{ style: {} },
+        }));
+        const __VLS_274 = __VLS_273({
+            ...{ 'onClick': {} },
+            size: "small",
+            type: "success",
+            ...{ style: {} },
+        }, ...__VLS_functionalComponentArgsRest(__VLS_273));
+        let __VLS_276;
+        let __VLS_277;
+        let __VLS_278;
+        const __VLS_279 = {
+            onClick: (__VLS_ctx.applyPlanResult)
+        };
+        __VLS_275.slots.default;
+        var __VLS_275;
+    }
+    var __VLS_183;
+    const __VLS_280 = {}.ElDialog;
+    /** @type {[typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, ]} */ ;
+    // @ts-ignore
+    const __VLS_281 = __VLS_asFunctionalComponent(__VLS_280, new __VLS_280({
+        modelValue: (__VLS_ctx.budgetDialogVisible),
+        title: "💰 Budget Estimate",
+        width: "700px",
+        top: "5vh",
+        destroyOnClose: true,
+    }));
+    const __VLS_282 = __VLS_281({
+        modelValue: (__VLS_ctx.budgetDialogVisible),
+        title: "💰 Budget Estimate",
+        width: "700px",
+        top: "5vh",
+        destroyOnClose: true,
+    }, ...__VLS_functionalComponentArgsRest(__VLS_281));
+    __VLS_283.slots.default;
+    const __VLS_284 = {}.ElForm;
+    /** @type {[typeof __VLS_components.ElForm, typeof __VLS_components.elForm, typeof __VLS_components.ElForm, typeof __VLS_components.elForm, ]} */ ;
+    // @ts-ignore
+    const __VLS_285 = __VLS_asFunctionalComponent(__VLS_284, new __VLS_284({
+        labelPosition: "top",
+    }));
+    const __VLS_286 = __VLS_285({
+        labelPosition: "top",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_285));
+    __VLS_287.slots.default;
+    const __VLS_288 = {}.ElRow;
+    /** @type {[typeof __VLS_components.ElRow, typeof __VLS_components.elRow, typeof __VLS_components.ElRow, typeof __VLS_components.elRow, ]} */ ;
+    // @ts-ignore
+    const __VLS_289 = __VLS_asFunctionalComponent(__VLS_288, new __VLS_288({
+        gutter: (16),
+    }));
+    const __VLS_290 = __VLS_289({
+        gutter: (16),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_289));
+    __VLS_291.slots.default;
+    const __VLS_292 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_293 = __VLS_asFunctionalComponent(__VLS_292, new __VLS_292({
+        span: (12),
+    }));
+    const __VLS_294 = __VLS_293({
+        span: (12),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_293));
+    __VLS_295.slots.default;
+    const __VLS_296 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_297 = __VLS_asFunctionalComponent(__VLS_296, new __VLS_296({
+        label: "Days",
+    }));
+    const __VLS_298 = __VLS_297({
+        label: "Days",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_297));
+    __VLS_299.slots.default;
+    const __VLS_300 = {}.ElInputNumber;
+    /** @type {[typeof __VLS_components.ElInputNumber, typeof __VLS_components.elInputNumber, ]} */ ;
+    // @ts-ignore
+    const __VLS_301 = __VLS_asFunctionalComponent(__VLS_300, new __VLS_300({
+        modelValue: (__VLS_ctx.budgetForm.days),
+        min: (1),
+        max: (30),
+        ...{ style: {} },
+    }));
+    const __VLS_302 = __VLS_301({
+        modelValue: (__VLS_ctx.budgetForm.days),
+        min: (1),
+        max: (30),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_301));
+    var __VLS_299;
+    var __VLS_295;
+    const __VLS_304 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_305 = __VLS_asFunctionalComponent(__VLS_304, new __VLS_304({
+        span: (12),
+    }));
+    const __VLS_306 = __VLS_305({
+        span: (12),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_305));
+    __VLS_307.slots.default;
+    const __VLS_308 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_309 = __VLS_asFunctionalComponent(__VLS_308, new __VLS_308({
+        label: "People",
+    }));
+    const __VLS_310 = __VLS_309({
+        label: "People",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_309));
+    __VLS_311.slots.default;
+    const __VLS_312 = {}.ElInputNumber;
+    /** @type {[typeof __VLS_components.ElInputNumber, typeof __VLS_components.elInputNumber, ]} */ ;
+    // @ts-ignore
+    const __VLS_313 = __VLS_asFunctionalComponent(__VLS_312, new __VLS_312({
+        modelValue: (__VLS_ctx.budgetForm.peopleCount),
+        min: (1),
+        max: (20),
+        ...{ style: {} },
+    }));
+    const __VLS_314 = __VLS_313({
+        modelValue: (__VLS_ctx.budgetForm.peopleCount),
+        min: (1),
+        max: (20),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_313));
+    var __VLS_311;
+    var __VLS_307;
+    var __VLS_291;
+    const __VLS_316 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_317 = __VLS_asFunctionalComponent(__VLS_316, new __VLS_316({
+        label: "Spots to Visit",
+    }));
+    const __VLS_318 = __VLS_317({
+        label: "Spots to Visit",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_317));
+    __VLS_319.slots.default;
+    const __VLS_320 = {}.ElInput;
+    /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+    // @ts-ignore
+    const __VLS_321 = __VLS_asFunctionalComponent(__VLS_320, new __VLS_320({
+        modelValue: (__VLS_ctx.budgetForm.spots),
+        placeholder: "e.g. 十三陵,居庸关",
+    }));
+    const __VLS_322 = __VLS_321({
+        modelValue: (__VLS_ctx.budgetForm.spots),
+        placeholder: "e.g. 十三陵,居庸关",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_321));
+    var __VLS_319;
+    const __VLS_324 = {}.ElRow;
+    /** @type {[typeof __VLS_components.ElRow, typeof __VLS_components.elRow, typeof __VLS_components.ElRow, typeof __VLS_components.elRow, ]} */ ;
+    // @ts-ignore
+    const __VLS_325 = __VLS_asFunctionalComponent(__VLS_324, new __VLS_324({
+        gutter: (16),
+    }));
+    const __VLS_326 = __VLS_325({
+        gutter: (16),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_325));
+    __VLS_327.slots.default;
+    const __VLS_328 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_329 = __VLS_asFunctionalComponent(__VLS_328, new __VLS_328({
+        span: (8),
+    }));
+    const __VLS_330 = __VLS_329({
+        span: (8),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_329));
+    __VLS_331.slots.default;
+    const __VLS_332 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_333 = __VLS_asFunctionalComponent(__VLS_332, new __VLS_332({
+        label: "Transport",
+    }));
+    const __VLS_334 = __VLS_333({
+        label: "Transport",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_333));
+    __VLS_335.slots.default;
+    const __VLS_336 = {}.ElSelect;
+    /** @type {[typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, ]} */ ;
+    // @ts-ignore
+    const __VLS_337 = __VLS_asFunctionalComponent(__VLS_336, new __VLS_336({
+        modelValue: (__VLS_ctx.budgetForm.transport),
+        ...{ style: {} },
+    }));
+    const __VLS_338 = __VLS_337({
+        modelValue: (__VLS_ctx.budgetForm.transport),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_337));
+    __VLS_339.slots.default;
+    const __VLS_340 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_341 = __VLS_asFunctionalComponent(__VLS_340, new __VLS_340({
+        label: "Public",
+        value: "公共交通",
+    }));
+    const __VLS_342 = __VLS_341({
+        label: "Public",
+        value: "公共交通",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_341));
+    const __VLS_344 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_345 = __VLS_asFunctionalComponent(__VLS_344, new __VLS_344({
+        label: "Self-drive",
+        value: "自驾",
+    }));
+    const __VLS_346 = __VLS_345({
+        label: "Self-drive",
+        value: "自驾",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_345));
+    const __VLS_348 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_349 = __VLS_asFunctionalComponent(__VLS_348, new __VLS_348({
+        label: "Mixed",
+        value: "混合",
+    }));
+    const __VLS_350 = __VLS_349({
+        label: "Mixed",
+        value: "混合",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_349));
+    var __VLS_339;
+    var __VLS_335;
+    var __VLS_331;
+    const __VLS_352 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_353 = __VLS_asFunctionalComponent(__VLS_352, new __VLS_352({
+        span: (8),
+    }));
+    const __VLS_354 = __VLS_353({
+        span: (8),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_353));
+    __VLS_355.slots.default;
+    const __VLS_356 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_357 = __VLS_asFunctionalComponent(__VLS_356, new __VLS_356({
+        label: "Dining",
+    }));
+    const __VLS_358 = __VLS_357({
+        label: "Dining",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_357));
+    __VLS_359.slots.default;
+    const __VLS_360 = {}.ElSelect;
+    /** @type {[typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, ]} */ ;
+    // @ts-ignore
+    const __VLS_361 = __VLS_asFunctionalComponent(__VLS_360, new __VLS_360({
+        modelValue: (__VLS_ctx.budgetForm.diningPref),
+        ...{ style: {} },
+    }));
+    const __VLS_362 = __VLS_361({
+        modelValue: (__VLS_ctx.budgetForm.diningPref),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_361));
+    __VLS_363.slots.default;
+    const __VLS_364 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_365 = __VLS_asFunctionalComponent(__VLS_364, new __VLS_364({
+        label: "Simple",
+        value: "简餐",
+    }));
+    const __VLS_366 = __VLS_365({
+        label: "Simple",
+        value: "简餐",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_365));
+    const __VLS_368 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_369 = __VLS_asFunctionalComponent(__VLS_368, new __VLS_368({
+        label: "Normal",
+        value: "普通",
+    }));
+    const __VLS_370 = __VLS_369({
+        label: "Normal",
+        value: "普通",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_369));
+    const __VLS_372 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_373 = __VLS_asFunctionalComponent(__VLS_372, new __VLS_372({
+        label: "Gourmet",
+        value: "美食体验",
+    }));
+    const __VLS_374 = __VLS_373({
+        label: "Gourmet",
+        value: "美食体验",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_373));
+    var __VLS_363;
+    var __VLS_359;
+    var __VLS_355;
+    const __VLS_376 = {}.ElCol;
+    /** @type {[typeof __VLS_components.ElCol, typeof __VLS_components.elCol, typeof __VLS_components.ElCol, typeof __VLS_components.elCol, ]} */ ;
+    // @ts-ignore
+    const __VLS_377 = __VLS_asFunctionalComponent(__VLS_376, new __VLS_376({
+        span: (8),
+    }));
+    const __VLS_378 = __VLS_377({
+        span: (8),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_377));
+    __VLS_379.slots.default;
+    const __VLS_380 = {}.ElFormItem;
+    /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_381 = __VLS_asFunctionalComponent(__VLS_380, new __VLS_380({
+        label: "Accommodation",
+    }));
+    const __VLS_382 = __VLS_381({
+        label: "Accommodation",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_381));
+    __VLS_383.slots.default;
+    const __VLS_384 = {}.ElSelect;
+    /** @type {[typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, typeof __VLS_components.ElSelect, typeof __VLS_components.elSelect, ]} */ ;
+    // @ts-ignore
+    const __VLS_385 = __VLS_asFunctionalComponent(__VLS_384, new __VLS_384({
+        modelValue: (__VLS_ctx.budgetForm.accommodation),
+        ...{ style: {} },
+    }));
+    const __VLS_386 = __VLS_385({
+        modelValue: (__VLS_ctx.budgetForm.accommodation),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_385));
+    __VLS_387.slots.default;
+    const __VLS_388 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_389 = __VLS_asFunctionalComponent(__VLS_388, new __VLS_388({
+        label: "Budget",
+        value: "经济型",
+    }));
+    const __VLS_390 = __VLS_389({
+        label: "Budget",
+        value: "经济型",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_389));
+    const __VLS_392 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_393 = __VLS_asFunctionalComponent(__VLS_392, new __VLS_392({
+        label: "Comfort",
+        value: "舒适型",
+    }));
+    const __VLS_394 = __VLS_393({
+        label: "Comfort",
+        value: "舒适型",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_393));
+    const __VLS_396 = {}.ElOption;
+    /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
+    // @ts-ignore
+    const __VLS_397 = __VLS_asFunctionalComponent(__VLS_396, new __VLS_396({
+        label: "Luxury",
+        value: "高档",
+    }));
+    const __VLS_398 = __VLS_397({
+        label: "Luxury",
+        value: "高档",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_397));
+    var __VLS_387;
+    var __VLS_383;
+    var __VLS_379;
+    var __VLS_327;
+    const __VLS_400 = {}.ElButton;
+    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+    // @ts-ignore
+    const __VLS_401 = __VLS_asFunctionalComponent(__VLS_400, new __VLS_400({
+        ...{ 'onClick': {} },
+        type: "primary",
+        loading: (__VLS_ctx.budgetLoading),
+        ...{ style: {} },
+    }));
+    const __VLS_402 = __VLS_401({
+        ...{ 'onClick': {} },
+        type: "primary",
+        loading: (__VLS_ctx.budgetLoading),
+        ...{ style: {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_401));
+    let __VLS_404;
+    let __VLS_405;
+    let __VLS_406;
+    const __VLS_407 = {
+        onClick: (__VLS_ctx.estimateBudget)
+    };
+    __VLS_403.slots.default;
+    var __VLS_403;
+    var __VLS_287;
+    if (__VLS_ctx.budgetResult && !__VLS_ctx.budgetLoading) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "dialog-result" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.h4, __VLS_intrinsicElements.h4)({
+            ...{ class: "budget-total" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "total-amount" },
+        });
+        (__VLS_ctx.budgetResult.totalBudget);
+        for (const [cat] of __VLS_getVForSourceType((__VLS_ctx.budgetResult.categories))) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                key: (cat.name),
+                ...{ class: "cat-row" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "cat-name" },
+            });
+            (cat.name);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "cat-amount" },
+            });
+            (cat.amount);
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "cat-detail" },
+            });
+            (cat.details);
+        }
+        if (__VLS_ctx.budgetResult.suggestions?.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "plan-tips" },
+            });
+            for (const [s, i] of __VLS_getVForSourceType((__VLS_ctx.budgetResult.suggestions))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+                    key: (i),
+                });
+                (s);
+            }
+        }
+    }
+    var __VLS_283;
 }
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['itinerary-page']} */ ;
@@ -1616,6 +2460,9 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['time-sep']} */ ;
 /** @type {__VLS_StyleScopedClasses['remove-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['planning-empty']} */ ;
+/** @type {__VLS_StyleScopedClasses['ai-float-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['ai-float-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['ai-float-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-float-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['map-picker-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['map-hint-text']} */ ;
@@ -1646,6 +2493,22 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['typing-dots']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-input-bar']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-send-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['dialog-result']} */ ;
+/** @type {__VLS_StyleScopedClasses['plan-title-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['day-block']} */ ;
+/** @type {__VLS_StyleScopedClasses['activity']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-time']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-loc']} */ ;
+/** @type {__VLS_StyleScopedClasses['plan-tips']} */ ;
+/** @type {__VLS_StyleScopedClasses['plan-cost']} */ ;
+/** @type {__VLS_StyleScopedClasses['dialog-result']} */ ;
+/** @type {__VLS_StyleScopedClasses['budget-total']} */ ;
+/** @type {__VLS_StyleScopedClasses['total-amount']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-amount']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-detail']} */ ;
+/** @type {__VLS_StyleScopedClasses['plan-tips']} */ ;
 // @ts-ignore
 var __VLS_58 = __VLS_57;
 var __VLS_dollars;
@@ -1679,6 +2542,14 @@ const __VLS_self = (await import('vue')).defineComponent({
             aiLoading: aiLoading,
             aiMessages: aiMessages,
             aiChatRef: aiChatRef,
+            aiPlanDialogVisible: aiPlanDialogVisible,
+            planForm: planForm,
+            planResult: planResult,
+            planLoading: planLoading,
+            budgetDialogVisible: budgetDialogVisible,
+            budgetForm: budgetForm,
+            budgetResult: budgetResult,
+            budgetLoading: budgetLoading,
             openCreateDialog: openCreateDialog,
             handleCreate: handleCreate,
             handleDelete: handleDelete,
@@ -1701,6 +2572,11 @@ const __VLS_self = (await import('vue')).defineComponent({
             selectSearchResult: selectSearchResult,
             openAiDialog: openAiDialog,
             sendAiMessage: sendAiMessage,
+            openAiPlanDialog: openAiPlanDialog,
+            openBudgetDialog: openBudgetDialog,
+            generatePlan: generatePlan,
+            estimateBudget: estimateBudget,
+            applyPlanResult: applyPlanResult,
             handleSave: handleSave,
         };
     },

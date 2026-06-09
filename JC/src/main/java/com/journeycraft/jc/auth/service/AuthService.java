@@ -2,6 +2,7 @@ package com.journeycraft.jc.auth.service;
 
 import com.journeycraft.jc.auth.dto.AuthResponse;
 import com.journeycraft.jc.auth.dto.LoginRequest;
+import com.journeycraft.jc.auth.dto.RefreshTokenRequest;
 import com.journeycraft.jc.auth.dto.RegisterRequest;
 import com.journeycraft.jc.common.exception.BadRequestException;
 import com.journeycraft.jc.common.util.JwtUtil;
@@ -67,5 +68,20 @@ public class AuthService {
         var refreshToken = jwtUtil.generateRefreshToken(user);
 
         return new AuthResponse(accessToken, refreshToken, 900, user.getId(), user.getUsername(), user.getNickname());
+    }
+
+    public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
+        try {
+            var username = jwtUtil.extractUsername(request.refreshToken());
+            var user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new BadRequestException("User not found"));
+
+            var newAccessToken = jwtUtil.generateAccessToken(user);
+            var newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+            return new AuthResponse(newAccessToken, newRefreshToken, 900, user.getId(), user.getUsername(), user.getNickname());
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid or expired refresh token");
+        }
     }
 }

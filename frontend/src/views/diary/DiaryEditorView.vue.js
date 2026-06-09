@@ -108,17 +108,26 @@ async function onVideoFileChange(e) {
     if (!input.files?.length)
         return;
     const file = input.files[0];
+    if (file.size > 200 * 1024 * 1024) {
+        ElMessage.warning('视频大小不能超过 200MB');
+        input.value = '';
+        return;
+    }
     uploadingVideo.value = true;
     try {
         const r = await fileApi.upload(file);
         if (r.data.data?.url) {
             form.value.videoUrl = r.data.data.url;
             form.value.videoMeta = { url: r.data.data.url, thumbnail: '' };
+            ElMessage.success('视频上传成功');
         }
-        ElMessage.success('视频上传成功');
+        else {
+            ElMessage.error('上传返回数据异常');
+        }
     }
-    catch {
-        ElMessage.error('视频上传失败');
+    catch (e) {
+        const msg = e?.response?.status === 413 ? '视频文件过大，请压缩后上传' : '视频上传失败';
+        ElMessage.error(msg);
     }
     finally {
         uploadingVideo.value = false;
@@ -366,6 +375,7 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['preview-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tool-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['upload-placeholder']} */ ;
+/** @type {__VLS_StyleScopedClasses['upload-trigger--wide']} */ ;
 /** @type {__VLS_StyleScopedClasses['preview-empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['preview-empty']} */ ;
 /** @type {__VLS_StyleScopedClasses['editor-body']} */ ;
@@ -762,27 +772,37 @@ else {
                 __VLS_ctx.videoInput?.click();
             } },
         ...{ class: "upload-trigger upload-trigger--wide" },
+        ...{ class: ({ 'is-uploading': __VLS_ctx.uploadingVideo }) },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "upload-placeholder" },
     });
-    const __VLS_90 = {}.ElIcon;
-    /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
-    // @ts-ignore
-    const __VLS_91 = __VLS_asFunctionalComponent(__VLS_90, new __VLS_90({
-        size: (28),
-    }));
-    const __VLS_92 = __VLS_91({
-        size: (28),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_91));
-    __VLS_93.slots.default;
-    const __VLS_94 = {}.VideoCamera;
-    /** @type {[typeof __VLS_components.VideoCamera, ]} */ ;
-    // @ts-ignore
-    const __VLS_95 = __VLS_asFunctionalComponent(__VLS_94, new __VLS_94({}));
-    const __VLS_96 = __VLS_95({}, ...__VLS_functionalComponentArgsRest(__VLS_95));
-    var __VLS_93;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    if (!__VLS_ctx.uploadingVideo) {
+        const __VLS_90 = {}.ElIcon;
+        /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
+        // @ts-ignore
+        const __VLS_91 = __VLS_asFunctionalComponent(__VLS_90, new __VLS_90({
+            size: (28),
+        }));
+        const __VLS_92 = __VLS_91({
+            size: (28),
+        }, ...__VLS_functionalComponentArgsRest(__VLS_91));
+        __VLS_93.slots.default;
+        const __VLS_94 = {}.VideoCamera;
+        /** @type {[typeof __VLS_components.VideoCamera, ]} */ ;
+        // @ts-ignore
+        const __VLS_95 = __VLS_asFunctionalComponent(__VLS_94, new __VLS_94({}));
+        const __VLS_96 = __VLS_95({}, ...__VLS_functionalComponentArgsRest(__VLS_95));
+        var __VLS_93;
+    }
+    if (!__VLS_ctx.uploadingVideo) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "uploading-text" },
+        });
+    }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
         ...{ onChange: (__VLS_ctx.onVideoFileChange) },
         ref: "videoInput",
@@ -1342,6 +1362,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['upload-trigger']} */ ;
 /** @type {__VLS_StyleScopedClasses['upload-trigger--wide']} */ ;
 /** @type {__VLS_StyleScopedClasses['upload-placeholder']} */ ;
+/** @type {__VLS_StyleScopedClasses['uploading-text']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tools-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tools-header']} */ ;
@@ -1410,6 +1431,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             onImageFileChange: onImageFileChange,
             removeImage: removeImage,
             videoInput: videoInput,
+            uploadingVideo: uploadingVideo,
             onVideoFileChange: onVideoFileChange,
             aiImagePrompt: aiImagePrompt,
             aiImageLoading: aiImageLoading,

@@ -20,7 +20,7 @@ public class FileUploadController {
 
     // Store uploads in user's home directory to avoid Tomcat temp path issues
     private static final String UPLOAD_DIR = System.getProperty("user.home") + "/journeycraft-uploads";
-    private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    private static final long MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<Map<String, Object>>> uploadFile(@RequestParam("file") MultipartFile file) {

@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface FacilityRepository extends JpaRepository<Facility, Long> {
+    List<Facility> findBySpotId(Long spotId);
     List<Facility> findBySpotIdAndCategory(Long spotId, String category);
     List<Facility> findByCategory(String category);
 

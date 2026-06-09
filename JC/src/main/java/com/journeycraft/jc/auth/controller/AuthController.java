@@ -2,6 +2,7 @@ package com.journeycraft.jc.auth.controller;
 
 import com.journeycraft.jc.auth.dto.AuthResponse;
 import com.journeycraft.jc.auth.dto.LoginRequest;
+import com.journeycraft.jc.auth.dto.RefreshTokenRequest;
 import com.journeycraft.jc.auth.dto.RegisterRequest;
 import com.journeycraft.jc.auth.service.AuthService;
 import com.journeycraft.jc.common.dto.ApiResponse;
@@ -28,5 +29,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         var result = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(result, "Login successful"));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        var result = authService.refreshAccessToken(request);
+        return ResponseEntity.ok(ApiResponse.success(result, "Token refreshed"));
     }
 }

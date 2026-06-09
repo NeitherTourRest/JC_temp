@@ -32,8 +32,21 @@
             <p class="premium-desc">Plan smarter with AI</p>
             <button class="premium-btn" @click="$router.push('/ai/chat')">Try Now</button>
           </div>
-          <button v-if="!isLoggedIn" class="nav-btn" @click="$router.push('/login')">Login</button>
-          <button v-else class="nav-btn" @click="$router.push('/profile')">Profile</button>
+          <!-- Profile section -->
+          <div class="profile-section" v-if="isLoggedIn" @click="$router.push('/profile')">
+            <div class="profile-avatar" :style="avatarStyle">{{ avatarLetter }}</div>
+            <div class="profile-info">
+              <span class="profile-name">{{ nickname }}</span>
+              <span class="profile-action">View Profile →</span>
+            </div>
+          </div>
+          <div v-else class="profile-section guest" @click="$router.push('/login')">
+            <div class="profile-avatar guest-avatar">?</div>
+            <div class="profile-info">
+              <span class="profile-name">Not logged in</span>
+              <span class="profile-action">Login / Register →</span>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -57,10 +70,29 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute(); const router = useRouter()
+const authStore = useAuthStore()
 const q = ref('')
-const isLoggedIn = !!localStorage.getItem('accessToken')
+
+const isLoggedIn = computed(() => authStore.isAuthenticated)
+const nickname = computed(() => {
+  if (authStore.user?.nickname) return authStore.user.nickname
+  if (authStore.user?.username) return authStore.user.username
+  return localStorage.getItem('nickname') || 'User'
+})
+const avatarUrl = computed(() => {
+  if (authStore.user?.avatar) return authStore.user.avatar
+  return localStorage.getItem('avatar') || ''
+})
+const avatarLetter = computed(() => nickname.value ? nickname.value.charAt(0).toUpperCase() : '?')
+const avatarStyle = computed(() => avatarUrl.value ? {
+  backgroundImage: 'url(' + avatarUrl.value + ')',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  color: 'transparent'
+} : {})
 const navMain = [
   { path: '/spots', icon: '🏞️', label: 'Spots' },
   { path: '/foods', icon: '🍜', label: 'Food' },
@@ -94,6 +126,17 @@ function doSearch() { if (q.value.trim()) router.push('/spots?keyword=' + encode
 .premium-title { font-size: 13px; font-weight: 600; }
 .premium-desc { font-size: 11px; color: rgba(0,0,0,0.5); margin: 2px 0 8px; }
 .premium-btn { width: 100%; padding: 6px; background: #000; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+
+/* Profile section */
+.profile-section { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 3px solid #000; border-radius: 10px; background: #fff; box-shadow: 3px 3px 0 #000; cursor: pointer; transition: transform 0.1s; }
+.profile-section:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; }
+.profile-section.guest { background: rgba(255,255,255,0.6); }
+.profile-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #000; background: var(--pop-pink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+.guest-avatar { background: #999; }
+.profile-info { display: flex; flex-direction: column; min-width: 0; }
+.profile-name { font-size: 13px; font-weight: 600; color: #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-action { font-size: 10px; color: #999; letter-spacing: 0.3px; }
+
 .main-content { padding: 20px; overflow-y: auto; height: 100vh; }
 .page-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; margin-bottom: 20px; border-radius: 10px; background: #fff; border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
 .page-header h2 { font-size: 1.3rem; font-weight: 700; color: #000; }

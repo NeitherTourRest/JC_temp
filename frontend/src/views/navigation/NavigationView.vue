@@ -21,8 +21,8 @@
 
         <!-- Quick actions -->
         <div class="quick-links">
-          <el-button size="small" type="primary" @click="$router.push('/ai/plan')">AI 生成规划</el-button>
-          <el-button size="small" type="warning" @click="$router.push('/ai/budget')">预算规划</el-button>
+          <el-button size="small" type="primary" @click="$router.push('/itineraries')">📋 行程规划</el-button>
+          <el-button size="small" type="warning" @click="$router.push('/itineraries')">💰 预算估计</el-button>
         </div>
 
         <!-- 起点 -->

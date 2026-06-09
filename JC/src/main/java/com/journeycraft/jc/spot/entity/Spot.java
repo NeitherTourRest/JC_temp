@@ -52,6 +52,11 @@ public class Spot {
     @Builder.Default
     private Integer ratingCount = 0;
 
+    /** Congestion level computed from recent reports: OVERFLOWING, CROWDED, MODERATE, SPARSE, EMPTY */
+    @Column(length = 20)
+    @Builder.Default
+    private String congestionLevel = "EMPTY";
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 

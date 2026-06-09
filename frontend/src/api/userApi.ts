@@ -10,7 +10,7 @@ export interface UserPreferenceResponse {
 
 export const userApi = {
   getProfile: () => apiClient.get<ApiResponse<UserResponse>>('/users/me'),
-  updateProfile: (data: { nickname?: string; avatar?: string }) =>
+  updateProfile: (data: { nickname?: string; username?: string; email?: string; avatar?: string }) =>
     apiClient.put<ApiResponse<UserResponse>>('/users/me', data),
   getPreferences: () =>
     apiClient.get<ApiResponse<UserPreferenceResponse>>('/users/me/preferences'),

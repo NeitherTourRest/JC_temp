@@ -40,4 +40,16 @@ public class SpotController {
     public ResponseEntity<ApiResponse<SpotDetailResponse>> getSpotDetail(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(spotService.getSpotDetail(id)));
     }
+
+    @PostMapping("/{id}/rate")
+    public ResponseEntity<ApiResponse<SpotDetailResponse>> rateSpot(
+            @PathVariable Long id, @RequestParam int rating) {
+        return ResponseEntity.ok(ApiResponse.success(spotService.rateSpot(id, rating)));
+    }
+
+    @PostMapping("/{id}/congestion")
+    public ResponseEntity<ApiResponse<SpotDetailResponse>> reportCongestion(
+            @PathVariable Long id, @RequestParam String level) {
+        return ResponseEntity.ok(ApiResponse.success(spotService.reportCongestion(id, level)));
+    }
 }

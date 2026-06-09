@@ -97,10 +97,11 @@
                 <video :src="form.videoUrl" controls class="video-player" />
                 <el-button class="video-remove-btn" size="small" type="danger" :icon="Delete" @click="form.videoUrl = ''; form.videoMeta = undefined">删除视频</el-button>
               </div>
-              <div v-else class="upload-trigger upload-trigger--wide" @click="videoInput?.click()">
+              <div v-else class="upload-trigger upload-trigger--wide" :class="{ 'is-uploading': uploadingVideo }" @click="videoInput?.click()">
                 <div class="upload-placeholder">
-                  <el-icon :size="28"><VideoCamera /></el-icon>
-                  <span>上传视频（可选）</span>
+                  <el-icon :size="28" v-if="!uploadingVideo"><VideoCamera /></el-icon>
+                  <span v-if="!uploadingVideo">上传视频（可选）</span>
+                  <span v-else class="uploading-text">⏳ 上传中...</span>
                 </div>
                 <input ref="videoInput" type="file" accept="video/*" hidden @change="onVideoFileChange" />
               </div>
@@ -369,15 +370,25 @@ async function onVideoFileChange(e: Event) {
   const input = e.target as HTMLInputElement
   if (!input.files?.length) return
   const file = input.files[0]
+  if (file.size > 200 * 1024 * 1024) {
+    ElMessage.warning('视频大小不能超过 200MB')
+    input.value = ''
+    return
+  }
   uploadingVideo.value = true
   try {
     const r = await fileApi.upload(file)
     if (r.data.data?.url) {
       form.value.videoUrl = r.data.data.url
       form.value.videoMeta = { url: r.data.data.url, thumbnail: '' }
+      ElMessage.success('视频上传成功')
+    } else {
+      ElMessage.error('上传返回数据异常')
     }
-    ElMessage.success('视频上传成功')
-  } catch { ElMessage.error('视频上传失败') }
+  } catch (e: any) {
+    const msg = e?.response?.status === 413 ? '视频文件过大，请压缩后上传' : '视频上传失败'
+    ElMessage.error(msg)
+  }
   finally { uploadingVideo.value = false; input.value = '' }
 }
 
@@ -843,6 +854,8 @@ watch(() => route.params.id, () => {
 .video-player { max-width: 100%; max-height: 300px; border: 3px solid #000; border-radius: 8px; }
 .video-remove-btn { align-self: flex-start; }
 .upload-trigger--wide .upload-placeholder { width: 100%; min-width: 200px; }
+.upload-trigger--wide.is-uploading { opacity: 0.6; pointer-events: none; }
+.uploading-text { color: var(--pop-blue); font-weight: 600; }
 
 /* ── Audio player ── */
 .audio-player { width: 100%; max-width: 300px; }

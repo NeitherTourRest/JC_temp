@@ -1,4 +1,11 @@
 /// <reference types="../node_modules/.vue-global-types/vue_3.5_0_0_0.d.ts" />
+import { onMounted } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
+const auth = useAuthStore();
+onMounted(() => {
+    // Proactive auth check on app load — refreshes token if expired
+    auth.checkAuth();
+});
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;

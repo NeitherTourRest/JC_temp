@@ -1,5 +1,16 @@
 -- JourneyCraft Seed Data for Changping District
 
+-- Congestion reports for spots (time-weighted)
+CREATE TABLE IF NOT EXISTS congestion_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    spot_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    level VARCHAR(20) NOT NULL COMMENT 'OVERFLOWING, CROWDED, MODERATE, SPARSE, EMPTY',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_congestion_spot (spot_id),
+    INDEX idx_congestion_time (created_at)
+);
+
 -- Insert sample scenic spots
 INSERT INTO spots (name, category, description, address, latitude, longitude, popularity, avg_rating, rating_count, image_url, opening_hours, ticket_price) VALUES
 ('十三陵', 'HISTORIC', '明十三陵是明朝十三位皇帝的陵墓群，世界文化遗产', '北京市昌平区十三陵镇', 40.2533, 116.2186, 1500, 4.5, 328, NULL, '08:00-17:30', 60.00),

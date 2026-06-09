@@ -1,5 +1,6 @@
 package com.journeycraft.jc.spot.dto;
 
+import com.journeycraft.jc.facility.dto.FacilityResponse;
 import com.journeycraft.jc.food.dto.FoodResponse;
 import com.journeycraft.jc.spot.entity.Spot;
 
@@ -12,13 +13,17 @@ public record SpotDetailResponse(
         Integer popularity, BigDecimal avgRating, Integer ratingCount,
         String imageUrl, String openingHours, BigDecimal ticketPrice,
         List<FoodResponse> recommendedFoods,
-        List<SpotReviewResponse> recentReviews) {
+        List<SpotReviewResponse> recentReviews,
+        List<FacilityResponse> facilities,
+        String congestionLevel) {
 
-    public static SpotDetailResponse from(Spot spot, List<FoodResponse> foods, List<SpotReviewResponse> reviews) {
+    public static SpotDetailResponse from(Spot spot, List<FoodResponse> foods, List<SpotReviewResponse> reviews,
+                                           List<FacilityResponse> facilities) {
         return new SpotDetailResponse(spot.getId(), spot.getName(), spot.getCategory(),
                 spot.getDescription(), spot.getAddress(), spot.getLatitude(), spot.getLongitude(),
                 spot.getPopularity(), spot.getAvgRating(), spot.getRatingCount(),
                 spot.getImageUrl(), spot.getOpeningHours(), spot.getTicketPrice(),
-                foods, reviews);
+                foods, reviews, facilities,
+                spot.getCongestionLevel() != null ? spot.getCongestionLevel() : "EMPTY");
     }
 }

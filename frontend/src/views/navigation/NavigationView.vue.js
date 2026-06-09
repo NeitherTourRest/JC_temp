@@ -536,7 +536,7 @@ let __VLS_25;
 let __VLS_26;
 const __VLS_27 = {
     onClick: (...[$event]) => {
-        __VLS_ctx.$router.push('/ai/plan');
+        __VLS_ctx.$router.push('/itineraries');
     }
 };
 __VLS_23.slots.default;
@@ -559,7 +559,7 @@ let __VLS_33;
 let __VLS_34;
 const __VLS_35 = {
     onClick: (...[$event]) => {
-        __VLS_ctx.$router.push('/ai/budget');
+        __VLS_ctx.$router.push('/itineraries');
     }
 };
 __VLS_31.slots.default;
