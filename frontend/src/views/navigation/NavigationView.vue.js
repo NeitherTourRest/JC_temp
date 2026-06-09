@@ -517,70 +517,21 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3
     ...{ class: "panel-title" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "quick-links" },
-});
-const __VLS_20 = {}.ElButton;
-/** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-// @ts-ignore
-const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
-    ...{ 'onClick': {} },
-    size: "small",
-    type: "primary",
-}));
-const __VLS_22 = __VLS_21({
-    ...{ 'onClick': {} },
-    size: "small",
-    type: "primary",
-}, ...__VLS_functionalComponentArgsRest(__VLS_21));
-let __VLS_24;
-let __VLS_25;
-let __VLS_26;
-const __VLS_27 = {
-    onClick: (...[$event]) => {
-        __VLS_ctx.$router.push('/itineraries');
-    }
-};
-__VLS_23.slots.default;
-var __VLS_23;
-const __VLS_28 = {}.ElButton;
-/** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-// @ts-ignore
-const __VLS_29 = __VLS_asFunctionalComponent(__VLS_28, new __VLS_28({
-    ...{ 'onClick': {} },
-    size: "small",
-    type: "warning",
-}));
-const __VLS_30 = __VLS_29({
-    ...{ 'onClick': {} },
-    size: "small",
-    type: "warning",
-}, ...__VLS_functionalComponentArgsRest(__VLS_29));
-let __VLS_32;
-let __VLS_33;
-let __VLS_34;
-const __VLS_35 = {
-    onClick: (...[$event]) => {
-        __VLS_ctx.$router.push('/itineraries');
-    }
-};
-__VLS_31.slots.default;
-var __VLS_31;
-__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "point-row" },
 });
-const __VLS_36 = {}.ElTag;
+const __VLS_20 = {}.ElTag;
 /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
 // @ts-ignore
-const __VLS_37 = __VLS_asFunctionalComponent(__VLS_36, new __VLS_36({
+const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
     type: "success",
     size: "small",
 }));
-const __VLS_38 = __VLS_37({
+const __VLS_22 = __VLS_21({
     type: "success",
     size: "small",
-}, ...__VLS_functionalComponentArgsRest(__VLS_37));
-__VLS_39.slots.default;
-var __VLS_39;
+}, ...__VLS_functionalComponentArgsRest(__VLS_21));
+__VLS_23.slots.default;
+var __VLS_23;
 if (__VLS_ctx.startPoint) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
         ...{ class: "point-name" },
@@ -594,31 +545,31 @@ if (__VLS_ctx.startPoint) {
     (__VLS_ctx.startPoint.lng.toFixed(5));
     (__VLS_ctx.startPoint.lat.toFixed(5));
 }
-const __VLS_40 = {}.ElButton;
+const __VLS_24 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_41 = __VLS_asFunctionalComponent(__VLS_40, new __VLS_40({
+const __VLS_25 = __VLS_asFunctionalComponent(__VLS_24, new __VLS_24({
     ...{ 'onClick': {} },
     size: "small",
     type: (__VLS_ctx.pickingStart ? 'danger' : 'primary'),
 }));
-const __VLS_42 = __VLS_41({
+const __VLS_26 = __VLS_25({
     ...{ 'onClick': {} },
     size: "small",
     type: (__VLS_ctx.pickingStart ? 'danger' : 'primary'),
-}, ...__VLS_functionalComponentArgsRest(__VLS_41));
-let __VLS_44;
-let __VLS_45;
-let __VLS_46;
-const __VLS_47 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_25));
+let __VLS_28;
+let __VLS_29;
+let __VLS_30;
+const __VLS_31 = {
     onClick: (...[$event]) => {
         __VLS_ctx.pickingStart = !__VLS_ctx.pickingStart;
         __VLS_ctx.pickingWaypointIdx = null;
     }
 };
-__VLS_43.slots.default;
+__VLS_27.slots.default;
 (__VLS_ctx.pickingStart ? '点击地图选起点' : '选起点');
-var __VLS_43;
+var __VLS_27;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "waypoints-section" },
 });
@@ -628,80 +579,80 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
     ...{ class: "section-label" },
 });
-const __VLS_48 = {}.ElButton;
+const __VLS_32 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_49 = __VLS_asFunctionalComponent(__VLS_48, new __VLS_48({
+const __VLS_33 = __VLS_asFunctionalComponent(__VLS_32, new __VLS_32({
     ...{ 'onClick': {} },
     size: "small",
     type: "success",
     plain: true,
     disabled: (__VLS_ctx.pickingStart),
 }));
-const __VLS_50 = __VLS_49({
+const __VLS_34 = __VLS_33({
     ...{ 'onClick': {} },
     size: "small",
     type: "success",
     plain: true,
     disabled: (__VLS_ctx.pickingStart),
-}, ...__VLS_functionalComponentArgsRest(__VLS_49));
-let __VLS_52;
-let __VLS_53;
-let __VLS_54;
-const __VLS_55 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_33));
+let __VLS_36;
+let __VLS_37;
+let __VLS_38;
+const __VLS_39 = {
     onClick: (__VLS_ctx.addWaypoint)
 };
-__VLS_51.slots.default;
-const __VLS_56 = {}.ElIcon;
+__VLS_35.slots.default;
+const __VLS_40 = {}.ElIcon;
 /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
 // @ts-ignore
-const __VLS_57 = __VLS_asFunctionalComponent(__VLS_56, new __VLS_56({}));
-const __VLS_58 = __VLS_57({}, ...__VLS_functionalComponentArgsRest(__VLS_57));
-__VLS_59.slots.default;
-const __VLS_60 = {}.Plus;
+const __VLS_41 = __VLS_asFunctionalComponent(__VLS_40, new __VLS_40({}));
+const __VLS_42 = __VLS_41({}, ...__VLS_functionalComponentArgsRest(__VLS_41));
+__VLS_43.slots.default;
+const __VLS_44 = {}.Plus;
 /** @type {[typeof __VLS_components.Plus, ]} */ ;
 // @ts-ignore
-const __VLS_61 = __VLS_asFunctionalComponent(__VLS_60, new __VLS_60({}));
-const __VLS_62 = __VLS_61({}, ...__VLS_functionalComponentArgsRest(__VLS_61));
-var __VLS_59;
-var __VLS_51;
+const __VLS_45 = __VLS_asFunctionalComponent(__VLS_44, new __VLS_44({}));
+const __VLS_46 = __VLS_45({}, ...__VLS_functionalComponentArgsRest(__VLS_45));
+var __VLS_43;
+var __VLS_35;
 for (const [wp, idx] of __VLS_getVForSourceType((__VLS_ctx.waypoints))) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "waypoint-row" },
         key: (idx),
     });
-    const __VLS_64 = {}.ElTag;
+    const __VLS_48 = {}.ElTag;
     /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
     // @ts-ignore
-    const __VLS_65 = __VLS_asFunctionalComponent(__VLS_64, new __VLS_64({
+    const __VLS_49 = __VLS_asFunctionalComponent(__VLS_48, new __VLS_48({
         type: (idx === __VLS_ctx.pickingWaypointIdx ? 'warning' : 'success'),
         size: "small",
         ...{ class: "wp-num" },
     }));
-    const __VLS_66 = __VLS_65({
+    const __VLS_50 = __VLS_49({
         type: (idx === __VLS_ctx.pickingWaypointIdx ? 'warning' : 'success'),
         size: "small",
         ...{ class: "wp-num" },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_65));
-    __VLS_67.slots.default;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_49));
+    __VLS_51.slots.default;
     (idx + 1);
-    var __VLS_67;
+    var __VLS_51;
     if (idx === __VLS_ctx.finalDestinationIdx) {
-        const __VLS_68 = {}.ElTag;
+        const __VLS_52 = {}.ElTag;
         /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
         // @ts-ignore
-        const __VLS_69 = __VLS_asFunctionalComponent(__VLS_68, new __VLS_68({
+        const __VLS_53 = __VLS_asFunctionalComponent(__VLS_52, new __VLS_52({
             type: "danger",
             size: "small",
             ...{ class: "wp-final-tag" },
         }));
-        const __VLS_70 = __VLS_69({
+        const __VLS_54 = __VLS_53({
             type: "danger",
             size: "small",
             ...{ class: "wp-final-tag" },
-        }, ...__VLS_functionalComponentArgsRest(__VLS_69));
-        __VLS_71.slots.default;
-        var __VLS_71;
+        }, ...__VLS_functionalComponentArgsRest(__VLS_53));
+        __VLS_55.slots.default;
+        var __VLS_55;
     }
     if (wp.name) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
@@ -722,101 +673,101 @@ for (const [wp, idx] of __VLS_getVForSourceType((__VLS_ctx.waypoints))) {
         (wp.lng.toFixed(5));
         (wp.lat.toFixed(5));
     }
+    const __VLS_56 = {}.ElButton;
+    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+    // @ts-ignore
+    const __VLS_57 = __VLS_asFunctionalComponent(__VLS_56, new __VLS_56({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: (__VLS_ctx.pickingWaypointIdx === idx ? 'danger' : 'primary'),
+        plain: true,
+        disabled: (__VLS_ctx.pickingStart),
+    }));
+    const __VLS_58 = __VLS_57({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: (__VLS_ctx.pickingWaypointIdx === idx ? 'danger' : 'primary'),
+        plain: true,
+        disabled: (__VLS_ctx.pickingStart),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_57));
+    let __VLS_60;
+    let __VLS_61;
+    let __VLS_62;
+    const __VLS_63 = {
+        onClick: (...[$event]) => {
+            __VLS_ctx.toggleWaypointPick(idx);
+        }
+    };
+    __VLS_59.slots.default;
+    (__VLS_ctx.pickingWaypointIdx === idx ? '选点中...' : '选点');
+    var __VLS_59;
+    const __VLS_64 = {}.ElButton;
+    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+    // @ts-ignore
+    const __VLS_65 = __VLS_asFunctionalComponent(__VLS_64, new __VLS_64({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: (idx === __VLS_ctx.finalDestinationIdx ? 'danger' : 'warning'),
+        plain: true,
+        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart || wp.lat === null),
+    }));
+    const __VLS_66 = __VLS_65({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: (idx === __VLS_ctx.finalDestinationIdx ? 'danger' : 'warning'),
+        plain: true,
+        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart || wp.lat === null),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_65));
+    let __VLS_68;
+    let __VLS_69;
+    let __VLS_70;
+    const __VLS_71 = {
+        onClick: (...[$event]) => {
+            __VLS_ctx.finalDestinationIdx = __VLS_ctx.finalDestinationIdx === idx ? -1 : idx;
+        }
+    };
+    __VLS_67.slots.default;
+    (idx === __VLS_ctx.finalDestinationIdx ? '终点' : '设终点');
+    var __VLS_67;
     const __VLS_72 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
     const __VLS_73 = __VLS_asFunctionalComponent(__VLS_72, new __VLS_72({
         ...{ 'onClick': {} },
         size: "small",
-        type: (__VLS_ctx.pickingWaypointIdx === idx ? 'danger' : 'primary'),
+        type: "danger",
         plain: true,
-        disabled: (__VLS_ctx.pickingStart),
+        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart),
     }));
     const __VLS_74 = __VLS_73({
         ...{ 'onClick': {} },
         size: "small",
-        type: (__VLS_ctx.pickingWaypointIdx === idx ? 'danger' : 'primary'),
+        type: "danger",
         plain: true,
-        disabled: (__VLS_ctx.pickingStart),
+        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart),
     }, ...__VLS_functionalComponentArgsRest(__VLS_73));
     let __VLS_76;
     let __VLS_77;
     let __VLS_78;
     const __VLS_79 = {
         onClick: (...[$event]) => {
-            __VLS_ctx.toggleWaypointPick(idx);
-        }
-    };
-    __VLS_75.slots.default;
-    (__VLS_ctx.pickingWaypointIdx === idx ? '选点中...' : '选点');
-    var __VLS_75;
-    const __VLS_80 = {}.ElButton;
-    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-    // @ts-ignore
-    const __VLS_81 = __VLS_asFunctionalComponent(__VLS_80, new __VLS_80({
-        ...{ 'onClick': {} },
-        size: "small",
-        type: (idx === __VLS_ctx.finalDestinationIdx ? 'danger' : 'warning'),
-        plain: true,
-        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart || wp.lat === null),
-    }));
-    const __VLS_82 = __VLS_81({
-        ...{ 'onClick': {} },
-        size: "small",
-        type: (idx === __VLS_ctx.finalDestinationIdx ? 'danger' : 'warning'),
-        plain: true,
-        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart || wp.lat === null),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_81));
-    let __VLS_84;
-    let __VLS_85;
-    let __VLS_86;
-    const __VLS_87 = {
-        onClick: (...[$event]) => {
-            __VLS_ctx.finalDestinationIdx = __VLS_ctx.finalDestinationIdx === idx ? -1 : idx;
-        }
-    };
-    __VLS_83.slots.default;
-    (idx === __VLS_ctx.finalDestinationIdx ? '终点' : '设终点');
-    var __VLS_83;
-    const __VLS_88 = {}.ElButton;
-    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-    // @ts-ignore
-    const __VLS_89 = __VLS_asFunctionalComponent(__VLS_88, new __VLS_88({
-        ...{ 'onClick': {} },
-        size: "small",
-        type: "danger",
-        plain: true,
-        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart),
-    }));
-    const __VLS_90 = __VLS_89({
-        ...{ 'onClick': {} },
-        size: "small",
-        type: "danger",
-        plain: true,
-        disabled: (__VLS_ctx.pickingWaypointIdx !== null || __VLS_ctx.pickingStart),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_89));
-    let __VLS_92;
-    let __VLS_93;
-    let __VLS_94;
-    const __VLS_95 = {
-        onClick: (...[$event]) => {
             __VLS_ctx.removeWaypoint(idx);
         }
     };
-    __VLS_91.slots.default;
-    const __VLS_96 = {}.ElIcon;
+    __VLS_75.slots.default;
+    const __VLS_80 = {}.ElIcon;
     /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
     // @ts-ignore
-    const __VLS_97 = __VLS_asFunctionalComponent(__VLS_96, new __VLS_96({}));
-    const __VLS_98 = __VLS_97({}, ...__VLS_functionalComponentArgsRest(__VLS_97));
-    __VLS_99.slots.default;
-    const __VLS_100 = {}.Delete;
+    const __VLS_81 = __VLS_asFunctionalComponent(__VLS_80, new __VLS_80({}));
+    const __VLS_82 = __VLS_81({}, ...__VLS_functionalComponentArgsRest(__VLS_81));
+    __VLS_83.slots.default;
+    const __VLS_84 = {}.Delete;
     /** @type {[typeof __VLS_components.Delete, ]} */ ;
     // @ts-ignore
-    const __VLS_101 = __VLS_asFunctionalComponent(__VLS_100, new __VLS_100({}));
-    const __VLS_102 = __VLS_101({}, ...__VLS_functionalComponentArgsRest(__VLS_101));
-    var __VLS_99;
-    var __VLS_91;
+    const __VLS_85 = __VLS_asFunctionalComponent(__VLS_84, new __VLS_84({}));
+    const __VLS_86 = __VLS_85({}, ...__VLS_functionalComponentArgsRest(__VLS_85));
+    var __VLS_83;
+    var __VLS_75;
 }
 if (__VLS_ctx.waypoints.length === 0) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -829,87 +780,87 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
     ...{ class: "section-label" },
 });
-const __VLS_104 = {}.ElCheckboxGroup;
+const __VLS_88 = {}.ElCheckboxGroup;
 /** @type {[typeof __VLS_components.ElCheckboxGroup, typeof __VLS_components.elCheckboxGroup, typeof __VLS_components.ElCheckboxGroup, typeof __VLS_components.elCheckboxGroup, ]} */ ;
 // @ts-ignore
-const __VLS_105 = __VLS_asFunctionalComponent(__VLS_104, new __VLS_104({
+const __VLS_89 = __VLS_asFunctionalComponent(__VLS_88, new __VLS_88({
     modelValue: (__VLS_ctx.transports),
     ...{ class: "transport-group" },
 }));
-const __VLS_106 = __VLS_105({
+const __VLS_90 = __VLS_89({
     modelValue: (__VLS_ctx.transports),
     ...{ class: "transport-group" },
-}, ...__VLS_functionalComponentArgsRest(__VLS_105));
-__VLS_107.slots.default;
-const __VLS_108 = {}.ElCheckbox;
+}, ...__VLS_functionalComponentArgsRest(__VLS_89));
+__VLS_91.slots.default;
+const __VLS_92 = {}.ElCheckbox;
 /** @type {[typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, ]} */ ;
 // @ts-ignore
-const __VLS_109 = __VLS_asFunctionalComponent(__VLS_108, new __VLS_108({
+const __VLS_93 = __VLS_asFunctionalComponent(__VLS_92, new __VLS_92({
     label: "WALK",
 }));
-const __VLS_110 = __VLS_109({
+const __VLS_94 = __VLS_93({
     label: "WALK",
+}, ...__VLS_functionalComponentArgsRest(__VLS_93));
+__VLS_95.slots.default;
+var __VLS_95;
+const __VLS_96 = {}.ElCheckbox;
+/** @type {[typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, ]} */ ;
+// @ts-ignore
+const __VLS_97 = __VLS_asFunctionalComponent(__VLS_96, new __VLS_96({
+    label: "BIKE",
+}));
+const __VLS_98 = __VLS_97({
+    label: "BIKE",
+}, ...__VLS_functionalComponentArgsRest(__VLS_97));
+__VLS_99.slots.default;
+var __VLS_99;
+const __VLS_100 = {}.ElCheckbox;
+/** @type {[typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, ]} */ ;
+// @ts-ignore
+const __VLS_101 = __VLS_asFunctionalComponent(__VLS_100, new __VLS_100({
+    label: "SHUTTLE",
+}));
+const __VLS_102 = __VLS_101({
+    label: "SHUTTLE",
+}, ...__VLS_functionalComponentArgsRest(__VLS_101));
+__VLS_103.slots.default;
+var __VLS_103;
+var __VLS_91;
+const __VLS_104 = {}.ElRadioGroup;
+/** @type {[typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, ]} */ ;
+// @ts-ignore
+const __VLS_105 = __VLS_asFunctionalComponent(__VLS_104, new __VLS_104({
+    modelValue: (__VLS_ctx.strategy),
+    ...{ class: "strategy-group" },
+}));
+const __VLS_106 = __VLS_105({
+    modelValue: (__VLS_ctx.strategy),
+    ...{ class: "strategy-group" },
+}, ...__VLS_functionalComponentArgsRest(__VLS_105));
+__VLS_107.slots.default;
+const __VLS_108 = {}.ElRadio;
+/** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
+// @ts-ignore
+const __VLS_109 = __VLS_asFunctionalComponent(__VLS_108, new __VLS_108({
+    label: "DISTANCE",
+}));
+const __VLS_110 = __VLS_109({
+    label: "DISTANCE",
 }, ...__VLS_functionalComponentArgsRest(__VLS_109));
 __VLS_111.slots.default;
 var __VLS_111;
-const __VLS_112 = {}.ElCheckbox;
-/** @type {[typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, ]} */ ;
+const __VLS_112 = {}.ElRadio;
+/** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
 // @ts-ignore
 const __VLS_113 = __VLS_asFunctionalComponent(__VLS_112, new __VLS_112({
-    label: "BIKE",
+    label: "TIME",
 }));
 const __VLS_114 = __VLS_113({
-    label: "BIKE",
+    label: "TIME",
 }, ...__VLS_functionalComponentArgsRest(__VLS_113));
 __VLS_115.slots.default;
 var __VLS_115;
-const __VLS_116 = {}.ElCheckbox;
-/** @type {[typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, typeof __VLS_components.ElCheckbox, typeof __VLS_components.elCheckbox, ]} */ ;
-// @ts-ignore
-const __VLS_117 = __VLS_asFunctionalComponent(__VLS_116, new __VLS_116({
-    label: "SHUTTLE",
-}));
-const __VLS_118 = __VLS_117({
-    label: "SHUTTLE",
-}, ...__VLS_functionalComponentArgsRest(__VLS_117));
-__VLS_119.slots.default;
-var __VLS_119;
 var __VLS_107;
-const __VLS_120 = {}.ElRadioGroup;
-/** @type {[typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, ]} */ ;
-// @ts-ignore
-const __VLS_121 = __VLS_asFunctionalComponent(__VLS_120, new __VLS_120({
-    modelValue: (__VLS_ctx.strategy),
-    ...{ class: "strategy-group" },
-}));
-const __VLS_122 = __VLS_121({
-    modelValue: (__VLS_ctx.strategy),
-    ...{ class: "strategy-group" },
-}, ...__VLS_functionalComponentArgsRest(__VLS_121));
-__VLS_123.slots.default;
-const __VLS_124 = {}.ElRadio;
-/** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
-// @ts-ignore
-const __VLS_125 = __VLS_asFunctionalComponent(__VLS_124, new __VLS_124({
-    label: "DISTANCE",
-}));
-const __VLS_126 = __VLS_125({
-    label: "DISTANCE",
-}, ...__VLS_functionalComponentArgsRest(__VLS_125));
-__VLS_127.slots.default;
-var __VLS_127;
-const __VLS_128 = {}.ElRadio;
-/** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
-// @ts-ignore
-const __VLS_129 = __VLS_asFunctionalComponent(__VLS_128, new __VLS_128({
-    label: "TIME",
-}));
-const __VLS_130 = __VLS_129({
-    label: "TIME",
-}, ...__VLS_functionalComponentArgsRest(__VLS_129));
-__VLS_131.slots.default;
-var __VLS_131;
-var __VLS_123;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "poi-search-section" },
 });
@@ -919,51 +870,51 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "poi-search-row" },
 });
-const __VLS_132 = {}.ElInput;
+const __VLS_116 = {}.ElInput;
 /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
 // @ts-ignore
-const __VLS_133 = __VLS_asFunctionalComponent(__VLS_132, new __VLS_132({
+const __VLS_117 = __VLS_asFunctionalComponent(__VLS_116, new __VLS_116({
     ...{ 'onKeyup': {} },
     modelValue: (__VLS_ctx.poiKeyword),
     placeholder: "输入景点/地名...",
     size: "small",
     clearable: true,
 }));
-const __VLS_134 = __VLS_133({
+const __VLS_118 = __VLS_117({
     ...{ 'onKeyup': {} },
     modelValue: (__VLS_ctx.poiKeyword),
     placeholder: "输入景点/地名...",
     size: "small",
     clearable: true,
-}, ...__VLS_functionalComponentArgsRest(__VLS_133));
-let __VLS_136;
-let __VLS_137;
-let __VLS_138;
-const __VLS_139 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_117));
+let __VLS_120;
+let __VLS_121;
+let __VLS_122;
+const __VLS_123 = {
     onKeyup: (__VLS_ctx.searchPOI)
 };
-var __VLS_135;
-const __VLS_140 = {}.ElButton;
+var __VLS_119;
+const __VLS_124 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_141 = __VLS_asFunctionalComponent(__VLS_140, new __VLS_140({
+const __VLS_125 = __VLS_asFunctionalComponent(__VLS_124, new __VLS_124({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
 }));
-const __VLS_142 = __VLS_141({
+const __VLS_126 = __VLS_125({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
-}, ...__VLS_functionalComponentArgsRest(__VLS_141));
-let __VLS_144;
-let __VLS_145;
-let __VLS_146;
-const __VLS_147 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_125));
+let __VLS_128;
+let __VLS_129;
+let __VLS_130;
+const __VLS_131 = {
     onClick: (__VLS_ctx.searchPOI)
 };
-__VLS_143.slots.default;
-var __VLS_143;
+__VLS_127.slots.default;
+var __VLS_127;
 if (__VLS_ctx.poiResults.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "poi-results" },
@@ -987,96 +938,96 @@ if (__VLS_ctx.poiResults.length) {
         });
         (poi.lat.toFixed(4));
         (poi.lon.toFixed(4));
-        const __VLS_148 = {}.ElButton;
+        const __VLS_132 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_149 = __VLS_asFunctionalComponent(__VLS_148, new __VLS_148({
+        const __VLS_133 = __VLS_asFunctionalComponent(__VLS_132, new __VLS_132({
             ...{ 'onClick': {} },
             size: "small",
             type: "success",
             plain: true,
         }));
-        const __VLS_150 = __VLS_149({
+        const __VLS_134 = __VLS_133({
             ...{ 'onClick': {} },
             size: "small",
             type: "success",
             plain: true,
-        }, ...__VLS_functionalComponentArgsRest(__VLS_149));
-        let __VLS_152;
-        let __VLS_153;
-        let __VLS_154;
-        const __VLS_155 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_133));
+        let __VLS_136;
+        let __VLS_137;
+        let __VLS_138;
+        const __VLS_139 = {
             onClick: (...[$event]) => {
                 if (!(__VLS_ctx.poiResults.length))
                     return;
                 __VLS_ctx.setStartFromPOI(poi);
             }
         };
-        __VLS_151.slots.default;
-        var __VLS_151;
-        const __VLS_156 = {}.ElButton;
+        __VLS_135.slots.default;
+        var __VLS_135;
+        const __VLS_140 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_157 = __VLS_asFunctionalComponent(__VLS_156, new __VLS_156({
+        const __VLS_141 = __VLS_asFunctionalComponent(__VLS_140, new __VLS_140({
             ...{ 'onClick': {} },
             size: "small",
             type: "danger",
             plain: true,
         }));
-        const __VLS_158 = __VLS_157({
+        const __VLS_142 = __VLS_141({
             ...{ 'onClick': {} },
             size: "small",
             type: "danger",
             plain: true,
-        }, ...__VLS_functionalComponentArgsRest(__VLS_157));
-        let __VLS_160;
-        let __VLS_161;
-        let __VLS_162;
-        const __VLS_163 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_141));
+        let __VLS_144;
+        let __VLS_145;
+        let __VLS_146;
+        const __VLS_147 = {
             onClick: (...[$event]) => {
                 if (!(__VLS_ctx.poiResults.length))
                     return;
                 __VLS_ctx.setTargetFromPOI(poi);
             }
         };
-        __VLS_159.slots.default;
-        var __VLS_159;
+        __VLS_143.slots.default;
+        var __VLS_143;
     }
 }
-const __VLS_164 = {}.ElButton;
+const __VLS_148 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_165 = __VLS_asFunctionalComponent(__VLS_164, new __VLS_164({
+const __VLS_149 = __VLS_asFunctionalComponent(__VLS_148, new __VLS_148({
     ...{ 'onClick': {} },
     type: "primary",
     ...{ class: "plan-btn" },
     loading: (__VLS_ctx.planning),
     disabled: (!__VLS_ctx.startPoint || __VLS_ctx.waypoints.length === 0),
 }));
-const __VLS_166 = __VLS_165({
+const __VLS_150 = __VLS_149({
     ...{ 'onClick': {} },
     type: "primary",
     ...{ class: "plan-btn" },
     loading: (__VLS_ctx.planning),
     disabled: (!__VLS_ctx.startPoint || __VLS_ctx.waypoints.length === 0),
-}, ...__VLS_functionalComponentArgsRest(__VLS_165));
-let __VLS_168;
-let __VLS_169;
-let __VLS_170;
-const __VLS_171 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_149));
+let __VLS_152;
+let __VLS_153;
+let __VLS_154;
+const __VLS_155 = {
     onClick: (__VLS_ctx.planRoute)
 };
-__VLS_167.slots.default;
-var __VLS_167;
+__VLS_151.slots.default;
+var __VLS_151;
 if (__VLS_ctx.routeResult) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "route-result" },
     });
-    const __VLS_172 = {}.ElDivider;
+    const __VLS_156 = {}.ElDivider;
     /** @type {[typeof __VLS_components.ElDivider, typeof __VLS_components.elDivider, ]} */ ;
     // @ts-ignore
-    const __VLS_173 = __VLS_asFunctionalComponent(__VLS_172, new __VLS_172({}));
-    const __VLS_174 = __VLS_173({}, ...__VLS_functionalComponentArgsRest(__VLS_173));
+    const __VLS_157 = __VLS_asFunctionalComponent(__VLS_156, new __VLS_156({}));
+    const __VLS_158 = __VLS_157({}, ...__VLS_functionalComponentArgsRest(__VLS_157));
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "result-stats" },
     });
@@ -1119,49 +1070,49 @@ if (__VLS_ctx.routeResult) {
             (wp.name || '点' + (i + 1));
         }
     }
-    const __VLS_176 = {}.ElButton;
+    const __VLS_160 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_177 = __VLS_asFunctionalComponent(__VLS_176, new __VLS_176({
+    const __VLS_161 = __VLS_asFunctionalComponent(__VLS_160, new __VLS_160({
         ...{ 'onClick': {} },
         ...{ class: "save-btn" },
         loading: (__VLS_ctx.saving),
     }));
-    const __VLS_178 = __VLS_177({
+    const __VLS_162 = __VLS_161({
         ...{ 'onClick': {} },
         ...{ class: "save-btn" },
         loading: (__VLS_ctx.saving),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_177));
-    let __VLS_180;
-    let __VLS_181;
-    let __VLS_182;
-    const __VLS_183 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_161));
+    let __VLS_164;
+    let __VLS_165;
+    let __VLS_166;
+    const __VLS_167 = {
         onClick: (__VLS_ctx.saveItinerary)
     };
-    __VLS_179.slots.default;
-    var __VLS_179;
-    const __VLS_184 = {}.ElButton;
+    __VLS_163.slots.default;
+    var __VLS_163;
+    const __VLS_168 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_185 = __VLS_asFunctionalComponent(__VLS_184, new __VLS_184({
+    const __VLS_169 = __VLS_asFunctionalComponent(__VLS_168, new __VLS_168({
         ...{ 'onClick': {} },
     }));
-    const __VLS_186 = __VLS_185({
+    const __VLS_170 = __VLS_169({
         ...{ 'onClick': {} },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_185));
-    let __VLS_188;
-    let __VLS_189;
-    let __VLS_190;
-    const __VLS_191 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_169));
+    let __VLS_172;
+    let __VLS_173;
+    let __VLS_174;
+    const __VLS_175 = {
         onClick: (__VLS_ctx.clearRoute)
     };
-    __VLS_187.slots.default;
-    var __VLS_187;
+    __VLS_171.slots.default;
+    var __VLS_171;
 }
-const __VLS_192 = {}.ElDialog;
+const __VLS_176 = {}.ElDialog;
 /** @type {[typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, ]} */ ;
 // @ts-ignore
-const __VLS_193 = __VLS_asFunctionalComponent(__VLS_192, new __VLS_192({
+const __VLS_177 = __VLS_asFunctionalComponent(__VLS_176, new __VLS_176({
     ...{ 'onClose': {} },
     modelValue: (__VLS_ctx.indoorDialogVisible),
     title: "🏛 综合实验教学楼 · 室内导航",
@@ -1169,21 +1120,21 @@ const __VLS_193 = __VLS_asFunctionalComponent(__VLS_192, new __VLS_192({
     top: "4vh",
     destroyOnClose: true,
 }));
-const __VLS_194 = __VLS_193({
+const __VLS_178 = __VLS_177({
     ...{ 'onClose': {} },
     modelValue: (__VLS_ctx.indoorDialogVisible),
     title: "🏛 综合实验教学楼 · 室内导航",
     width: "75%",
     top: "4vh",
     destroyOnClose: true,
-}, ...__VLS_functionalComponentArgsRest(__VLS_193));
-let __VLS_196;
-let __VLS_197;
-let __VLS_198;
-const __VLS_199 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_177));
+let __VLS_180;
+let __VLS_181;
+let __VLS_182;
+const __VLS_183 = {
     onClose: (__VLS_ctx.clearIndoor)
 };
-__VLS_195.slots.default;
+__VLS_179.slots.default;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "indoor-dialog-body" },
 });
@@ -1305,48 +1256,48 @@ for (const [n] of __VLS_getVForSourceType((__VLS_ctx.indoorFloorNodes))) {
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "indoor-action-bar" },
 });
-const __VLS_200 = {}.ElButton;
+const __VLS_184 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_201 = __VLS_asFunctionalComponent(__VLS_200, new __VLS_200({
+const __VLS_185 = __VLS_asFunctionalComponent(__VLS_184, new __VLS_184({
     ...{ 'onClick': {} },
     size: "small",
 }));
-const __VLS_202 = __VLS_201({
+const __VLS_186 = __VLS_185({
     ...{ 'onClick': {} },
     size: "small",
-}, ...__VLS_functionalComponentArgsRest(__VLS_201));
-let __VLS_204;
-let __VLS_205;
-let __VLS_206;
-const __VLS_207 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_185));
+let __VLS_188;
+let __VLS_189;
+let __VLS_190;
+const __VLS_191 = {
     onClick: (__VLS_ctx.clearIndoor)
 };
-__VLS_203.slots.default;
-var __VLS_203;
-const __VLS_208 = {}.ElButton;
+__VLS_187.slots.default;
+var __VLS_187;
+const __VLS_192 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_209 = __VLS_asFunctionalComponent(__VLS_208, new __VLS_208({
+const __VLS_193 = __VLS_asFunctionalComponent(__VLS_192, new __VLS_192({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.indoorLoading),
 }));
-const __VLS_210 = __VLS_209({
+const __VLS_194 = __VLS_193({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.indoorLoading),
-}, ...__VLS_functionalComponentArgsRest(__VLS_209));
-let __VLS_212;
-let __VLS_213;
-let __VLS_214;
-const __VLS_215 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_193));
+let __VLS_196;
+let __VLS_197;
+let __VLS_198;
+const __VLS_199 = {
     onClick: (__VLS_ctx.doIndoorNav)
 };
-__VLS_211.slots.default;
-var __VLS_211;
+__VLS_195.slots.default;
+var __VLS_195;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "indoor-right" },
 });
@@ -1376,46 +1327,46 @@ if (__VLS_ctx.indoorRoute) {
         (s.fromFloor);
         (s.crossFloor ? __VLS_ctx.dirText(s.fromFloor, s.toFloor) : s.distance.toFixed(0) + 'm');
         if (s.crossFloor) {
-            const __VLS_216 = {}.ElTag;
+            const __VLS_200 = {}.ElTag;
             /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
             // @ts-ignore
-            const __VLS_217 = __VLS_asFunctionalComponent(__VLS_216, new __VLS_216({
+            const __VLS_201 = __VLS_asFunctionalComponent(__VLS_200, new __VLS_200({
                 type: "warning",
                 size: "small",
             }));
-            const __VLS_218 = __VLS_217({
+            const __VLS_202 = __VLS_201({
                 type: "warning",
                 size: "small",
-            }, ...__VLS_functionalComponentArgsRest(__VLS_217));
-            __VLS_219.slots.default;
-            var __VLS_219;
+            }, ...__VLS_functionalComponentArgsRest(__VLS_201));
+            __VLS_203.slots.default;
+            var __VLS_203;
         }
     }
-    const __VLS_220 = {}.ElButton;
+    const __VLS_204 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_221 = __VLS_asFunctionalComponent(__VLS_220, new __VLS_220({
+    const __VLS_205 = __VLS_asFunctionalComponent(__VLS_204, new __VLS_204({
         ...{ 'onClick': {} },
         size: "small",
         ...{ class: "indoor-back-btn" },
     }));
-    const __VLS_222 = __VLS_221({
+    const __VLS_206 = __VLS_205({
         ...{ 'onClick': {} },
         size: "small",
         ...{ class: "indoor-back-btn" },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_221));
-    let __VLS_224;
-    let __VLS_225;
-    let __VLS_226;
-    const __VLS_227 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_205));
+    let __VLS_208;
+    let __VLS_209;
+    let __VLS_210;
+    const __VLS_211 = {
         onClick: (...[$event]) => {
             if (!(__VLS_ctx.indoorRoute))
                 return;
             __VLS_ctx.indoorRoute = null;
         }
     };
-    __VLS_223.slots.default;
-    var __VLS_223;
+    __VLS_207.slots.default;
+    var __VLS_207;
 }
 else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
@@ -1446,7 +1397,7 @@ else {
         (n.type);
     }
 }
-var __VLS_195;
+var __VLS_179;
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['nav-container']} */ ;
 /** @type {__VLS_StyleScopedClasses['map-area']} */ ;
@@ -1455,7 +1406,6 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['mode-hint']} */ ;
 /** @type {__VLS_StyleScopedClasses['control-panel']} */ ;
 /** @type {__VLS_StyleScopedClasses['panel-title']} */ ;
-/** @type {__VLS_StyleScopedClasses['quick-links']} */ ;
 /** @type {__VLS_StyleScopedClasses['point-row']} */ ;
 /** @type {__VLS_StyleScopedClasses['point-name']} */ ;
 /** @type {__VLS_StyleScopedClasses['point-coord']} */ ;

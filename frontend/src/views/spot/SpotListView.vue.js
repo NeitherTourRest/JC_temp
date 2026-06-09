@@ -7,7 +7,6 @@ const loading = ref(false);
 const errorMsg = ref('');
 const keyword = ref('');
 const activeCat = ref('All');
-const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6', '#4ade80', '#f87171'];
 const cats = ['All', '景点', '校园', '餐厅', '商场', '公园', '博物馆', '酒店', '体育场馆'];
 async function fetch() {
     loading.value = true;
@@ -41,7 +40,6 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['spots-grid']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
 /** @type {[typeof DefaultLayout, typeof DefaultLayout, ]} */ ;
@@ -56,37 +54,6 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar glass-sm" },
 });
-const __VLS_4 = {}.ElInput;
-/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
-// @ts-ignore
-const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search spots...",
-    clearable: true,
-    ...{ class: "search-inp" },
-}));
-const __VLS_6 = __VLS_5({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search spots...",
-    clearable: true,
-    ...{ class: "search-inp" },
-}, ...__VLS_functionalComponentArgsRest(__VLS_5));
-let __VLS_8;
-let __VLS_9;
-let __VLS_10;
-const __VLS_11 = {
-    onKeyup: (__VLS_ctx.search)
-};
-__VLS_7.slots.default;
-{
-    const { prefix: __VLS_thisSlot } = __VLS_7.slots;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "search-icon" },
-    });
-}
-var __VLS_7;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "cat-filters" },
 });
@@ -118,25 +85,25 @@ else if (__VLS_ctx.errorMsg) {
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     (__VLS_ctx.errorMsg);
-    const __VLS_12 = {}.ElButton;
+    const __VLS_4 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
+    const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_14 = __VLS_13({
+    const __VLS_6 = __VLS_5({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
-    let __VLS_16;
-    let __VLS_17;
-    let __VLS_18;
-    const __VLS_19 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_5));
+    let __VLS_8;
+    let __VLS_9;
+    let __VLS_10;
+    const __VLS_11 = {
         onClick: (__VLS_ctx.fetch)
     };
-    __VLS_15.slots.default;
-    var __VLS_15;
+    __VLS_7.slots.default;
+    var __VLS_7;
 }
 else if (!__VLS_ctx.spots.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -167,16 +134,19 @@ else {
             ...{ class: "spot-card glass" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "spot-top" },
-            ...{ style: ({ background: __VLS_ctx.colors[s.id % __VLS_ctx.colors.length] }) },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "spot-cat" },
-        });
-        (s.category);
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "spot-body" },
         });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "spot-header" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "spot-cat-tag" },
+        });
+        (s.category);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "spot-rating" },
+        });
+        (s.avgRating?.toFixed(1) || '—');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
         (s.name);
         __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
@@ -188,14 +158,12 @@ else {
             ...{ class: "spot-foot" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-        (s.avgRating?.toFixed(1) || '—');
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-        (s.popularity);
+        (s.popularity || '—');
         if (s.address) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "spot-addr" },
             });
-            (s.address?.substring(0, 15));
+            (s.address?.substring(0, 18));
         }
     }
 }
@@ -203,8 +171,6 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spots-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['cat-filters']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
@@ -214,9 +180,10 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spots-grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-top']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-cat']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-cat-tag']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-rating']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-desc']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-foot']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-addr']} */ ;
@@ -230,10 +197,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             errorMsg: errorMsg,
             keyword: keyword,
             activeCat: activeCat,
-            colors: colors,
             cats: cats,
             fetch: fetch,
-            search: search,
             filterCat: filterCat,
         };
     },

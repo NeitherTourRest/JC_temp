@@ -3,7 +3,6 @@ import { ref, computed, onMounted } from 'vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { diaryApi } from '@/api/diaryApi';
 import { spotApi } from '@/api/spotApi';
-const searchKeyword = ref('');
 const featuredSpots = ref([]);
 const recentDiaries = ref([]);
 const pageLoading = ref(true);
@@ -14,11 +13,6 @@ const statItems = computed(() => [
     { value: stats.value.diaries || '—', label: '游记' },
     { value: '10+', label: '用户' },
 ]);
-const colors = ['#4fc3f7', '#81c784', '#ffb74d', '#e57373', '#ba68c8', '#4db6ac'];
-function gradientFor(id) {
-    const c = colors[id % colors.length];
-    return `linear-gradient(135deg, ${c}, ${c}88)`;
-}
 const categories = [
     { name: '景点', path: '/spots', icon: '🏞️', color: '#e3f2fd' },
     { name: '美食', path: '/foods', icon: '🍜', color: '#fff3e0' },
@@ -26,11 +20,6 @@ const categories = [
     { name: '导航', path: '/navigation', icon: '🗺️', color: '#fce4ec' },
     { name: 'AI', path: '/ai/chat', icon: '🤖', color: '#f3e5f5' },
 ];
-function handleSearch() {
-    if (searchKeyword.value.trim()) {
-        window.location.href = '/spots?keyword=' + encodeURIComponent(searchKeyword.value);
-    }
-}
 async function loadAll() {
     pageLoading.value = true;
     pageError.value = '';
@@ -68,6 +57,7 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-overlay']} */ ;
 /** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-img']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
@@ -98,56 +88,6 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({});
 __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
-__VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "hero-search" },
-});
-const __VLS_4 = {}.ElInput;
-/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
-// @ts-ignore
-const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.searchKeyword),
-    size: "large",
-    placeholder: "搜索景点、美食、游记...",
-    clearable: true,
-}));
-const __VLS_6 = __VLS_5({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.searchKeyword),
-    size: "large",
-    placeholder: "搜索景点、美食、游记...",
-    clearable: true,
-}, ...__VLS_functionalComponentArgsRest(__VLS_5));
-let __VLS_8;
-let __VLS_9;
-let __VLS_10;
-const __VLS_11 = {
-    onKeyup: (__VLS_ctx.handleSearch)
-};
-__VLS_7.slots.default;
-{
-    const { append: __VLS_thisSlot } = __VLS_7.slots;
-    const __VLS_12 = {}.ElButton;
-    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-    // @ts-ignore
-    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
-        ...{ 'onClick': {} },
-        type: "primary",
-    }));
-    const __VLS_14 = __VLS_13({
-        ...{ 'onClick': {} },
-        type: "primary",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
-    let __VLS_16;
-    let __VLS_17;
-    let __VLS_18;
-    const __VLS_19 = {
-        onClick: (__VLS_ctx.handleSearch)
-    };
-    __VLS_15.slots.default;
-    var __VLS_15;
-}
-var __VLS_7;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
     ...{ class: "stats-bar" },
 });
@@ -183,25 +123,25 @@ else if (__VLS_ctx.pageError) {
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     (__VLS_ctx.pageError);
-    const __VLS_20 = {}.ElButton;
+    const __VLS_4 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
+    const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_22 = __VLS_21({
+    const __VLS_6 = __VLS_5({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_21));
-    let __VLS_24;
-    let __VLS_25;
-    let __VLS_26;
-    const __VLS_27 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_5));
+    let __VLS_8;
+    let __VLS_9;
+    let __VLS_10;
+    const __VLS_11 = {
         onClick: (__VLS_ctx.loadAll)
     };
-    __VLS_23.slots.default;
-    var __VLS_23;
+    __VLS_7.slots.default;
+    var __VLS_7;
 }
 else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
@@ -238,23 +178,23 @@ else {
         ...{ class: "section-header" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
-    const __VLS_28 = {}.ElButton;
+    const __VLS_12 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_29 = __VLS_asFunctionalComponent(__VLS_28, new __VLS_28({
+    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
         ...{ 'onClick': {} },
         text: true,
         type: "primary",
     }));
-    const __VLS_30 = __VLS_29({
+    const __VLS_14 = __VLS_13({
         ...{ 'onClick': {} },
         text: true,
         type: "primary",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_29));
-    let __VLS_32;
-    let __VLS_33;
-    let __VLS_34;
-    const __VLS_35 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
+    let __VLS_16;
+    let __VLS_17;
+    let __VLS_18;
+    const __VLS_19 = {
         onClick: (...[$event]) => {
             if (!!(__VLS_ctx.pageLoading))
                 return;
@@ -263,8 +203,8 @@ else {
             __VLS_ctx.$router.push('/spots');
         }
     };
-    __VLS_31.slots.default;
-    var __VLS_31;
+    __VLS_15.slots.default;
+    var __VLS_15;
     if (!__VLS_ctx.featuredSpots.length) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "empty-inline" },
@@ -291,7 +231,6 @@ else {
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "card-img" },
-                ...{ style: ({ background: __VLS_ctx.gradientFor(s.id) }) },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "card-cat-tag" },
@@ -320,23 +259,23 @@ else {
         ...{ class: "section-header" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
-    const __VLS_36 = {}.ElButton;
+    const __VLS_20 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_37 = __VLS_asFunctionalComponent(__VLS_36, new __VLS_36({
+    const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
         ...{ 'onClick': {} },
         text: true,
         type: "primary",
     }));
-    const __VLS_38 = __VLS_37({
+    const __VLS_22 = __VLS_21({
         ...{ 'onClick': {} },
         text: true,
         type: "primary",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_37));
-    let __VLS_40;
-    let __VLS_41;
-    let __VLS_42;
-    const __VLS_43 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_21));
+    let __VLS_24;
+    let __VLS_25;
+    let __VLS_26;
+    const __VLS_27 = {
         onClick: (...[$event]) => {
             if (!!(__VLS_ctx.pageLoading))
                 return;
@@ -345,8 +284,8 @@ else {
             __VLS_ctx.$router.push('/diaries');
         }
     };
-    __VLS_39.slots.default;
-    var __VLS_39;
+    __VLS_23.slots.default;
+    var __VLS_23;
     if (!__VLS_ctx.recentDiaries.length) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "empty-inline" },
@@ -408,7 +347,6 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['hero']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-content']} */ ;
-/** @type {__VLS_StyleScopedClasses['hero-search']} */ ;
 /** @type {__VLS_StyleScopedClasses['stats-bar']} */ ;
 /** @type {__VLS_StyleScopedClasses['stat-item']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
@@ -447,15 +385,12 @@ const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
             DefaultLayout: DefaultLayout,
-            searchKeyword: searchKeyword,
             featuredSpots: featuredSpots,
             recentDiaries: recentDiaries,
             pageLoading: pageLoading,
             pageError: pageError,
             statItems: statItems,
-            gradientFor: gradientFor,
             categories: categories,
-            handleSearch: handleSearch,
             loadAll: loadAll,
         };
     },

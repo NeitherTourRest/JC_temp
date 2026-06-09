@@ -6,11 +6,6 @@
         <div class="hero-content">
           <h1>探索昌平，发现精彩</h1>
           <p>发现昌平的美食、景点、游记与出行路线</p>
-          <div class="hero-search">
-            <el-input v-model="searchKeyword" size="large" placeholder="搜索景点、美食、游记..." clearable @keyup.enter="handleSearch">
-              <template #append><el-button type="primary" @click="handleSearch">搜索</el-button></template>
-            </el-input>
-          </div>
         </div>
       </section>
 
@@ -55,7 +50,7 @@
           </div>
           <div v-else class="home-container">
             <div v-for="s in featuredSpots" :key="s.id" class="hao-card" @click="$router.push('/spots/' + s.id)">
-              <div class="card-img" :style="{ background: gradientFor(s.id) }">
+              <div class="card-img">
                 <span class="card-cat-tag">{{ s.category }}</span>
               </div>
               <div class="card-overlay">
@@ -106,7 +101,6 @@ import { diaryApi } from '@/api/diaryApi'
 import { spotApi } from '@/api/spotApi'
 import type { SpotResponse, DiaryResponse } from '@/types/api'
 
-const searchKeyword = ref('')
 const featuredSpots = ref<SpotResponse[]>([])
 const recentDiaries = ref<DiaryResponse[]>([])
 const pageLoading = ref(true)
@@ -119,11 +113,6 @@ const statItems = computed(() => [
   { value: '10+', label: '用户' },
 ])
 
-const colors = ['#4fc3f7', '#81c784', '#ffb74d', '#e57373', '#ba68c8', '#4db6ac']
-function gradientFor(id: number): string {
-  const c = colors[id % colors.length]
-  return `linear-gradient(135deg, ${c}, ${c}88)`
-}
 const categories = [
   { name: '景点', path: '/spots', icon: '🏞️', color: '#e3f2fd' },
   { name: '美食', path: '/foods', icon: '🍜', color: '#fff3e0' },
@@ -131,12 +120,6 @@ const categories = [
   { name: '导航', path: '/navigation', icon: '🗺️', color: '#fce4ec' },
   { name: 'AI', path: '/ai/chat', icon: '🤖', color: '#f3e5f5' },
 ]
-
-function handleSearch() {
-  if (searchKeyword.value.trim()) {
-    window.location.href = '/spots?keyword=' + encodeURIComponent(searchKeyword.value)
-  }
-}
 
 async function loadAll() {
   pageLoading.value = true
@@ -167,7 +150,7 @@ onMounted(loadAll)
 
 /* ── Hero ── */
 .hero {
-  min-height: 320px;
+  min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -180,16 +163,15 @@ onMounted(loadAll)
   margin-bottom: 20px;
   cursor: default;
 }
-.hero-content { text-align: center; padding: 40px 20px; }
+.hero-content { text-align: center; padding: 28px 20px; }
 .hero-content h1 {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   margin: 0 0 6px;
   color: var(--text-primary);
   letter-spacing: 1px;
 }
-.hero-content p { color: var(--text-secondary); margin-bottom: 20px; font-size: 15px; }
-.hero-search { max-width: 480px; margin: 0 auto; }
+.hero-content p { color: var(--text-secondary); margin-bottom: 0; font-size: 14px; }
 
 /* ── Stats ── */
 .stats-bar { display: flex; gap: 14px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
@@ -262,6 +244,10 @@ onMounted(loadAll)
 .hao-card .card-bottom-bar > div {
   font-size: 85%;
 }
+.hao-card .card-img {
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--frosted-border);
+}
 
 /* ── Diary list ── */
 .diary-list { display: flex; flex-direction: column; gap: 12px; }
@@ -289,7 +275,7 @@ onMounted(loadAll)
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .hero { min-height: 240px; }
+  .hero { min-height: 140px; }
   .hero-content h1 { font-size: 1.4rem; }
   .hero-content p { font-size: 13px; }
   .diary-card { flex-direction: column; }

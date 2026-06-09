@@ -19,12 +19,6 @@
       <div class="control-panel">
         <h3 class="panel-title">路径规划</h3>
 
-        <!-- Quick actions -->
-        <div class="quick-links">
-          <el-button size="small" type="primary" @click="$router.push('/itineraries')">📋 行程规划</el-button>
-          <el-button size="small" type="warning" @click="$router.push('/itineraries')">💰 预算估计</el-button>
-        </div>
-
         <!-- 起点 -->
         <div class="point-row">
           <el-tag type="success" size="small">起</el-tag>
@@ -587,6 +581,8 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   display: flex;
   height: calc(100vh - 56px);
   gap: 0;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .map-area {
   flex: 1;
@@ -621,7 +617,7 @@ onBeforeUnmount(() => { if (map) map.destroy() })
 
 /* ── 控制面板 ── */
 .control-panel {
-  width: 380px;
+  width: 280px;
   padding: 16px;
   background: rgba(42, 40, 40, 0.55);
   backdrop-filter: blur(12px);

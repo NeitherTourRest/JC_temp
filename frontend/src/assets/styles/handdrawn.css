@@ -98,14 +98,14 @@ body {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='rgba(255,255,255,0.8)' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='rgba(124,215,238,0.9)'/%3E%3Cline x1='16' y1='4' x2='16' y2='8' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='16' y1='24' x2='16' y2='28' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='4' y1='16' x2='8' y2='16' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='24' y1='16' x2='28' y2='16' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3C/svg%3E") 16 16, auto;
 }
 
-/* Interactive elements cursor - highlighted ring */
+/* Interactive elements cursor - circle with plus */
 a, button, [role="button"], input[type="submit"], .cursor-pointer,
 .el-button, .el-link, .el-tag, .el-pagination *,
 .el-tabs__item, .el-radio, .el-checkbox, .el-switch,
 .el-select, .el-date-picker, .el-time-picker,
 .nav-btn, .top-nav-btn, .top-login-btn, .top-profile,
 .hao-card, .glass, .glass-sm {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='rgba(124,215,238,1)'/%3E%3C/svg%3E") 16 16, pointer !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
 }
 
 input[type="text"], input[type="email"], input[type="password"], textarea, .cursor-text,

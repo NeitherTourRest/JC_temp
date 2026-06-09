@@ -7,10 +7,7 @@
           <button :class="['tab', { active: tab === 'mine' }]" @click="tab='mine'; fetch()">📖 Mine</button>
         </div>
         <div class="toolbar-right">
-          <el-input v-model="keyword" placeholder="Search..." clearable class="search-inp" @keyup.enter="search">
-            <template #prefix><span class="search-icon">🔍</span></template>
-          </el-input>
-          <el-button type="primary" @click="$router.push('/diaries/new')">+ Write</el-button>
+          <el-button type="primary" size="small" @click="$router.push('/diaries/new')">+ Write</el-button>
         </div>
       </div>
 
@@ -67,7 +64,6 @@ import type { DiaryResponse } from '@/types/api'
 const diaries = ref<DiaryResponse[]>([])
 const loading = ref(false)
 const errorMsg = ref('')
-const keyword = ref('')
 const tab = ref('all')
 
 async function fetch() {
@@ -80,21 +76,6 @@ async function fetch() {
     diaries.value = r.data.data?.content || []
   } catch (e: any) {
     errorMsg.value = e?.message || 'Failed to load diaries. Please try again.'
-    diaries.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-async function search() {
-  if (!keyword.value.trim()) { fetch(); return }
-  loading.value = true
-  errorMsg.value = ''
-  try {
-    const r = await diaryApi.search(keyword.value)
-    diaries.value = r.data.data?.content || []
-  } catch (e: any) {
-    errorMsg.value = e?.message || 'Search failed.'
     diaries.value = []
   } finally {
     loading.value = false
@@ -117,8 +98,6 @@ onMounted(fetch)
   justify-content: space-between;
 }
 .toolbar-right { display: flex; gap: 8px; align-items: center; }
-.search-inp { width: 200px; }
-.search-icon { color: var(--text-muted); }
 
 .tabs { display: flex; gap: 4px; }
 .tab {
@@ -174,6 +153,5 @@ onMounted(fetch)
   .grid { grid-template-columns: 1fr; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .toolbar-right { flex-direction: column; }
-  .search-inp { width: 100%; }
 }
 </style>

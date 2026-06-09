@@ -7,7 +7,6 @@ const loading = ref(false);
 const errorMsg = ref('');
 const keyword = ref('');
 const activeCat = ref('All');
-const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6'];
 const cats = ['All', 'Chinese', 'Western', 'Japanese', 'Korean', 'Fast Food'];
 function search() { errorMsg.value = ''; fetch(); }
 function filterCat(c) { activeCat.value = c; errorMsg.value = ''; fetch(); }
@@ -40,7 +39,6 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['grid']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
 /** @type {[typeof DefaultLayout, typeof DefaultLayout, ]} */ ;
@@ -55,37 +53,6 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar glass-sm" },
 });
-const __VLS_4 = {}.ElInput;
-/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
-// @ts-ignore
-const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search food...",
-    clearable: true,
-    ...{ class: "search-inp" },
-}));
-const __VLS_6 = __VLS_5({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search food...",
-    clearable: true,
-    ...{ class: "search-inp" },
-}, ...__VLS_functionalComponentArgsRest(__VLS_5));
-let __VLS_8;
-let __VLS_9;
-let __VLS_10;
-const __VLS_11 = {
-    onKeyup: (__VLS_ctx.search)
-};
-__VLS_7.slots.default;
-{
-    const { prefix: __VLS_thisSlot } = __VLS_7.slots;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "search-icon" },
-    });
-}
-var __VLS_7;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "cats" },
 });
@@ -117,25 +84,25 @@ else if (__VLS_ctx.errorMsg) {
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     (__VLS_ctx.errorMsg);
-    const __VLS_12 = {}.ElButton;
+    const __VLS_4 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
+    const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_14 = __VLS_13({
+    const __VLS_6 = __VLS_5({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
-    let __VLS_16;
-    let __VLS_17;
-    let __VLS_18;
-    const __VLS_19 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_5));
+    let __VLS_8;
+    let __VLS_9;
+    let __VLS_10;
+    const __VLS_11 = {
         onClick: (__VLS_ctx.fetch)
     };
-    __VLS_15.slots.default;
-    var __VLS_15;
+    __VLS_7.slots.default;
+    var __VLS_7;
 }
 else if (!__VLS_ctx.foods.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -166,16 +133,19 @@ else {
             ...{ class: "card glass" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "card-top" },
-            ...{ style: ({ background: __VLS_ctx.colors[f.id % __VLS_ctx.colors.length] }) },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "card-cuisine" },
-        });
-        (f.cuisine || 'Food');
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "card-body" },
         });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "card-header" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "card-cuisine-tag" },
+        });
+        (f.cuisine || 'Food');
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "card-rating" },
+        });
+        (f.avgRating?.toFixed(1) || '—');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
         (f.name);
         if (f.restaurantName) {
@@ -188,8 +158,6 @@ else {
             ...{ class: "foot" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-        (f.avgRating?.toFixed(1) || '—');
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
         (f.popularity);
         if (f.priceRange) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
@@ -201,8 +169,6 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['food-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['cats']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
@@ -212,9 +178,10 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['card']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-top']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-cuisine']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cuisine-tag']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-rating']} */ ;
 /** @type {__VLS_StyleScopedClasses['rest']} */ ;
 /** @type {__VLS_StyleScopedClasses['foot']} */ ;
 var __VLS_dollars;
@@ -227,9 +194,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             errorMsg: errorMsg,
             keyword: keyword,
             activeCat: activeCat,
-            colors: colors,
             cats: cats,
-            search: search,
             filterCat: filterCat,
             fetch: fetch,
         };

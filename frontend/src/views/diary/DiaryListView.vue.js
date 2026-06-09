@@ -5,7 +5,6 @@ import { diaryApi } from '@/api/diaryApi';
 const diaries = ref([]);
 const loading = ref(false);
 const errorMsg = ref('');
-const keyword = ref('');
 const tab = ref('all');
 async function fetch() {
     loading.value = true;
@@ -18,25 +17,6 @@ async function fetch() {
     }
     catch (e) {
         errorMsg.value = e?.message || 'Failed to load diaries. Please try again.';
-        diaries.value = [];
-    }
-    finally {
-        loading.value = false;
-    }
-}
-async function search() {
-    if (!keyword.value.trim()) {
-        fetch();
-        return;
-    }
-    loading.value = true;
-    errorMsg.value = '';
-    try {
-        const r = await diaryApi.search(keyword.value);
-        diaries.value = r.data.data?.content || [];
-    }
-    catch (e) {
-        errorMsg.value = e?.message || 'Search failed.';
         diaries.value = [];
     }
     finally {
@@ -57,7 +37,6 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-right']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
 /** @type {[typeof DefaultLayout, typeof DefaultLayout, ]} */ ;
@@ -92,58 +71,29 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElement
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar-right" },
 });
-const __VLS_4 = {}.ElInput;
-/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+const __VLS_4 = {}.ElButton;
+/** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
 const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search...",
-    clearable: true,
-    ...{ class: "search-inp" },
+    ...{ 'onClick': {} },
+    type: "primary",
+    size: "small",
 }));
 const __VLS_6 = __VLS_5({
-    ...{ 'onKeyup': {} },
-    modelValue: (__VLS_ctx.keyword),
-    placeholder: "Search...",
-    clearable: true,
-    ...{ class: "search-inp" },
+    ...{ 'onClick': {} },
+    type: "primary",
+    size: "small",
 }, ...__VLS_functionalComponentArgsRest(__VLS_5));
 let __VLS_8;
 let __VLS_9;
 let __VLS_10;
 const __VLS_11 = {
-    onKeyup: (__VLS_ctx.search)
-};
-__VLS_7.slots.default;
-{
-    const { prefix: __VLS_thisSlot } = __VLS_7.slots;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "search-icon" },
-    });
-}
-var __VLS_7;
-const __VLS_12 = {}.ElButton;
-/** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-// @ts-ignore
-const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
-    ...{ 'onClick': {} },
-    type: "primary",
-}));
-const __VLS_14 = __VLS_13({
-    ...{ 'onClick': {} },
-    type: "primary",
-}, ...__VLS_functionalComponentArgsRest(__VLS_13));
-let __VLS_16;
-let __VLS_17;
-let __VLS_18;
-const __VLS_19 = {
     onClick: (...[$event]) => {
         __VLS_ctx.$router.push('/diaries/new');
     }
 };
-__VLS_15.slots.default;
-var __VLS_15;
+__VLS_7.slots.default;
+var __VLS_7;
 if (__VLS_ctx.loading) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "loading-msg" },
@@ -162,25 +112,25 @@ else if (__VLS_ctx.errorMsg) {
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     (__VLS_ctx.errorMsg);
-    const __VLS_20 = {}.ElButton;
+    const __VLS_12 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
+    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_22 = __VLS_21({
+    const __VLS_14 = __VLS_13({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_21));
-    let __VLS_24;
-    let __VLS_25;
-    let __VLS_26;
-    const __VLS_27 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
+    let __VLS_16;
+    let __VLS_17;
+    let __VLS_18;
+    const __VLS_19 = {
         onClick: (__VLS_ctx.fetch)
     };
-    __VLS_23.slots.default;
-    var __VLS_23;
+    __VLS_15.slots.default;
+    var __VLS_15;
 }
 else if (!__VLS_ctx.diaries.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -269,8 +219,6 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
 /** @type {__VLS_StyleScopedClasses['tabs']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-right']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-inp']} */ ;
-/** @type {__VLS_StyleScopedClasses['search-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
 /** @type {__VLS_StyleScopedClasses['error-msg']} */ ;
@@ -299,10 +247,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             diaries: diaries,
             loading: loading,
             errorMsg: errorMsg,
-            keyword: keyword,
             tab: tab,
             fetch: fetch,
-            search: search,
         };
     },
 });

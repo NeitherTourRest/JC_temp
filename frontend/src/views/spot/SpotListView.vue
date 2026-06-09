@@ -2,9 +2,6 @@
   <DefaultLayout>
     <div class="spots-page">
       <div class="toolbar glass-sm">
-        <el-input v-model="keyword" placeholder="Search spots..." clearable class="search-inp" @keyup.enter="search">
-          <template #prefix><span class="search-icon">🔍</span></template>
-        </el-input>
         <div class="cat-filters">
           <button v-for="c in cats" :key="c" :class="['cat-btn', { active: activeCat === c }]" @click="filterCat(c)">{{ c }}</button>
         </div>
@@ -32,16 +29,16 @@
       <!-- Results -->
       <div v-else class="spots-grid">
         <div v-for="s in spots" :key="s.id" class="spot-card glass" @click="$router.push('/spots/' + s.id)">
-          <div class="spot-top" :style="{ background: colors[s.id % colors.length] }">
-            <span class="spot-cat">{{ s.category }}</span>
-          </div>
           <div class="spot-body">
+            <div class="spot-header">
+              <span class="spot-cat-tag">{{ s.category }}</span>
+              <span class="spot-rating">⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
+            </div>
             <h3>{{ s.name }}</h3>
             <p class="spot-desc">{{ (s.description || '').substring(0, 80) }}{{ (s.description || '').length > 80 ? '...' : '' }}</p>
             <div class="spot-foot">
-              <span>⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
-              <span>👁 {{ s.popularity }}</span>
-              <span v-if="s.address" class="spot-addr">📍 {{ s.address?.substring(0, 15) }}</span>
+              <span>👁 {{ s.popularity || '—' }}</span>
+              <span v-if="s.address" class="spot-addr">📍 {{ s.address?.substring(0, 18) }}</span>
             </div>
           </div>
         </div>
@@ -61,7 +58,6 @@ const loading = ref(false)
 const errorMsg = ref('')
 const keyword = ref('')
 const activeCat = ref('All')
-const colors = ['#22d3ee', '#34d399', '#fbbf24', '#e879f9', '#fb923c', '#f472b6', '#4ade80', '#f87171']
 const cats = ['All', '景点', '校园', '餐厅', '商场', '公园', '博物馆', '酒店', '体育场馆']
 
 async function fetch() {
@@ -89,34 +85,32 @@ onMounted(fetch)
 .spots-page { padding: 0; }
 
 .toolbar {
-  padding: 14px 18px;
-  margin-bottom: 20px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
-.search-inp { width: 260px; }
-.search-icon { color: var(--text-muted); }
 
-.cat-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.cat-filters { display: flex; gap: 4px; flex-wrap: wrap; }
 .cat-btn {
-  padding: 4px 14px;
+  padding: 3px 12px;
   background: var(--frosted-bg);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--frosted-border);
   color: var(--text-regular);
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
   transition: all 0.2s ease;
   box-shadow: var(--neu-shadow-sm);
 }
-.cat-btn:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); color: var(--text-primary); }
-.cat-btn.active { background: rgba(167,111,215,0.25); color: #fff; border-color: rgba(167,111,215,0.4); }
+.cat-btn:hover { transform: translateY(-1px); color: var(--text-primary); }
+.cat-btn.active { background: rgba(167,111,215,0.2); color: #fff; border-color: rgba(167,111,215,0.35); }
 
 .loading-msg, .empty-msg {
   text-align: center;
@@ -126,19 +120,20 @@ onMounted(fetch)
 }
 .loading-msg { display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-.spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .spot-card { overflow: hidden; }
-.spot-top { height: 90px; padding: 8px; display: flex; justify-content: flex-end; align-items: flex-start; }
-.spot-cat {
-  background: rgba(0,0,0,0.5);
-  color: #fff;
+.spot-body { padding: 16px; }
+.spot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.spot-cat-tag {
+  background: rgba(124,215,238,0.12);
+  color: #7cd7ee;
   padding: 2px 10px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  border: 1px solid rgba(124,215,238,0.2);
 }
-.spot-body { padding: 14px; }
+.spot-rating { font-size: 13px; font-weight: 600; color: #ffc107; }
 .spot-body h3 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; color: var(--text-heading); }
 .spot-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
 .spot-foot { display: flex; gap: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
@@ -146,6 +141,5 @@ onMounted(fetch)
 
 @media (max-width: 768px) {
   .spots-grid { grid-template-columns: 1fr; }
-  .search-inp { width: 100%; }
 }
 </style>

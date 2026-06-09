@@ -127,7 +127,7 @@
     <div v-else class="planning-page">
       <!-- ── Top Bar ───────────────────────────────────── -->
       <div class="planning-topbar glass-sm">
-        <button class="back-btn" @click="viewMode = 'list'">← Back</button>
+        <button class="back-btn" @click="goBackToList">← Back</button>
         <input
           v-model="tripPlan.title"
           class="title-input"
@@ -181,132 +181,45 @@
         <button class="add-day-btn" @click="addDay" title="Add day">+</button>
       </div>
 
-      <!-- ── Day Content ───────────────────────────────── -->
+      <!-- ── Budget Summary Bar ────────────────────── -->
+      <div v-if="appliedBudget" class="budget-summary-bar">
+        💰 Budget: {{ appliedBudget.totalBudget }} · {{ appliedBudget.categories?.length || 0 }} categories
+        <button class="route-clear-btn" @click="appliedBudget = null">✕</button>
+      </div>
+
+      <!-- ── Day Content (Timeline) ────────────────────── -->
       <div v-if="activeDay" class="day-content">
-        <div class="sections-grid">
-          <!-- Attractions ✦ yellow -->
-          <div class="section-card">
-            <div class="section-header" style="background: linear-gradient(135deg, rgba(167,111,215,0.2), rgba(167,111,215,0.05))">
-              <h3>📍 Attractions</h3>
-              <button class="add-btn" @click="openSearchDialog('attractions')">+ Add</button>
-            </div>
-            <div class="section-body">
-              <div v-if="!activeDay.sections.attractions.length" class="section-empty">
-                No attractions added yet
-              </div>
-              <div
-                v-for="(item, ii) in activeDay.sections.attractions"
-                :key="item.id"
-                class="section-item"
-              >
-                <input
-                  v-model="item.name"
-                  class="item-name-input"
-                  placeholder="Attraction name"
-                />
-                <div class="item-time">
-                  <el-time-picker
-                    v-model="item.startTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="Start"
-                    size="small"
-                  />
-                  <span class="time-sep">~</span>
-                  <el-time-picker
-                    v-model="item.endTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="End"
-                    size="small"
-                  />
-                </div>
-                <button class="remove-btn" @click="removeItem('attractions', ii)">✕</button>
-              </div>
+        <div class="timeline-container">
+          <div class="timeline-header">
+            <h3>Day {{ activeDay.dayIndex }} · {{ activeDay.date }}</h3>
+            <div class="timeline-header-actions">
+              <el-button size="small" type="success" @click="routeDayPlan" :loading="routeLoading" :disabled="!activeDay || !activeDay.slots.length">
+                🚗 Route
+              </el-button>
+              <el-button size="small" type="primary" @click="addSlotAt(12)">+ Add Activity</el-button>
             </div>
           </div>
-
-          <!-- Dining ✦ pink -->
-          <div class="section-card">
-            <div class="section-header" style="background: linear-gradient(135deg, rgba(124,215,238,0.2), rgba(124,215,238,0.05))">
-              <h3>🍽️ Dining</h3>
-              <button class="add-btn add-btn-light" @click="openSearchDialog('dining')">+ Add</button>
-            </div>
-            <div class="section-body">
-              <div v-if="!activeDay.sections.dining.length" class="section-empty">
-                No dining added yet
-              </div>
-              <div
-                v-for="(item, ii) in activeDay.sections.dining"
-                :key="item.id"
-                class="section-item"
-              >
-                <input
-                  v-model="item.name"
-                  class="item-name-input"
-                  placeholder="Restaurant / dish"
-                />
-                <div class="item-time">
-                  <el-time-picker
-                    v-model="item.startTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="Start"
-                    size="small"
-                  />
-                  <span class="time-sep">~</span>
-                  <el-time-picker
-                    v-model="item.endTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="End"
-                    size="small"
-                  />
-                </div>
-                <button class="remove-btn" @click="removeItem('dining', ii)">✕</button>
-              </div>
-            </div>
+          <div v-if="activeDay?.routeDistance != null" class="route-info-bar">
+            🚗 Route: {{ formatDistance(activeDay.routeDistance) }} · {{ formatTime(activeDay.routeTime) }} · {{ totalRoutedStops }} stops
+            <button class="route-clear-btn" @click="clearDayRoute" title="Clear route">✕</button>
           </div>
-
-          <!-- Other ✦ blue -->
-          <div class="section-card">
-            <div class="section-header" style="background: linear-gradient(135deg, rgba(91,141,239,0.2), rgba(91,141,239,0.05))">
-              <h3>📌 Other</h3>
-              <button class="add-btn" @click="addItem('other')">+ Add</button>
+          <div class="timeline-track" @click="onTimelineClick">
+            <div v-for="h in 24" :key="h" class="timeline-hour" :style="{ top: h * 60 + 'px' }">
+              <span class="hour-label">{{ String(h).padStart(2,'0') }}:00</span>
+              <div class="hour-line"></div>
             </div>
-            <div class="section-body">
-              <div v-if="!activeDay.sections.other.length" class="section-empty">
-                No other items yet
-              </div>
-              <div
-                v-for="(item, ii) in activeDay.sections.other"
-                :key="item.id"
-                class="section-item"
-              >
-                <input
-                  v-model="item.name"
-                  class="item-name-input"
-                  placeholder="Activity / note"
-                />
-                <div class="item-time">
-                  <el-time-picker
-                    v-model="item.startTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="Start"
-                    size="small"
-                  />
-                  <span class="time-sep">~</span>
-                  <el-time-picker
-                    v-model="item.endTime"
-                    format="HH:mm"
-                    value-format="HH:mm"
-                    placeholder="End"
-                    size="small"
-                  />
-                </div>
-                <button class="remove-btn" @click="removeItem('other', ii)">✕</button>
-              </div>
+            <!-- Slot cards -->
+            <div v-for="slot in sortedSlots" :key="slot.id"
+              class="timeline-slot-card glass-sm"
+              :class="'slot-' + slot.type"
+              :style="{ top: slotTop(slot), height: slotHeight(slot) }"
+              @click.stop="openSlotEditor(slot)"
+            >
+              <span v-if="slot.routeOrder != null" class="route-order-badge">{{ slot.routeOrder }}</span>
+              <span class="slot-time">{{ slot.startTime }}–{{ slot.endTime }}</span>
+              <span class="slot-name">{{ slot.name || slot.text || 'New Activity' }}</span>
+              <span class="slot-icon">{{ slot.type === 'spot' ? '📍' : slot.type === 'food' ? '🍽️' : '📝' }}</span>
+              <button class="slot-delete" @click.stop="deleteSlot(slot.id)">×</button>
             </div>
           </div>
         </div>
@@ -337,55 +250,11 @@
       >
         <div class="map-picker-body">
           <div id="trip-map-container" style="height: 400px; border: 1px solid var(--frosted-border); border-radius: 8px;"></div>
-          <p class="map-hint-text">Click anywhere on the map to add a point to today's Attractions</p>
+          <p class="map-hint-text">Click anywhere on the map to add a point to today's timeline</p>
         </div>
         <template #footer>
           <el-button @click="mapDialogVisible = false">Close</el-button>
         </template>
-      </el-dialog>
-
-      <!-- ══════════════════════════════════════════════════════
-           DIALOG 2: Spot / Food Search 🔍
-           ══════════════════════════════════════════════════════ -->
-      <el-dialog
-        v-model="searchDialogVisible"
-        :title="searchSection === 'attractions' ? '🔍 Search Attractions' : '🍽️ Search Dining'"
-        width="560px"
-        destroy-on-close
-      >
-        <div class="search-dialog-body">
-          <div class="search-input-row">
-            <el-input
-              v-model="searchKeyword"
-              placeholder="Enter keyword..."
-              size="large"
-              @keyup.enter="doSearch"
-            />
-            <el-button type="primary" size="large" @click="doSearch" :loading="searchLoading">
-              Search
-            </el-button>
-          </div>
-          <div v-if="searchResults.length" class="search-results">
-            <div
-              v-for="item in searchResults"
-              :key="item.id"
-              class="search-result-card glass"
-              @click="selectSearchResult(item)"
-            >
-              <div class="result-name">{{ item.name }}</div>
-              <div class="result-meta">
-                <span v-if="item.category" class="result-category">{{ item.category }}</span>
-                <span v-if="item.address" class="result-address">📍 {{ item.address }}</span>
-                <span v-if="item.latitude != null" class="result-coords">
-                  {{ item.latitude.toFixed(4) }}, {{ item.longitude.toFixed(4) }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div v-else-if="searchKeyword && !searchLoading" class="search-empty">
-            No results found
-          </div>
-        </div>
       </el-dialog>
 
       <!-- ══════════════════════════════════════════════════════
@@ -522,6 +391,74 @@
             <p v-for="(s, i) in budgetResult.suggestions" :key="i">• {{ s }}</p>
           </div>
         </div>
+        <div v-if="budgetResult && !budgetLoading" class="budget-apply-row">
+          <el-button type="success" @click="applyBudgetResult">✅ Apply to Trip</el-button>
+        </div>
+      </el-dialog>
+
+      <!-- ══════════════════════════════════════════════════════
+           DIALOG 6: Slot Editor ✏️
+           ══════════════════════════════════════════════════════ -->
+      <el-dialog v-model="slotEditVisible" title="Edit Activity" width="500px" destroy-on-close>
+        <div class="slot-edit-body">
+          <!-- Time range -->
+          <div class="slot-edit-row">
+            <label>Time</label>
+            <div class="slot-time-pickers">
+              <el-time-picker v-model="slotEditStart" format="HH:mm" placeholder="Start" />
+              <span>—</span>
+              <el-time-picker v-model="slotEditEnd" format="HH:mm" placeholder="End" />
+            </div>
+          </div>
+          <!-- Type selector -->
+          <div class="slot-edit-row">
+            <label>Type</label>
+            <el-radio-group v-model="slotEditType">
+              <el-radio value="spot">📍 Spot</el-radio>
+              <el-radio value="food">🍽️ Food</el-radio>
+              <el-radio value="text">📝 Notes</el-radio>
+            </el-radio-group>
+          </div>
+          <!-- Spot search (if type=spot) -->
+          <div v-if="slotEditType === 'spot'" class="slot-edit-row">
+            <label>Spot</label>
+            <el-input v-model="slotSearchKeyword" placeholder="Search spots..." size="small" />
+            <el-button size="small" @click="doSlotSpotSearch">Search</el-button>
+            <div v-if="slotSpotResults.length" class="slot-search-results">
+              <div v-for="r in slotSpotResults" :key="r.id" class="slot-search-item"
+                :class="{ selected: editingSlot?.spotId === r.id }"
+                @click="selectSlotSpot(r)">
+                <span>{{ r.name }}</span>
+                <span class="text-sm">{{ r.category }}</span>
+              </div>
+            </div>
+            <div v-if="editingSlot?.spotName" class="slot-selected">Selected: {{ editingSlot.spotName }}</div>
+          </div>
+          <!-- Food search (if type=food) -->
+          <div v-if="slotEditType === 'food'" class="slot-edit-row">
+            <label>Food</label>
+            <el-input v-model="slotSearchKeyword" placeholder="Search food..." size="small" />
+            <el-button size="small" @click="doSlotFoodSearch">Search</el-button>
+            <div v-if="slotFoodResults.length" class="slot-search-results">
+              <div v-for="r in slotFoodResults" :key="r.id" class="slot-search-item"
+                :class="{ selected: editingSlot?.foodId === r.id }"
+                @click="selectSlotFood(r)">
+                <span>{{ r.name }}</span>
+                <span class="text-sm">{{ r.cuisine }}</span>
+              </div>
+            </div>
+            <div v-if="editingSlot?.foodName" class="slot-selected">Selected: {{ editingSlot.foodName }}</div>
+          </div>
+          <!-- Notes — always visible, any type can have notes -->
+          <div class="slot-edit-row">
+            <label>Notes</label>
+            <el-input v-model="slotEditText" type="textarea" :rows="3" placeholder="What do you want to do?" />
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="slotEditVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="saveSlotEdit">Save</el-button>
+        </template>
       </el-dialog>
     </div>
   </DefaultLayout>
@@ -531,41 +468,23 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { itineraryApi, type ItineraryResponse } from '@/api/itineraryApi'
+import type { TimeSlot, TimelineDay, TimelinePlan, RouteRequest } from '@/types/api'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { spotApi } from '@/api/spotApi'
 import { aiApi } from '@/api/aiApi'
+import { navigationApi } from '@/api/navigationApi'
 
-/* ───────────────────────────────────────────────────────
-   Type definitions
-   ─────────────────────────────────────────────────────── */
-interface PlanItem {
-  id: string
-  name: string
-  spotId?: number
-  foodId?: number
-  lat?: number
-  lng?: number
-  startTime: string
-  endTime: string
+// Legacy types for migration detection (old section-based format)
+interface LegacyPlanItem {
+  id: string; name: string; spotId?: number; foodId?: number; lat?: number; lng?: number; startTime: string; endTime: string
 }
-
-interface DayPlan {
-  dayIndex: number
-  date: string
-  sections: {
-    attractions: PlanItem[]
-    dining: PlanItem[]
-    other: PlanItem[]
-  }
+interface LegacyDayPlan {
+  dayIndex: number; date: string
+  sections: { attractions: LegacyPlanItem[]; dining: LegacyPlanItem[]; other: LegacyPlanItem[] }
 }
-
-interface TripPlan {
-  title: string
-  startDate: string
-  endDate: string
-  days: DayPlan[]
-  aiSessionId?: string
+interface LegacyTripPlan {
+  title: string; startDate: string; endDate: string; days: LegacyDayPlan[]; aiSessionId?: string
 }
 
 /* ───────────────────────────────────────────────────────
@@ -598,7 +517,8 @@ const createRules: FormRules = {
 }
 
 /* ── Planning mode state ─────────────────────────────── */
-const tripPlan = reactive<TripPlan>({
+const tripPlan = reactive<TimelinePlan>({
+  version: 3,
   title: '',
   startDate: '',
   endDate: '',
@@ -608,17 +528,25 @@ const activeDayIndex = ref(0)
 
 const activeDay = computed(() => tripPlan.days[activeDayIndex.value] ?? null)
 
+const routeLoading = ref(false)
+const appliedBudget = ref<any>(null)
+
 /* ── Dialog 1: Map Picker state ──────────────────────── */
 const mapDialogVisible = ref(false)
 let tripMap: any = null
 let tripAMapInstance: any = null
 
-/* ── Dialog 2: Spot/Food Search state ────────────────── */
-const searchDialogVisible = ref(false)
-const searchSection = ref<'attractions' | 'dining'>('attractions')
-const searchKeyword = ref('')
-const searchResults = ref<any[]>([])
-const searchLoading = ref(false)
+/* ── Dialog 2: Slot Editor state ─────────────────────── */
+const slotEditVisible = ref(false)
+const editingSlot = ref<TimeSlot | null>(null)
+const editingSlotIndex = ref(-1)
+const slotEditType = ref<'spot' | 'food' | 'text'>('text')
+const slotEditStart = ref<Date | null>(null)
+const slotEditEnd = ref<Date | null>(null)
+const slotEditText = ref('')
+const slotSearchKeyword = ref('')
+const slotSpotResults = ref<any[]>([])
+const slotFoodResults = ref<any[]>([])
 
 /* ── Dialog 3: AI Chat state ─────────────────────────── */
 const aiDialogVisible = ref(false)
@@ -747,12 +675,89 @@ function formatDate(dateStr: string): string {
 /* ───────────────────────────────────────────────────────
    Planning mode: enter from a card
    ─────────────────────────────────────────────────────── */
+function migrateLegacyPlan(legacy: any): TimelinePlan {
+  const ld = legacy as LegacyTripPlan
+  return {
+    version: 3,
+    title: ld.title || '',
+    startDate: ld.startDate || '',
+    endDate: ld.endDate || '',
+    aiSessionId: ld.aiSessionId,
+    days: (ld.days || []).map((d: LegacyDayPlan): TimelineDay => ({
+      dayIndex: d.dayIndex,
+      date: d.date || '',
+      slots: [
+        ...(d.sections?.attractions || []).map((p: LegacyPlanItem): TimeSlot => ({
+          id: p.id || `slot_${Date.now()}_${Math.random()}`,
+          startTime: p.startTime || '09:00',
+          endTime: p.endTime || '10:00',
+          spotId: p.spotId,
+          spotName: p.name,
+          name: p.name,
+          type: 'spot',
+        })),
+        ...(d.sections?.dining || []).map((p: LegacyPlanItem): TimeSlot => ({
+          id: p.id || `slot_${Date.now()}_${Math.random()}`,
+          startTime: p.startTime || '12:00',
+          endTime: p.endTime || '13:00',
+          foodId: p.foodId,
+          foodName: p.name,
+          name: p.name,
+          type: 'food',
+        })),
+        ...(d.sections?.other || []).map((p: LegacyPlanItem): TimeSlot => ({
+          id: p.id || `slot_${Date.now()}_${Math.random()}`,
+          startTime: p.startTime || '14:00',
+          endTime: p.endTime || '15:00',
+          text: p.name,
+          name: p.name,
+          type: 'text',
+        })),
+      ].sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    })),
+  }
+}
+
 function enterPlanning(item: ItineraryResponse) {
   editingId.value = item.id
-  tripPlan.title = item.name
-  tripPlan.startDate = ''
-  tripPlan.endDate = ''
-  tripPlan.days = []
+  // Try to restore saved plan from routeData
+  if (item.routeData) {
+    try {
+      const parsed = JSON.parse(item.routeData) as any
+      if (parsed.version === 3) {
+        // Already new format — restore directly
+        const p = parsed as TimelinePlan
+        tripPlan.version = 3
+        tripPlan.title = p.title || item.name
+        tripPlan.startDate = p.startDate || ''
+        tripPlan.endDate = p.endDate || ''
+        tripPlan.days = p.days || []
+        tripPlan.aiSessionId = p.aiSessionId
+      } else {
+        // Old format — migrate
+        const migrated = migrateLegacyPlan(parsed)
+        tripPlan.version = 3
+        tripPlan.title = migrated.title || item.name
+        tripPlan.startDate = migrated.startDate
+        tripPlan.endDate = migrated.endDate
+        tripPlan.days = migrated.days
+        tripPlan.aiSessionId = migrated.aiSessionId
+      }
+    } catch {
+      // Invalid JSON — start fresh
+      tripPlan.title = item.name
+      tripPlan.startDate = ''
+      tripPlan.endDate = ''
+      tripPlan.days = []
+      tripPlan.aiSessionId = undefined
+    }
+  } else {
+    tripPlan.title = item.name
+    tripPlan.startDate = ''
+    tripPlan.endDate = ''
+    tripPlan.days = []
+    tripPlan.aiSessionId = undefined
+  }
   activeDayIndex.value = 0
   viewMode.value = 'planning'
 }
@@ -774,7 +779,7 @@ function regenerateDays() {
   }
   const msPerDay = 24 * 60 * 60 * 1000
   const diffDays = Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1
-  const days: DayPlan[] = []
+  const days: TimelineDay[] = []
   for (let i = 0; i < diffDays; i++) {
     const d = new Date(start.getTime() + i * msPerDay)
     const y = d.getFullYear()
@@ -783,11 +788,7 @@ function regenerateDays() {
     days.push({
       dayIndex: i + 1,
       date: `${y}-${m}-${da}`,
-      sections: {
-        attractions: [],
-        dining: [],
-        other: []
-      }
+      slots: []
     })
   }
   tripPlan.days = days
@@ -810,32 +811,132 @@ function addDay() {
   tripPlan.days.push({
     dayIndex: lastDayIdx + 1,
     date: `${y}-${m}-${d}`,
-    sections: { attractions: [], dining: [], other: [] }
+    slots: []
   })
   activeDayIndex.value = tripPlan.days.length - 1
 }
 
 /* ───────────────────────────────────────────────────────
-   Planning mode: item CRUD
+   Planning mode: Timeline functions
+   ─────────────────────────────────────────────────────── */
+const sortedSlots = computed(() =>
+  [...(activeDay.value?.slots || [])].sort((a, b) => a.startTime.localeCompare(b.startTime))
+)
+
+const totalRoutedStops = computed(() =>
+  (activeDay.value?.slots || []).filter(s => s.routeOrder != null).length
+)
+
+function slotTop(slot: TimeSlot): string {
+  const h = Math.max(0, parseInt(slot.startTime.split(':')[0]) || 0)
+  const m = Math.max(0, parseInt(slot.startTime.split(':')[1]) || 0)
+  return `${h * 60 + m}px`
+}
+function slotHeight(slot: TimeSlot): string {
+  const [sh, sm] = slot.startTime.split(':').map(Number)
+  const [eh, em] = slot.endTime.split(':').map(Number)
+  const startMin = Math.max(0, sh) * 60 + Math.max(0, sm)
+  const endMin = Math.max(0, eh) * 60 + Math.max(0, em)
+  return `${Math.max(28, endMin - startMin)}px`
+}
+function onTimelineClick(e: MouseEvent) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const y = e.clientY - rect.top
+  const hour = Math.round(y / 60)
+  addSlotAt(Math.max(0, Math.min(23, hour)))
+}
+function addSlotAt(hour: number) {
+  if (!activeDay.value) return
+  activeDay.value.slots.push({
+    id: nextItemId(),
+    startTime: `${String(hour).padStart(2,'0')}:00`,
+    endTime: `${String(Math.min(hour + 1, 24)).padStart(2,'0')}:00`,
+    type: 'text',
+    name: '',
+  })
+}
+function deleteSlot(slotId: string) {
+  if (!activeDay.value) return
+  const idx = activeDay.value.slots.findIndex(s => s.id === slotId)
+  if (idx >= 0) activeDay.value.slots.splice(idx, 1)
+}
+
+/* ───────────────────────────────────────────────────────
+   Planning mode: Slot Editor
+   ─────────────────────────────────────────────────────── */
+function openSlotEditor(slot: TimeSlot) {
+  editingSlot.value = { ...slot }
+  const idx = activeDay.value?.slots.findIndex(s => s.id === slot.id) ?? -1
+  editingSlotIndex.value = idx
+  slotEditType.value = slot.type
+  const [sh, sm] = slot.startTime.split(':').map(Number)
+  const [eh, em] = slot.endTime.split(':').map(Number)
+  const d = new Date()
+  slotEditStart.value = new Date(d.getFullYear(), d.getMonth(), d.getDate(), sh, sm)
+  slotEditEnd.value = new Date(d.getFullYear(), d.getMonth(), d.getDate(), eh, em)
+  slotEditText.value = slot.text || ''
+  slotSearchKeyword.value = ''
+  slotSpotResults.value = []
+  slotFoodResults.value = []
+  slotEditVisible.value = true
+}
+function saveSlotEdit() {
+  if (!editingSlot.value || !activeDay.value || editingSlotIndex.value < 0) return
+  const slot = activeDay.value.slots[editingSlotIndex.value]
+  if (slotEditStart.value) {
+    slot.startTime = `${String(slotEditStart.value.getHours()).padStart(2,'0')}:${String(slotEditStart.value.getMinutes()).padStart(2,'0')}`
+  }
+  if (slotEditEnd.value) {
+    slot.endTime = `${String(slotEditEnd.value.getHours()).padStart(2,'0')}:${String(slotEditEnd.value.getMinutes()).padStart(2,'0')}`
+  }
+  slot.type = slotEditType.value
+  slot.text = slotEditText.value || undefined
+  if (slotEditType.value !== 'spot') { slot.spotId = undefined; slot.spotName = undefined }
+  if (slotEditType.value !== 'food') { slot.foodId = undefined; slot.foodName = undefined }
+  // Coordinates: clear for text, copy from search result for spot/food
+  if (slotEditType.value === 'text') { slot.lat = undefined; slot.lng = undefined }
+  if (slotEditType.value === 'spot' || slotEditType.value === 'food') {
+    if (editingSlot.value.lat != null) slot.lat = editingSlot.value.lat
+    if (editingSlot.value.lng != null) slot.lng = editingSlot.value.lng
+  }
+  if (slotEditType.value === 'spot') { slot.name = editingSlot.value.name }
+  if (slotEditType.value === 'food') { slot.name = editingSlot.value.name }
+  slotEditVisible.value = false
+}
+async function doSlotSpotSearch() {
+  if (!slotSearchKeyword.value.trim()) return
+  const r = await spotApi.search({ keyword: slotSearchKeyword.value.trim(), size: 10 })
+  slotSpotResults.value = r.data.data?.content || []
+}
+async function doSlotFoodSearch() {
+  if (!slotSearchKeyword.value.trim()) return
+  const { foodApi } = await import('@/api/foodApi')
+  const r = await foodApi.search({ keyword: slotSearchKeyword.value.trim(), size: 10 })
+  slotFoodResults.value = r.data.data?.content || []
+}
+function selectSlotSpot(spot: any) {
+  if (!editingSlot.value) return
+  editingSlot.value.spotId = spot.id
+  editingSlot.value.spotName = spot.name
+  editingSlot.value.name = spot.name
+  editingSlot.value.lat = spot.latitude
+  editingSlot.value.lng = spot.longitude
+}
+function selectSlotFood(food: any) {
+  if (!editingSlot.value) return
+  editingSlot.value.foodId = food.id
+  editingSlot.value.foodName = food.name
+  editingSlot.value.name = food.name
+  editingSlot.value.lat = food.latitude
+  editingSlot.value.lng = food.longitude
+}
+
+/* ───────────────────────────────────────────────────────
+   Planning mode: ID generator
    ─────────────────────────────────────────────────────── */
 let itemIdCounter = 0
 function nextItemId(): string {
   return `item_${Date.now()}_${++itemIdCounter}`
-}
-
-function addItem(section: 'attractions' | 'dining' | 'other') {
-  if (!activeDay.value) return
-  activeDay.value.sections[section].push({
-    id: nextItemId(),
-    name: '',
-    startTime: '',
-    endTime: ''
-  })
-}
-
-function removeItem(section: 'attractions' | 'dining' | 'other', index: number) {
-  if (!activeDay.value) return
-  activeDay.value.sections[section].splice(index, 1)
 }
 
 /* ───────────────────────────────────────────────────────
@@ -863,15 +964,17 @@ function onMapDialogOpened() {
       if (!activeDay.value) return
       const lng = e.lnglat.getLng()
       const lat = e.lnglat.getLat()
-      activeDay.value.sections.attractions.push({
+      activeDay.value.slots.push({
         id: nextItemId(),
-        name: `Map Point (${lng.toFixed(4)}, ${lat.toFixed(4)})`,
+        startTime: '09:00',
+        endTime: '10:00',
+        name: `📍 Map Point (${lng.toFixed(4)}, ${lat.toFixed(4)})`,
+        text: `Map point: ${lng.toFixed(4)}, ${lat.toFixed(4)}`,
+        type: 'text',
         lat,
         lng,
-        startTime: '',
-        endTime: ''
       })
-      ElMessage.success('Map point added to Attractions')
+      ElMessage.success('Point added to day')
     })
   })
 }
@@ -882,53 +985,6 @@ function closeMapDialog() {
     tripMap = null
   }
   tripAMapInstance = null
-}
-
-/* ───────────────────────────────────────────────────────
-   Dialog 2: Spot / Food Search
-   ─────────────────────────────────────────────────────── */
-function openSearchDialog(section: 'attractions' | 'dining') {
-  searchSection.value = section
-  searchKeyword.value = ''
-  searchResults.value = []
-  searchDialogVisible.value = true
-}
-
-async function doSearch() {
-  const kw = searchKeyword.value.trim()
-  if (!kw) return
-  searchLoading.value = true
-  try {
-    if (searchSection.value === 'attractions') {
-      const res = await spotApi.search({ keyword: kw })
-      searchResults.value = res.data.data?.content || []
-    } else {
-      const res = await spotApi.search({ keyword: kw, category: '餐厅' })
-      searchResults.value = res.data.data?.content || []
-    }
-  } catch (e) {
-    ElMessage.error('Search failed')
-    console.error(e)
-  } finally {
-    searchLoading.value = false
-  }
-}
-
-function selectSearchResult(item: any) {
-  if (!activeDay.value) return
-  const sec = searchSection.value
-  const newItem: PlanItem = {
-    id: nextItemId(),
-    name: item.name || '',
-    spotId: sec === 'attractions' ? item.id : undefined,
-    foodId: sec === 'dining' ? item.id : undefined,
-    lat: item.latitude,
-    lng: item.longitude,
-    startTime: '',
-    endTime: ''
-  }
-  activeDay.value.sections[sec].push(newItem)
-  ElMessage.success(`Added "${newItem.name}"`)
 }
 
 /* ───────────────────────────────────────────────────────
@@ -998,6 +1054,20 @@ function openAiPlanDialog() {
 function openBudgetDialog() {
   budgetDialogVisible.value = true
   budgetResult.value = null
+  budgetLoading.value = false
+  // Auto-fill from trip data
+  budgetForm.value.days = tripPlan.days.length || 2
+  const allSpotNames: string[] = []
+  for (const day of tripPlan.days) {
+    for (const slot of day.slots) {
+      if (slot.spotName && !allSpotNames.includes(slot.spotName)) {
+        allSpotNames.push(slot.spotName)
+      }
+    }
+  }
+  if (allSpotNames.length > 0) {
+    budgetForm.value.spots = allSpotNames.join(',')
+  }
 }
 async function generatePlan() {
   planLoading.value = true
@@ -1023,17 +1093,21 @@ function applyPlanResult() {
   if (!planResult.value || !planResult.value.days) return
   // Build tripPlan days from plan result
   tripPlan.days = planResult.value.days.map((day: any, di: number) => ({
+    dayIndex: di + 1,
     date: day.date || `Day ${di + 1}`,
-    sections: {
-      attractions: (day.schedule || []).map((a: any) => ({
+    slots: (day.schedule || []).map((a: any) => {
+      const st = a.time || '09:00'
+      const [sh, sm] = st.split(':').map(Number)
+      const endH = Math.min(sh + 1, 23)
+      return {
         id: nextItemId(),
+        startTime: st,
+        endTime: `${String(endH).padStart(2,'0')}:${String(sm).padStart(2,'0')}`,
         name: a.activity || '',
-        startTime: a.time || '',
-        endTime: ''
-      })),
-      dining: [],
-      notes: []
-    }
+        text: a.activity || '',
+        type: 'text' as const,
+      }
+    }),
   }))
   ElMessage.success('Plan applied to trip')
   aiPlanDialogVisible.value = false
@@ -1042,18 +1116,102 @@ function applyPlanResult() {
 /* ───────────────────────────────────────────────────────
    Planning mode: save
    ─────────────────────────────────────────────────────── */
+async function routeDayPlan() {
+  if (!activeDay.value) return
+  // Filter slots with coordinates, sorted by time order
+  const withCoords = [...activeDay.value.slots]
+    .filter(s => s.lat != null && s.lng != null)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+
+  if (withCoords.length < 2) {
+    ElMessage.warning(withCoords.length === 0 ? 'No locations with coordinates — add spots/food first' : 'Need at least 2 locations with coordinates')
+    return
+  }
+  routeLoading.value = true
+  try {
+    // Clear old route orders
+    activeDay.value.slots.forEach(s => { s.routeOrder = undefined })
+
+    // Sequential routing: Dijkstra between each consecutive pair
+    let totalDistance = 0
+
+    for (let i = 0; i < withCoords.length - 1; i++) {
+      const from = withCoords[i]
+      const to = withCoords[i + 1]
+      const isLast = i === withCoords.length - 2
+
+      const res = await navigationApi.planRoute({
+        startLat: from.lat!,
+        startLng: from.lng!,
+        targets: [{ lat: to.lat!, lng: to.lng!, name: to.name || '' }],
+        strategy: 'DISTANCE',
+        transports: ['WALK'],
+        finalDestinationIdx: isLast ? 0 : undefined,
+      })
+      const rd = res.data.data
+      if (rd) {
+        totalDistance += rd.totalDistance
+      }
+    }
+
+    // Assign route order by time sequence (1 = first, last = final destination)
+    withCoords.forEach((s, i) => { s.routeOrder = i + 1 })
+
+    // Estimate walking time: 80 m/min ≈ 5 km/h
+    const estimatedMinutes = Math.round(totalDistance / 80)
+    activeDay.value.routeDistance = totalDistance
+    activeDay.value.routeTime = estimatedMinutes
+
+    ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(totalDistance)} · ${formatTime(estimatedMinutes)}`)
+  } catch (e) {
+    ElMessage.error('Route planning failed')
+    console.error(e)
+  } finally { routeLoading.value = false }
+}
+
+function clearDayRoute() {
+  if (!activeDay.value) return
+  activeDay.value.slots.forEach(s => { s.routeOrder = undefined })
+  activeDay.value.routeDistance = undefined
+  activeDay.value.routeTime = undefined
+}
+
+function applyBudgetResult() {
+  if (!budgetResult.value) return
+  appliedBudget.value = budgetResult.value
+  ElMessage.success('Budget applied to trip')
+  budgetDialogVisible.value = false
+}
+
 async function handleSave() {
   if (!editingId.value) return
   try {
+    const plan: TimelinePlan = {
+      version: 3,
+      title: tripPlan.title,
+      startDate: tripPlan.startDate,
+      endDate: tripPlan.endDate,
+      days: tripPlan.days.map(d => ({
+        dayIndex: d.dayIndex,
+        date: d.date,
+        slots: d.slots || [],
+      })),
+      aiSessionId: tripPlan.aiSessionId,
+    }
     await itineraryApi.update(editingId.value, {
       name: tripPlan.title,
-      routeData: JSON.stringify(tripPlan)
+      routeData: JSON.stringify(plan)
     })
     ElMessage.success('Trip saved!')
   } catch (e) {
     ElMessage.error('Failed to save trip')
     console.error(e)
   }
+}
+
+function goBackToList() {
+  viewMode.value = 'list'
+  fetchItineraries()
 }
 
 /* ───────────────────────────────────────────────────────
@@ -1512,158 +1670,139 @@ onMounted(fetchItineraries)
   box-shadow: 0 0 12px var(--glow-success), var(--neu-shadow);
 }
 
-/* ── Day Content ────────────────────────────────────── */
+/* ── Day Content (Timeline) ──────────────────────────── */
 .day-content {
   min-height: 300px;
 }
 
-.sections-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
+/* ════════════════════════════════════════════════════
+   TIMELINE
+   ════════════════════════════════════════════════════ */
+.timeline-container { position: relative; padding: 8px 0; }
+.timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.timeline-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-heading); margin: 0; }
 
-.section-card {
-  border: 1px solid var(--frosted-border);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  background: var(--frosted-bg);
-  box-shadow: var(--neu-shadow);
-  display: flex;
-  flex-direction: column;
-}
+.timeline-header-actions { display: flex; gap: 8px; align-items: center; }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--frosted-border);
-}
-
-.section-header h3 {
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.add-btn {
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  background: var(--frosted-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--frosted-border);
-  border-radius: var(--radius-pill);
-  padding: 3px 10px;
-  cursor: pointer;
-  box-shadow: var(--neu-shadow-sm);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.add-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: var(--neu-shadow);
-}
-
-.add-btn-light {
-  color: var(--text-primary);
-}
-
-.section-body {
-  padding: 10px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.section-empty {
-  font-family: inherit;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 24px 8px;
-}
-
-/* ── Section Items ──────────────────────────────────── */
-.section-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--frosted-border);
+.route-info-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 14px; margin-bottom: 10px;
+  background: rgba(58,210,159,0.08);
+  border: 1px solid rgba(58,210,159,0.3);
   border-radius: 8px;
-  position: relative;
+  font-size: 13px; font-weight: 600; color: #3ad29f;
+}
+.route-clear-btn {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 16px; opacity: 0.7; padding: 0 4px;
+  transition: opacity 0.15s;
+}
+.route-clear-btn:hover { opacity: 1; }
+
+.route-order-badge {
+  position: absolute; top: -6px; left: -6px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: #3ad29f; color: #fff;
+  border-radius: 50%; font-size: 10px; font-weight: 700;
+  z-index: 3; box-shadow: 0 0 6px rgba(58,210,159,0.4);
+  pointer-events: none;
 }
 
-.item-name-input {
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--text-heading);
+.budget-summary-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; margin-bottom: 12px;
+  background: rgba(255,193,7,0.08);
+  border: 1px solid rgba(255,193,7,0.3);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600; color: #ffc107;
+}
+
+.budget-apply-row { display: flex; justify-content: center; padding: 8px 0; }
+
+.timeline-track {
+  position: relative;
+  height: 1440px; /* 24h × 60px */
+  margin-left: 60px;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.timeline-hour {
+  position: absolute;
+  left: -60px;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.hour-label {
+  width: 52px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-right: 8px;
+  line-height: 60px;
+  flex-shrink: 0;
+}
+.hour-line {
+  position: absolute;
+  left: 60px;
+  right: 0;
+  top: 0;
+  border-top: 1px solid var(--frosted-border);
+}
+
+/* Slot cards */
+.timeline-slot-card {
+  position: absolute;
+  left: 64px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 2;
+  border-left: 4px solid;
+  min-height: 28px;
   background: var(--frosted-bg);
   border: 1px solid var(--frosted-border);
-  border-radius: 6px;
-  padding: 6px 8px;
-  outline: none;
-  box-shadow: var(--neu-inset-sm);
-  width: 100%;
 }
+.timeline-slot-card:hover {
+  box-shadow: 0 0 12px rgba(124,215,238,0.25);
+}
+.timeline-slot-card.slot-spot { border-left-color: #a76fd7; }
+.timeline-slot-card.slot-food { border-left-color: #7cd7ee; }
+.timeline-slot-card.slot-text { border-left-color: #ffc107; }
 
-.item-name-input:focus {
-  border-color: rgba(124,215,238,0.4);
-  box-shadow: 0 0 0 2px rgba(124,215,238,0.08), var(--neu-inset-sm);
+.slot-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+.slot-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot-icon { font-size: 14px; flex-shrink: 0; }
+.slot-delete {
+  width: 20px; height: 20px;
+  display: none;
+  align-items: center; justify-content: center;
+  background: var(--pop-red); color: #fff;
+  border: none; border-radius: 50%;
+  font-size: 12px; cursor: pointer; flex-shrink: 0;
 }
+.timeline-slot-card:hover .slot-delete { display: flex; }
 
-.item-time {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.item-time :deep(.el-input__wrapper) {
-  padding: 2px 6px !important;
-  box-shadow: var(--neu-shadow-sm) !important;
-}
-
-.item-time :deep(.el-input__inner) {
-  font-size: 11px !important;
-}
-
-.time-sep {
-  font-family: inherit;
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.remove-btn {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--pop-red);
-  color: #fff;
-  border: 1px solid var(--frosted-border);
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--neu-shadow-sm);
-  transition: transform 0.1s;
-  line-height: 1;
-}
-
-.remove-btn:hover {
-  transform: scale(1.15);
-}
+/* Slot editor dialog */
+.slot-edit-body { display: flex; flex-direction: column; gap: 16px; }
+.slot-edit-row { display: flex; flex-direction: column; gap: 6px; }
+.slot-edit-row label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.slot-time-pickers { display: flex; align-items: center; gap: 8px; }
+.slot-time-pickers .el-time-picker { width: 130px; }
+.slot-search-results { max-height: 200px; overflow-y: auto; border: 1px solid var(--frosted-border); border-radius: 8px; }
+.slot-search-item { padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid var(--frosted-border); }
+.slot-search-item:hover { background: rgba(124,215,238,0.1); }
+.slot-search-item.selected { background: rgba(124,215,238,0.15); color: #7cd7ee; }
+.slot-selected { padding: 6px 10px; background: rgba(124,215,238,0.1); border-radius: 6px; font-size: 13px; color: #7cd7ee; }
 
 /* ── Planning Empty ─────────────────────────────────── */
 .planning-empty {
@@ -1739,88 +1878,6 @@ onMounted(fetchItineraries)
   font-size: 12px;
   color: var(--text-muted);
   margin: 10px 0 0;
-}
-
-/* ── Search Dialog ──────────────────────────────────── */
-.search-dialog-body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.search-input-row {
-  display: flex;
-  gap: 8px;
-}
-
-.search-input-row :deep(.el-input__wrapper) {
-  box-shadow: var(--neu-shadow-sm) !important;
-  border: 1px solid var(--frosted-border) !important;
-}
-
-.search-results {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.search-result-card {
-  padding: 12px 14px;
-  border: 1px solid var(--frosted-border);
-  border-radius: 8px;
-  box-shadow: var(--neu-shadow-sm);
-  cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
-  background: var(--frosted-bg);
-}
-
-.search-result-card:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: var(--neu-shadow);
-}
-
-.result-name {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-heading);
-  margin-bottom: 6px;
-}
-
-.result-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  font-size: 11px;
-}
-
-.result-category {
-  font-family: inherit;
-  background: rgba(167,111,215,0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(167,111,215,0.25);
-  color: #c9a0e8;
-}
-
-.result-address {
-  font-family: inherit;
-  color: var(--text-muted);
-}
-
-.result-coords {
-  font-family: inherit;
-  color: #7cd7ee;
-}
-
-.search-empty {
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 30px 0;
 }
 
 /* ── AI Chat Dialog ─────────────────────────────────── */
@@ -1987,10 +2044,6 @@ onMounted(fetchItineraries)
 
   .trip-top {
     height: 60px;
-  }
-
-  .sections-grid {
-    grid-template-columns: 1fr;
   }
 
   .planning-dates {
