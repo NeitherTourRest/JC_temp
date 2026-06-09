@@ -1322,11 +1322,9 @@ else {
     // @ts-ignore
     const __VLS_231 = __VLS_asFunctionalComponent(__VLS_230, new __VLS_230({
         size: (48),
-        color: "#c0c4cc",
     }));
     const __VLS_232 = __VLS_231({
         size: (48),
-        color: "#c0c4cc",
     }, ...__VLS_functionalComponentArgsRest(__VLS_231));
     __VLS_233.slots.default;
     const __VLS_234 = {}.Document;

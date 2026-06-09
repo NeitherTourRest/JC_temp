@@ -168,11 +168,11 @@ const __VLS_4 = {}.ElCard;
 // @ts-ignore
 const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
     shadow: "never",
-    ...{ class: "history-card" },
+    ...{ class: "history-card glass" },
 }));
 const __VLS_6 = __VLS_5({
     shadow: "never",
-    ...{ class: "history-card" },
+    ...{ class: "history-card glass" },
 }, ...__VLS_functionalComponentArgsRest(__VLS_5));
 __VLS_7.slots.default;
 const __VLS_8 = {}.ElTabs;
@@ -779,6 +779,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['page-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['page-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['history-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['list-loading']} */ ;
 /** @type {__VLS_StyleScopedClasses['history-list']} */ ;
 /** @type {__VLS_StyleScopedClasses['history-item']} */ ;

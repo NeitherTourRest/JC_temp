@@ -5,7 +5,7 @@
         <h2 class="page-title">历史记录</h2>
       </div>
 
-      <el-card shadow="never" class="history-card">
+      <el-card shadow="never" class="history-card glass">
         <el-tabs v-model="activeTab" @tab-change="handleTabChange">
           <!-- ========== 搜索历史 ========== -->
           <el-tab-pane label="搜索历史" name="search">
@@ -371,20 +371,20 @@ onMounted(() => {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
-/* History card */
+/* ── History card (frosted glass) ── */
 .history-card {
-  border-radius: 12px;
-  border: 1px solid #ebeef5;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--frosted-border);
 }
 
 .history-card :deep(.el-card__body) {
   padding: 20px 24px;
 }
 
-/* History list */
+/* ── History list ── */
 .history-list {
   display: flex;
   flex-direction: column;
@@ -395,7 +395,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 14px 0;
-  border-bottom: 1px solid #f2f3f5;
+  border-bottom: 1px solid var(--frosted-border);
   gap: 16px;
 }
 
@@ -413,7 +413,7 @@ onMounted(() => {
 
 .history-keyword {
   font-size: 15px;
-  color: #303133;
+  color: var(--text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -422,8 +422,16 @@ onMounted(() => {
 
 .history-target {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-detail {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .history-item-meta {
@@ -432,22 +440,22 @@ onMounted(() => {
 
 .history-date {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
-/* Pagination */
+/* ── Pagination ── */
 .pagination-wrap {
   display: flex;
   justify-content: center;
   padding-top: 20px;
 }
 
-/* Loading */
+/* ── Loading ── */
 .list-loading {
   padding: 8px 0;
 }
 
-/* Empty state */
+/* ── Empty state ── */
 .history-card :deep(.el-empty) {
   padding: 40px 0;
 }

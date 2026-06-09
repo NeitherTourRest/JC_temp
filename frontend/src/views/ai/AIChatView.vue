@@ -71,20 +71,20 @@ onMounted(() => {
 <style scoped>
 .ai-page { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 120px); }
 .page-header { text-align: center; padding: 10px 0; }
-.page-header h1 { font-family: 'Bangers', cursive; font-size: 2.2rem; letter-spacing: 2px; margin: 0; }
-.page-header p { font-size: 14px; color: #666; }
+.page-header h1 { font-family: inherit; font-size: 2rem; letter-spacing: 2px; margin: 0; color: var(--text-primary); }
+.page-header p { font-size: 14px; color: var(--text-secondary); }
 
-.chat-area { flex: 1; overflow-y: auto; padding: 16px; border: 4px solid #000; border-radius: 8px; background: #fff; box-shadow: 4px 4px 0 #000; margin-bottom: 12px; }
+.chat-area { flex: 1; overflow-y: auto; padding: 16px; border: 1px solid var(--frosted-border); border-radius: var(--radius-card); background: var(--frosted-bg); backdrop-filter: blur(var(--glass-blur)); box-shadow: var(--neu-shadow); margin-bottom: 12px; }
 .msg-row { margin-bottom: 16px; }
 .msg-row.user { display: flex; justify-content: flex-end; }
 .msg-bubble { display: flex; gap: 10px; max-width: 80%; }
 .msg-bubble.user { flex-direction: row-reverse; }
 .msg-avatar { font-size: 2rem; flex-shrink: 0; }
-.msg-content { padding: 10px 14px; border: 3px solid #000; border-radius: 8px; box-shadow: 3px 3px 0 #000; }
-.msg-bubble.assistant .msg-content { background: #ffdd00; }
-.msg-bubble.user .msg-content { background: #00bfff; color: #fff; }
-.msg-text { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
-.msg-time { font-size: 11px; color: rgba(0,0,0,0.4); margin-top: 4px; }
+.msg-content { padding: 10px 14px; border: 1px solid var(--frosted-border); border-radius: 8px; box-shadow: var(--neu-shadow-sm); }
+.msg-bubble.assistant .msg-content { background: rgba(167,111,215,0.15); }
+.msg-bubble.user .msg-content { background: rgba(124,215,238,0.15); }
+.msg-text { font-size: 14px; line-height: 1.5; white-space: pre-wrap; color: var(--text-regular); }
+.msg-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
 .typing-dots::after { content: '...'; animation: dots 1.5s steps(4) infinite; }
 @keyframes dots { 0% { content: '.'; } 25% { content: '..'; } 50% { content: '...'; } 75% { content: ''; } }

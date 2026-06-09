@@ -215,7 +215,12 @@ debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
 let __VLS_directives;
+/** @type {__VLS_StyleScopedClasses['el-card__body']} */ ;
+/** @type {__VLS_StyleScopedClasses['el-card__body']} */ ;
+/** @type {__VLS_StyleScopedClasses['profile-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['avatar-upload']} */ ;
+/** @type {__VLS_StyleScopedClasses['preferences-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['nav-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['preferences-form']} */ ;
 /** @type {__VLS_StyleScopedClasses['nav-link-btn']} */ ;
@@ -234,11 +239,11 @@ const __VLS_4 = {}.ElCard;
 /** @type {[typeof __VLS_components.ElCard, typeof __VLS_components.elCard, typeof __VLS_components.ElCard, typeof __VLS_components.elCard, ]} */ ;
 // @ts-ignore
 const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
-    ...{ class: "profile-card" },
+    ...{ class: "profile-card glass" },
     shadow: "hover",
 }));
 const __VLS_6 = __VLS_5({
-    ...{ class: "profile-card" },
+    ...{ class: "profile-card glass" },
     shadow: "hover",
 }, ...__VLS_functionalComponentArgsRest(__VLS_5));
 __VLS_7.slots.default;
@@ -403,11 +408,11 @@ const __VLS_52 = {}.ElCard;
 /** @type {[typeof __VLS_components.ElCard, typeof __VLS_components.elCard, typeof __VLS_components.ElCard, typeof __VLS_components.elCard, ]} */ ;
 // @ts-ignore
 const __VLS_53 = __VLS_asFunctionalComponent(__VLS_52, new __VLS_52({
-    ...{ class: "preferences-card" },
+    ...{ class: "preferences-card glass" },
     shadow: "hover",
 }));
 const __VLS_54 = __VLS_53({
-    ...{ class: "preferences-card" },
+    ...{ class: "preferences-card glass" },
     shadow: "hover",
 }, ...__VLS_functionalComponentArgsRest(__VLS_53));
 __VLS_55.slots.default;
@@ -729,11 +734,11 @@ const __VLS_172 = {}.ElCard;
 /** @type {[typeof __VLS_components.ElCard, typeof __VLS_components.elCard, typeof __VLS_components.ElCard, typeof __VLS_components.elCard, ]} */ ;
 // @ts-ignore
 const __VLS_173 = __VLS_asFunctionalComponent(__VLS_172, new __VLS_172({
-    ...{ class: "nav-card" },
+    ...{ class: "nav-card glass" },
     shadow: "hover",
 }));
 const __VLS_174 = __VLS_173({
-    ...{ class: "nav-card" },
+    ...{ class: "nav-card glass" },
     shadow: "hover",
 }, ...__VLS_functionalComponentArgsRest(__VLS_173));
 __VLS_175.slots.default;
@@ -1058,6 +1063,7 @@ var __VLS_211;
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['profile-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['profile-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['profile-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['profile-avatar']} */ ;
 /** @type {__VLS_StyleScopedClasses['profile-meta']} */ ;
@@ -1067,10 +1073,12 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['edit-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['uid-text']} */ ;
 /** @type {__VLS_StyleScopedClasses['preferences-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['preferences-form']} */ ;
 /** @type {__VLS_StyleScopedClasses['nav-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['nav-links']} */ ;
 /** @type {__VLS_StyleScopedClasses['nav-link-btn']} */ ;

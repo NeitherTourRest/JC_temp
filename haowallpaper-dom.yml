@@ -1,0 +1,471 @@
+- main [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "网页icon - 哲风壁纸" [ref=e8]
+        - generic [ref=e9]: 哲风壁纸
+      - generic [ref=e13]:
+        - link "壁纸社区" [ref=e16]:
+          - /url: /wallpaperForum
+          - img [ref=e18]
+        - link "电脑壁纸" [ref=e23]:
+          - /url: /homeView
+          - img [ref=e25]
+        - link "手机壁纸" [ref=e30]:
+          - /url: /mobileView
+          - img [ref=e32]
+        - link "头像制作" [ref=e36]:
+          - /url: /headImgView
+          - img [ref=e38]
+        - link "哲风桌面壁纸软件-Hao Wallpaper" [ref=e43]:
+          - /url: /softwareDetails
+          - img [ref=e45]
+        - generic [ref=e47]:
+          - img [ref=e84]
+          - generic "活动中心 - 参与活动获得下载次数等奖励" [ref=e52]:
+            - img [ref=e86]
+      - generic [ref=e55]:
+        - text: 登入
+        - img "用户头像" [ref=e56]
+    - generic [ref=e90]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic "4k爱心壁纸-双马尾与猫咪-动漫线稿壁纸推荐「哲风壁纸」" [ref=e95]
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - generic [ref=e98]: Kuroha作品
+              - generic [ref=e99]: 动漫线稿
+              - generic [ref=e100]: 双马尾
+              - generic [ref=e101]: 嗔怒少女
+              - generic [ref=e102]: 嗔怒表情
+              - generic [ref=e103]: 爱心
+              - generic [ref=e104]: 猫咪
+              - generic [ref=e105]: 猫小奈
+              - generic [ref=e106]: 纯白背景
+              - generic [ref=e107]: 线稿少女
+            - link "前往" [ref=e109]:
+              - /url: /homeViewLook/17603706209226112
+              - generic [ref=e110]: 前往
+              - img [ref=e112]
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - img [ref=e117]
+                - text: "5654"
+              - generic [ref=e119]:
+                - img [ref=e121]
+                - text: "376822"
+              - generic [ref=e123]:
+                - img [ref=e125]
+                - text: 3840x2160
+              - generic [ref=e127]:
+                - img [ref=e129]
+                - text: 28.85 MB
+        - generic [ref=e131]:
+          - generic "4k特写壁纸-五条悟 - 蓝眼-咒术回战热门的壁纸「哲风壁纸」" [ref=e133]
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]: 五条悟
+              - generic [ref=e137]: 咒术回战
+              - generic [ref=e138]: 咒术师
+              - generic [ref=e139]: 特写
+              - generic [ref=e140]: 蓝眼
+              - generic [ref=e141]: 银发
+            - link "前往" [ref=e143]:
+              - /url: /homeViewLook/17815999759895936
+              - generic [ref=e144]: 前往
+              - img [ref=e146]
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - img [ref=e151]
+                - text: "1506"
+              - generic [ref=e153]:
+                - img [ref=e155]
+                - text: "84684"
+              - generic [ref=e157]:
+                - img [ref=e159]
+                - text: 3830x1900
+              - generic [ref=e161]:
+                - img [ref=e163]
+                - text: 25.49 MB
+        - generic [ref=e165]:
+          - img "4k天空壁纸-大草原 - 宁静-油画风格热门的壁纸「哲风壁纸」" [ref=e167]
+          - generic [ref=e168]:
+            - generic [ref=e169]:
+              - generic [ref=e170]: 大草原
+              - generic [ref=e171]: 天空
+              - generic [ref=e172]: 宁静
+              - generic [ref=e173]: 山野
+              - generic [ref=e174]: 开阔
+              - generic [ref=e175]: 户外
+              - generic [ref=e176]: 植被
+              - generic [ref=e177]: 油画风格
+              - generic [ref=e178]: 清新
+              - generic [ref=e179]: 生态
+              - generic [ref=e180]: 白云
+              - generic [ref=e181]: 自然风景
+              - generic [ref=e182]: 草坡
+              - generic [ref=e183]: 蓝天
+            - link "前往" [ref=e185]:
+              - /url: /homeViewLook/18347223655566720
+              - generic [ref=e186]: 前往
+              - img [ref=e188]
+            - generic [ref=e190]:
+              - generic [ref=e191]:
+                - img [ref=e193]
+                - text: "1314"
+              - generic [ref=e195]:
+                - img [ref=e197]
+                - text: "110430"
+              - generic [ref=e199]:
+                - img [ref=e201]
+                - text: 4342x3280
+              - generic [ref=e203]:
+                - img [ref=e205]
+                - text: 1.66 MB
+        - generic [ref=e207]:
+          - img "4k休闲壁纸-沙发美人与室内-长发美女壁纸推荐「哲风壁纸」" [ref=e209]
+          - generic [ref=e210]:
+            - generic [ref=e211]:
+              - generic [ref=e212]: 休闲
+              - generic [ref=e213]: 室内
+              - generic [ref=e214]: 居家
+              - generic [ref=e215]: 沙发
+              - generic [ref=e216]: 沙发美人
+              - generic [ref=e217]: 猫咪
+              - generic [ref=e218]: 白猫
+              - generic [ref=e219]: 笔记本电脑
+              - generic [ref=e220]: 长发美女
+              - generic [ref=e221]: 黑色长发
+            - link "前往" [ref=e223]:
+              - /url: /homeViewLook/18601616038546816
+              - generic [ref=e224]: 前往
+              - img [ref=e226]
+            - generic [ref=e228]:
+              - generic [ref=e229]:
+                - img [ref=e231]
+                - text: "1701"
+              - generic [ref=e233]:
+                - img [ref=e235]
+                - text: "99203"
+              - generic [ref=e237]:
+                - img [ref=e239]
+                - text: 3840x2160
+              - generic [ref=e241]:
+                - img [ref=e243]
+                - text: 863 KB
+        - generic [ref=e245]:
+          - img "3k天空壁纸-独行者与野花-壁纸推荐「哲风壁纸」" [ref=e247]
+          - generic [ref=e248]:
+            - generic [ref=e249]:
+              - generic [ref=e250]: 天空
+              - generic [ref=e251]: 孤独
+              - generic [ref=e252]: 寂静
+              - generic [ref=e253]: 山顶
+              - generic [ref=e254]: 平原
+              - generic [ref=e255]: 独行者
+              - generic [ref=e256]: 积云
+              - generic [ref=e257]: 草地
+              - generic [ref=e258]: 远山
+              - generic [ref=e259]: 野花
+              - generic [ref=e260]: 黄昏
+            - link "前往" [ref=e262]:
+              - /url: /homeViewLook/18834482912021888
+              - generic [ref=e263]: 前往
+              - img [ref=e265]
+            - generic [ref=e267]:
+              - generic [ref=e268]:
+                - img [ref=e270]
+                - text: "456"
+              - generic [ref=e272]:
+                - img [ref=e274]
+                - text: "34955"
+              - generic [ref=e276]:
+                - img [ref=e278]
+                - text: 3072x2048
+              - generic [ref=e280]:
+                - img [ref=e282]
+                - text: 4.64 MB
+        - generic [ref=e284]:
+          - img "4k党徽壁纸-爱我中华与爱国-共产主义接班人「哲风壁纸」" [ref=e286]
+          - generic [ref=e287]:
+            - generic [ref=e288]:
+              - generic [ref=e289]: 党徽
+              - generic [ref=e290]: 共产主义接班人
+              - generic [ref=e291]: 爱国
+              - generic [ref=e292]: 爱我中华
+              - generic [ref=e293]: 红色
+            - link "前往" [ref=e295]:
+              - /url: /homeViewLook/15789132561158464
+              - generic [ref=e296]: 前往
+              - img [ref=e298]
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - img [ref=e303]
+                - text: "2363"
+              - generic [ref=e305]:
+                - img [ref=e307]
+                - text: "392817"
+              - generic [ref=e309]:
+                - img [ref=e311]
+                - text: 4096x2306
+              - generic [ref=e313]:
+                - img [ref=e315]
+                - text: 1.54 MB
+        - generic [ref=e317]:
+          - generic "3k卡通壁纸-简笔画 - 水面-白色小熊壁纸推荐「哲风壁纸」" [ref=e319]
+          - generic [ref=e320]:
+            - generic [ref=e321]:
+              - generic [ref=e322]: 卡通
+              - generic [ref=e323]: 水面
+              - generic [ref=e324]: 治愈
+              - generic [ref=e325]: 湖水
+              - generic [ref=e326]: 漂浮
+              - generic [ref=e327]: 白色小熊
+              - generic [ref=e328]: 简笔画
+              - generic [ref=e329]: 自嘲熊
+              - generic [ref=e330]: 青色
+            - link "前往" [ref=e332]:
+              - /url: /homeViewLook/19027185103557504
+              - generic [ref=e333]: 前往
+              - img [ref=e335]
+            - generic [ref=e337]:
+              - generic [ref=e338]:
+                - img [ref=e340]
+                - text: "576"
+              - generic [ref=e342]:
+                - img [ref=e344]
+                - text: "28882"
+              - generic [ref=e346]:
+                - img [ref=e348]
+                - text: 3284x2400
+              - generic [ref=e350]:
+                - img [ref=e352]
+                - text: 7.05 MB
+        - generic [ref=e354]:
+          - generic "2k剪影壁纸-电锯人壁纸和蕾塞-多重影像壁纸推荐「哲风壁纸」" [ref=e356]
+          - generic [ref=e357]:
+            - generic [ref=e358]:
+              - generic [ref=e359]: 剪影
+              - generic [ref=e360]: 多重影像
+              - generic [ref=e361]: 文字环绕
+              - generic [ref=e362]: 电锯人
+              - generic [ref=e363]: 蕾塞
+              - generic [ref=e364]: 链锯人
+              - generic [ref=e365]: 黑白
+            - link "前往" [ref=e367]:
+              - /url: /homeViewLook/17519014550228352
+              - generic [ref=e368]: 前往
+              - img [ref=e370]
+            - generic [ref=e372]:
+              - generic [ref=e373]:
+                - img [ref=e375]
+                - text: "3161"
+              - generic [ref=e377]:
+                - img [ref=e379]
+                - text: "159294"
+              - generic [ref=e381]:
+                - img [ref=e383]
+                - text: 1920x1080
+              - generic [ref=e385]:
+                - img [ref=e387]
+                - text: 24.84 MB
+        - generic [ref=e389]:
+          - img "4k云彩壁纸-棕榈树与黄昏-热门的壁纸「哲风壁纸」" [ref=e391]
+          - generic [ref=e392]:
+            - generic [ref=e393]:
+              - generic [ref=e394]: 云彩
+              - generic [ref=e395]: 夜晚
+              - generic [ref=e396]: 夜景
+              - generic [ref=e397]: 天空
+              - generic [ref=e398]: 建筑
+              - generic [ref=e399]: 房屋
+              - generic [ref=e400]: 晚霞
+              - generic [ref=e401]: 棕榈树
+              - generic [ref=e402]: 海岸线
+              - generic [ref=e403]: 海边
+              - generic [ref=e404]: 海面
+              - generic [ref=e405]: 灯光
+              - generic [ref=e406]: 码头
+              - generic [ref=e407]: 船只
+              - generic [ref=e408]: 街道
+              - generic [ref=e409]: 风景
+              - generic [ref=e410]: 黄昏
+            - link "前往" [ref=e412]:
+              - /url: /homeViewLook/18193748552895872
+              - generic [ref=e413]: 前往
+              - img [ref=e415]
+            - generic [ref=e417]:
+              - generic [ref=e418]:
+                - img [ref=e420]
+                - text: "1565"
+              - generic [ref=e422]:
+                - img [ref=e424]
+                - text: "138550"
+              - generic [ref=e426]:
+                - img [ref=e428]
+                - text: 4096x2660
+              - generic [ref=e430]:
+                - img [ref=e432]
+                - text: 1.54 MB
+        - generic [ref=e434]:
+          - generic "4k水墨武士壁纸-水墨风格与蓝电长剑-蓝色剑气「哲风壁纸」" [ref=e436]
+          - generic [ref=e437]:
+            - generic [ref=e438]:
+              - generic [ref=e439]: 水墨武士
+              - generic [ref=e440]: 水墨风格
+              - generic [ref=e441]: 蓝电长剑
+              - generic [ref=e442]: 蓝色剑气
+              - generic [ref=e443]: 飘逸长发
+              - generic [ref=e444]: 黑色剪影
+            - link "前往" [ref=e446]:
+              - /url: /homeViewLook/17378194056924544
+              - generic [ref=e447]: 前往
+              - img [ref=e449]
+            - generic [ref=e451]:
+              - generic [ref=e452]:
+                - img [ref=e454]
+                - text: "2175"
+              - generic [ref=e456]:
+                - img [ref=e458]
+                - text: "143164"
+              - generic [ref=e460]:
+                - img [ref=e462]
+                - text: 3840x2160
+              - generic [ref=e464]:
+                - img [ref=e466]
+                - text: 28.21 MB
+        - generic [ref=e468]:
+          - img "2k敬酒壁纸-企业家与聚餐-中式餐厅壁纸分享「哲风壁纸」" [ref=e470]
+          - generic [ref=e471]:
+            - generic [ref=e472]:
+              - generic [ref=e473]: 中式餐厅
+              - generic [ref=e474]: 企业家
+              - generic [ref=e475]: 励志风
+              - generic [ref=e476]: 幽默玩梗
+              - generic [ref=e477]: 扎克伯格
+              - generic [ref=e478]: 敬酒
+              - generic [ref=e479]: 比尔盖茨
+              - generic [ref=e480]: 纳德拉
+              - generic [ref=e481]: 聚餐
+              - generic [ref=e482]: 蒂姆库克
+              - generic [ref=e483]: 贝索斯
+              - generic [ref=e484]: 饭局
+              - generic [ref=e485]: 马斯克
+              - generic [ref=e486]: 黄仁勋
+            - link "前往" [ref=e488]:
+              - /url: /homeViewLook/19061784553083776
+              - generic [ref=e489]: 前往
+              - img [ref=e491]
+            - generic [ref=e493]:
+              - generic [ref=e494]:
+                - img [ref=e496]
+                - text: "171"
+              - generic [ref=e498]:
+                - img [ref=e500]
+                - text: "8362"
+              - generic [ref=e502]:
+                - img [ref=e504]
+                - text: 2362x1331
+              - generic [ref=e506]:
+                - img [ref=e508]
+                - text: 2.42 MB
+        - generic [ref=e510]:
+          - generic "4k妖精壁纸-FGO壁纸和白发-俊美男子热门的壁纸「哲风壁纸」" [ref=e512]
+          - generic [ref=e513]:
+            - generic [ref=e514]:
+              - generic [ref=e515]: FGO
+              - generic [ref=e516]: 伏提庚
+              - generic [ref=e517]: 俊美男子
+              - generic [ref=e518]: 奥伯龙
+              - generic [ref=e519]: 妖精
+              - generic [ref=e520]: 妖精王
+              - generic [ref=e521]: 游戏角色
+              - generic [ref=e522]: 白发
+              - generic [ref=e523]: 羽毛
+              - generic [ref=e524]: 蓝眼睛
+              - generic [ref=e525]: 蓝色装饰
+            - link "前往" [ref=e527]:
+              - /url: /homeViewLook/19042740354962304
+              - generic [ref=e528]: 前往
+              - img [ref=e530]
+            - generic [ref=e532]:
+              - generic [ref=e533]:
+                - img [ref=e535]
+                - text: "154"
+              - generic [ref=e537]:
+                - img [ref=e539]
+                - text: "5055"
+              - generic [ref=e541]:
+                - img [ref=e543]
+                - text: 3840x2160
+              - generic [ref=e545]:
+                - img [ref=e547]
+                - text: 28.33 MB
+      - generic [ref=e549]:
+        - generic [ref=e550]:
+          - textbox "插画、简单、动漫..." [ref=e554]
+          - generic [ref=e555]:
+            - generic [ref=e559]: 昨日热门
+            - generic [ref=e562]:
+              - img [ref=e564]
+              - generic [ref=e567]: 种类
+            - generic [ref=e570]:
+              - img [ref=e572]
+              - generic [ref=e575]: 分类
+            - generic [ref=e578]:
+              - img [ref=e580]
+              - generic [ref=e582]: 分辨率
+            - generic [ref=e585]:
+              - img [ref=e587]
+              - generic [ref=e589]: 色系
+            - generic [ref=e591]:
+              - generic [ref=e592]: ✾
+              - img "上传图片" [ref=e593]
+        - img [ref=e596]
+      - generic [ref=e599]:
+        - generic [ref=e600]: ⇠
+        - generic [ref=e601]:
+          - generic [ref=e602]: "1"
+          - generic [ref=e603]: "2"
+          - generic [ref=e604]: "3"
+          - generic [ref=e605]: "4"
+          - generic [ref=e606]: "5"
+          - generic [ref=e607]: "6"
+          - generic [ref=e608]: "7"
+          - generic [ref=e609]: ...
+          - generic [ref=e610]: "3264"
+        - generic [ref=e611]: Go
+        - generic [ref=e612]: ⇢
+      - generic [ref=e616]:
+        - generic [ref=e617]:
+          - generic [ref=e618]: 「哲风桌面软件」｜新一代桌面 Wallpaper 软件！
+          - generic [ref=e619]: 💡“动态壁纸”一键设置 • 强大的定时切换 • ✨多元工坊
+          - list [ref=e620]:
+            - listitem [ref=e621]: ✨一次付费「终身使用」｜同步解锁网页 "畅享" 下载！
+            - listitem [ref=e622]: 跨平台（Win + Mac + 网页端）三位一体
+            - listitem [ref=e623]: 软件端 + 网页端（权益共享🎉）
+          - link "点击了解详情" [ref=e625]:
+            - /url: /softwareDetails
+            - generic [ref=e627]: 点击了解详情
+        - link "哲风壁纸图标 Win / Mac" [ref=e629]:
+          - /url: /softwareDetails
+          - generic [ref=e630]:
+            - img "哲风壁纸图标" [ref=e631]
+            - generic [ref=e632]: Win / Mac
+    - generic [ref=e59]:
+      - generic [ref=e60]: 「友站」 - >
+      - link "MacWk「精品Mac软件下载」" [ref=e64] [cursor=pointer]:
+        - /url: https://macwk.com/
+    - generic [ref=e65]:
+      - generic [ref=e68]: Copyright©2023-2026 西安哲风网络科技工作室
+      - link "陕ICP备2024022269号-1" [ref=e71] [cursor=pointer]:
+        - /url: https://beian.miit.gov.cn/
+      - link "陕公网安备61011202001080号" [ref=e74] [cursor=pointer]:
+        - /url: https://beian.mps.gov.cn/#/query/webSearch?code=61011202001080
+      - generic [ref=e77]: 在线客服：哲风壁纸（微信公众号）
+      - generic [ref=e80]: 联系官方：zfwallpaper
+      - generic [ref=e81]:
+        - link "用户协议" [ref=e82]:
+          - /url: /commentView
+        - link "隐私政策" [ref=e83]:
+          - /url: /privacyView

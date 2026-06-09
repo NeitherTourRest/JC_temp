@@ -186,7 +186,7 @@
         <div class="sections-grid">
           <!-- Attractions ✦ yellow -->
           <div class="section-card">
-            <div class="section-header" style="background: var(--pop-yellow)">
+            <div class="section-header" style="background: linear-gradient(135deg, rgba(167,111,215,0.2), rgba(167,111,215,0.05))">
               <h3>📍 Attractions</h3>
               <button class="add-btn" @click="openSearchDialog('attractions')">+ Add</button>
             </div>
@@ -228,7 +228,7 @@
 
           <!-- Dining ✦ pink -->
           <div class="section-card">
-            <div class="section-header" style="background: var(--pop-pink); color: #fff">
+            <div class="section-header" style="background: linear-gradient(135deg, rgba(124,215,238,0.2), rgba(124,215,238,0.05))">
               <h3>🍽️ Dining</h3>
               <button class="add-btn add-btn-light" @click="openSearchDialog('dining')">+ Add</button>
             </div>
@@ -270,7 +270,7 @@
 
           <!-- Other ✦ blue -->
           <div class="section-card">
-            <div class="section-header" style="background: var(--pop-blue)">
+            <div class="section-header" style="background: linear-gradient(135deg, rgba(91,141,239,0.2), rgba(91,141,239,0.05))">
               <h3>📌 Other</h3>
               <button class="add-btn" @click="addItem('other')">+ Add</button>
             </div>
@@ -336,7 +336,7 @@
         @close="closeMapDialog"
       >
         <div class="map-picker-body">
-          <div id="trip-map-container" style="height: 400px; border: 3px solid #000; border-radius: 8px;"></div>
+          <div id="trip-map-container" style="height: 400px; border: 1px solid var(--frosted-border); border-radius: 8px;"></div>
           <p class="map-hint-text">Click anywhere on the map to add a point to today's Attractions</p>
         </div>
         <template #footer>
@@ -1064,7 +1064,7 @@ onMounted(fetchItineraries)
 
 <style scoped>
 /* ════════════════════════════════════════════════════════
-   LIST MODE (preserved from original)
+   LIST MODE — Frosted Glass + Neumorphism
    ════════════════════════════════════════════════════════ */
 .itinerary-page {
   padding: 0;
@@ -1073,10 +1073,10 @@ onMounted(fetchItineraries)
 /* ── Hero ───────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: var(--pop-yellow);
-  border: 3px solid #000;
-  border-radius: 16px;
-  box-shadow: 8px 8px 0 #000;
+  background: linear-gradient(135deg, rgba(167,111,215,0.12), rgba(124,215,238,0.08));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--neu-shadow);
   padding: 56px 24px;
   text-align: center;
   margin-bottom: 28px;
@@ -1087,8 +1087,8 @@ onMounted(fetchItineraries)
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, rgba(255,105,180,0.08) 1px, transparent 1px),
-    radial-gradient(circle, rgba(0,191,255,0.06) 1px, transparent 1px);
+    radial-gradient(circle, rgba(124,215,238,0.06) 1px, transparent 1px),
+    radial-gradient(circle, rgba(167,111,215,0.04) 1px, transparent 1px);
   background-size: 20px 20px, 30px 30px;
   background-position: 0 0, 15px 15px;
   pointer-events: none;
@@ -1100,19 +1100,19 @@ onMounted(fetchItineraries)
 }
 
 .hero-content h1 {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 2rem;
   font-weight: 700;
-  color: #000;
+  color: var(--text-primary);
   margin: 0 0 8px;
   letter-spacing: 2px;
-  text-shadow: 3px 3px 0 var(--pop-pink);
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
 }
 
 .hero-content p {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 14px;
-  color: rgba(0,0,0,0.6);
+  color: var(--text-regular);
   margin: 0 0 24px;
 }
 
@@ -1136,15 +1136,15 @@ onMounted(fetchItineraries)
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0,0,0,0.1);
-  border-top-color: var(--pop-yellow);
-  border-right-color: var(--pop-pink);
+  border: 3px solid var(--frosted-border);
+  border-top-color: #7cd7ee;
+  border-right-color: #a76fd7;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .loading-state p {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -1165,7 +1165,7 @@ onMounted(fetchItineraries)
 }
 
 .empty-state h3 {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-heading);
@@ -1173,7 +1173,7 @@ onMounted(fetchItineraries)
 }
 
 .empty-state p {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   color: var(--text-muted);
   margin: 0 0 20px;
@@ -1195,7 +1195,7 @@ onMounted(fetchItineraries)
 
 .trip-card:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 8px 8px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 
 .trip-top {
@@ -1226,7 +1226,7 @@ onMounted(fetchItineraries)
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.3);
-  border: 2px solid rgba(255,255,255,0.25);
+  border: 1px solid var(--frosted-border);
   color: #fff;
   border-radius: 50%;
   font-size: 13px;
@@ -1238,7 +1238,7 @@ onMounted(fetchItineraries)
 
 .trip-delete-btn:hover {
   background: var(--pop-red);
-  border-color: rgba(255,255,255,0.5);
+  border-color: rgba(255,255,255,0.3);
 }
 
 .trip-body {
@@ -1246,11 +1246,12 @@ onMounted(fetchItineraries)
 }
 
 .trip-name {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-heading);
   margin: 0 0 12px;
+  overflow-wrap: break-word;
   word-break: break-word;
   line-height: 1.3;
 }
@@ -1263,7 +1264,7 @@ onMounted(fetchItineraries)
 }
 
 .stat {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   color: var(--text-muted);
   display: flex;
@@ -1273,11 +1274,11 @@ onMounted(fetchItineraries)
 
 .trip-foot {
   padding-top: 12px;
-  border-top: 2px solid rgba(0,0,0,0.08);
+  border-top: 1px solid var(--frosted-border);
 }
 
 .trip-date {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -1305,65 +1306,67 @@ onMounted(fetchItineraries)
   gap: 12px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 10px;
-  box-shadow: 4px 4px 0 #000;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
+  border-radius: 12px;
+  box-shadow: var(--neu-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .back-btn {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 6px;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-pill);
   padding: 6px 14px;
   cursor: pointer;
-  color: var(--text-heading);
-  box-shadow: 2px 2px 0 #000;
+  color: var(--text-primary);
+  box-shadow: var(--neu-shadow-sm);
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .back-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 
 .title-input {
   flex: 1;
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-heading);
   background: transparent;
   border: none;
-  border-bottom: 2px dashed rgba(0,0,0,0.3);
+  border-bottom: 2px dashed var(--frosted-border);
   padding: 6px 4px;
   outline: none;
 }
 
 .title-input:focus {
-  border-bottom-color: var(--pop-yellow);
+  border-bottom-color: rgba(124,215,238,0.4);
 }
 
 .save-btn {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  background: var(--pop-yellow);
-  border: 2px solid #000;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(167,111,215,0.8), rgba(124,215,238,0.6));
+  border: 1px solid rgba(167,111,215,0.4);
+  border-radius: var(--radius-pill);
   padding: 6px 16px;
   cursor: pointer;
-  color: #000;
-  box-shadow: 2px 2px 0 #000;
+  color: #fff;
+  box-shadow: var(--neu-shadow-sm);
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .save-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 0 15px var(--glow-primary), var(--neu-shadow);
 }
 
 /* ── Date Row ───────────────────────────────────────── */
@@ -1373,10 +1376,12 @@ onMounted(fetchItineraries)
   gap: 12px;
   padding: 14px 18px;
   margin-bottom: 16px;
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 10px;
-  box-shadow: 4px 4px 0 #000;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
+  border-radius: 12px;
+  box-shadow: var(--neu-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .date-field {
@@ -1386,7 +1391,7 @@ onMounted(fetchItineraries)
 }
 
 .date-field label {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -1402,15 +1407,15 @@ onMounted(fetchItineraries)
 }
 
 .day-count {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: var(--pop-pink);
+  color: #7cd7ee;
   margin-left: auto;
-  background: rgba(255,105,180,0.1);
+  background: rgba(124,215,238,0.12);
   padding: 4px 10px;
-  border-radius: 6px;
-  border: 2px solid var(--pop-pink);
+  border-radius: 20px;
+  border: 1px solid rgba(124,215,238,0.2);
 }
 
 /* ── Day Tabs ───────────────────────────────────────── */
@@ -1420,11 +1425,13 @@ onMounted(fetchItineraries)
   gap: 0;
   padding: 6px 8px;
   margin-bottom: 18px;
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 10px;
-  box-shadow: 4px 4px 0 #000;
-  overflow: hidden;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
+  border-radius: 12px;
+  box-shadow: var(--neu-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow: visible;
 }
 
 .tabs-scroll {
@@ -1440,18 +1447,18 @@ onMounted(fetchItineraries)
 }
 
 .tabs-scroll::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: var(--text-muted);
   border-radius: 2px;
 }
 
 .day-tab {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: transparent;
-  border: 2px solid transparent;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 20px;
   padding: 6px 14px;
   cursor: pointer;
   white-space: nowrap;
@@ -1462,14 +1469,15 @@ onMounted(fetchItineraries)
 }
 
 .day-tab:hover {
-  background: rgba(0,0,0,0.04);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-primary);
 }
 
 .day-tab.active {
-  background: var(--pop-yellow);
-  border-color: #000;
-  color: #000;
-  box-shadow: 2px 2px 0 #000;
+  background: linear-gradient(135deg, rgba(167,111,215,0.25), rgba(124,215,238,0.2));
+  border-color: rgba(167,111,215,0.3);
+  color: var(--text-primary);
+  box-shadow: var(--neu-shadow-sm);
 }
 
 .tab-date {
@@ -1480,7 +1488,7 @@ onMounted(fetchItineraries)
 }
 
 .add-day-btn {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 16px;
   font-weight: 700;
   width: 34px;
@@ -1488,20 +1496,20 @@ onMounted(fetchItineraries)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--pop-green);
-  color: #000;
-  border: 2px solid #000;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(58,210,159,0.3), rgba(58,210,159,0.15));
+  color: #3ad29f;
+  border: 1px solid rgba(58,210,159,0.3);
+  border-radius: 50%;
   cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
-  transition: transform 0.1s;
+  box-shadow: var(--neu-shadow-sm);
+  transition: transform 0.1s, box-shadow 0.1s;
   flex-shrink: 0;
   margin-left: 8px;
 }
 
 .add-day-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 0 12px var(--glow-success), var(--neu-shadow);
 }
 
 /* ── Day Content ────────────────────────────────────── */
@@ -1516,11 +1524,11 @@ onMounted(fetchItineraries)
 }
 
 .section-card {
-  border: 3px solid #000;
-  border-radius: 12px;
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
   overflow: hidden;
-  background: #fff;
-  box-shadow: 5px 5px 0 #000;
+  background: var(--frosted-bg);
+  box-shadow: var(--neu-shadow);
   display: flex;
   flex-direction: column;
 }
@@ -1530,38 +1538,38 @@ onMounted(fetchItineraries)
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  border-bottom: 3px solid #000;
+  border-bottom: 1px solid var(--frosted-border);
 }
 
 .section-header h3 {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #000;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .add-btn {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 11px;
   font-weight: 700;
-  background: #fff;
-  color: #000;
-  border: 2px solid #000;
-  border-radius: 6px;
+  background: var(--frosted-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-pill);
   padding: 3px 10px;
   cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
-  transition: transform 0.1s;
+  box-shadow: var(--neu-shadow-sm);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .add-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 
 .add-btn-light {
-  color: #000;
+  color: var(--text-primary);
 }
 
 .section-body {
@@ -1573,7 +1581,7 @@ onMounted(fetchItineraries)
 }
 
 .section-empty {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   color: var(--text-muted);
   text-align: center;
@@ -1586,28 +1594,28 @@ onMounted(fetchItineraries)
   flex-direction: column;
   gap: 6px;
   padding: 10px;
-  background: rgba(0,0,0,0.03);
-  border: 2px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--frosted-border);
   border-radius: 8px;
   position: relative;
 }
 
 .item-name-input {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   color: var(--text-heading);
-  background: #fff;
-  border: 2px solid #000;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
   border-radius: 6px;
   padding: 6px 8px;
   outline: none;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+  box-shadow: var(--neu-inset-sm);
   width: 100%;
 }
 
 .item-name-input:focus {
-  border-color: var(--pop-blue);
-  box-shadow: 2px 2px 0 var(--pop-blue);
+  border-color: rgba(124,215,238,0.4);
+  box-shadow: 0 0 0 2px rgba(124,215,238,0.08), var(--neu-inset-sm);
 }
 
 .item-time {
@@ -1618,7 +1626,7 @@ onMounted(fetchItineraries)
 
 .item-time :deep(.el-input__wrapper) {
   padding: 2px 6px !important;
-  box-shadow: 2px 2px 0 #000 !important;
+  box-shadow: var(--neu-shadow-sm) !important;
 }
 
 .item-time :deep(.el-input__inner) {
@@ -1626,7 +1634,7 @@ onMounted(fetchItineraries)
 }
 
 .time-sep {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 600;
@@ -1643,12 +1651,12 @@ onMounted(fetchItineraries)
   justify-content: center;
   background: var(--pop-red);
   color: #fff;
-  border: 2px solid #000;
+  border: 1px solid var(--frosted-border);
   border-radius: 50%;
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: var(--neu-shadow-sm);
   transition: transform 0.1s;
   line-height: 1;
 }
@@ -1664,56 +1672,61 @@ onMounted(fetchItineraries)
 }
 
 .planning-empty p {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 14px;
   color: var(--text-muted);
 }
 
-/* ── Floating AI Button ─────────────────────────────── */
-.ai-float-btn {
+/* ── Floating AI Button Group ───────────────────────── */
+.ai-float-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   position: fixed;
   bottom: 28px;
   right: 28px;
   z-index: 100;
-  font-family: 'Lucida Console', monospace;
+}
+
+.ai-float-btn {
+  font-family: inherit;
   font-size: 14px;
   font-weight: 700;
-  background: var(--pop-yellow);
-  color: #000;
-  border: 3px solid #000;
-  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(167,111,215,0.8), rgba(124,215,238,0.6));
+  color: #fff;
+  border: 1px solid rgba(167,111,215,0.4);
+  border-radius: var(--radius-pill);
   padding: 12px 20px;
   cursor: pointer;
-  box-shadow: 6px 6px 0 #000;
+  box-shadow: var(--neu-shadow);
   transition: transform 0.12s, box-shadow 0.12s;
   letter-spacing: 1px;
 }
 
 .ai-float-btn:hover {
   transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0 #000;
-  background: var(--pop-pink);
-  color: #fff;
+  box-shadow: 0 0 20px var(--glow-primary), var(--neu-shadow);
+  background: linear-gradient(135deg, rgba(167,111,215,0.9), rgba(124,215,238,0.7));
 }
 
 /* ── Map Picker Button (topbar) ─────────────────────── */
 .map-btn {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 16px;
   font-weight: 700;
-  background: var(--pop-green);
-  border: 2px solid #000;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(58,210,159,0.3), rgba(58,210,159,0.15));
+  border: 1px solid rgba(58,210,159,0.3);
+  border-radius: 8px;
   padding: 6px 12px;
   cursor: pointer;
-  color: #000;
-  box-shadow: 2px 2px 0 #000;
+  color: #3ad29f;
+  box-shadow: var(--neu-shadow-sm);
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .map-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 0 12px var(--glow-success), var(--neu-shadow);
 }
 
 /* ── Map Picker Dialog ──────────────────────────────── */
@@ -1722,7 +1735,7 @@ onMounted(fetchItineraries)
 }
 
 .map-hint-text {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 12px;
   color: var(--text-muted);
   margin: 10px 0 0;
@@ -1741,8 +1754,8 @@ onMounted(fetchItineraries)
 }
 
 .search-input-row :deep(.el-input__wrapper) {
-  box-shadow: 3px 3px 0 #000 !important;
-  border: 2px solid #000 !important;
+  box-shadow: var(--neu-shadow-sm) !important;
+  border: 1px solid var(--frosted-border) !important;
 }
 
 .search-results {
@@ -1755,21 +1768,21 @@ onMounted(fetchItineraries)
 
 .search-result-card {
   padding: 12px 14px;
-  border: 3px solid #000;
+  border: 1px solid var(--frosted-border);
   border-radius: 8px;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: var(--neu-shadow-sm);
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
-  background: #fff;
+  background: var(--frosted-bg);
 }
 
 .search-result-card:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 
 .result-name {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-heading);
@@ -1784,26 +1797,26 @@ onMounted(fetchItineraries)
 }
 
 .result-category {
-  font-family: 'Lucida Console', monospace;
-  background: var(--pop-yellow);
+  font-family: inherit;
+  background: rgba(167,111,215,0.2);
   padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid #000;
-  color: #000;
+  border-radius: 12px;
+  border: 1px solid rgba(167,111,215,0.25);
+  color: #c9a0e8;
 }
 
 .result-address {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   color: var(--text-muted);
 }
 
 .result-coords {
-  font-family: 'Lucida Console', monospace;
-  color: var(--pop-blue);
+  font-family: inherit;
+  color: #7cd7ee;
 }
 
 .search-empty {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   color: var(--text-muted);
   text-align: center;
@@ -1822,10 +1835,10 @@ onMounted(fetchItineraries)
   flex: 1;
   overflow-y: auto;
   padding: 12px;
-  border: 3px solid #000;
+  border: 1px solid var(--frosted-border);
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 3px 3px 0 #000;
+  background: var(--frosted-bg);
+  box-shadow: var(--neu-shadow-sm);
 }
 
 .ai-msg-row {
@@ -1854,30 +1867,30 @@ onMounted(fetchItineraries)
 
 .ai-msg-content {
   padding: 8px 12px;
-  border: 2px solid #000;
+  border: 1px solid var(--frosted-border);
   border-radius: 8px;
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: var(--neu-shadow-sm);
 }
 
 .ai-msg-bubble.assistant .ai-msg-content {
-  background: var(--pop-yellow);
+  background: rgba(167,111,215,0.12);
 }
 
 .ai-msg-bubble.user .ai-msg-content {
-  background: var(--pop-blue);
-  color: #fff;
+  background: rgba(124,215,238,0.12);
 }
 
 .ai-msg-text {
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
+  color: var(--text-primary);
 }
 
 .ai-msg-time {
   font-size: 10px;
-  color: rgba(0,0,0,0.35);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -1887,8 +1900,8 @@ onMounted(fetchItineraries)
 }
 
 .ai-input-bar :deep(.el-input__wrapper) {
-  box-shadow: 3px 3px 0 #000 !important;
-  border: 2px solid #000 !important;
+  box-shadow: var(--neu-shadow-sm) !important;
+  border: 1px solid var(--frosted-border) !important;
 }
 
 .ai-send-btn {
@@ -1908,20 +1921,49 @@ onMounted(fetchItineraries)
 }
 
 /* ── AI Plan & Budget dialog styles ──────────────────── */
-.dialog-result { margin-top: 16px; padding: 16px; border: 3px solid #000; border-radius: 8px; background: #fff; }
-.plan-title-name { font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center; }
-.day-block { margin-bottom: 12px; padding: 10px; background: #faf8f5; border: 1px dashed #000; }
-.activity { display: flex; gap: 8px; padding: 4px 0; font-size: 13px; }
-.act-time { color: #2c3e7a; font-weight: 600; width: 50px; flex-shrink: 0; }
-.act-loc { color: #666; font-size: 12px; margin-left: auto; }
-.plan-tips { margin-top: 8px; padding: 8px 12px; background: #fff8e1; border: 1px dashed #e6a23c; font-size: 12px; }
-.plan-cost { margin-top: 8px; padding: 6px 12px; background: #f0f9eb; border: 1px solid #67c23a; display: inline-block; font-size: 14px; font-weight: 600; }
-.budget-total { font-size: 18px; text-align: center; padding: 12px; margin-bottom: 12px; background: #f0f9eb; border: 1px dashed #67c23a; }
-.total-amount { color: #67c23a; font-size: 22px; }
-.cat-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-.cat-name { font-weight: 600; width: 80px; }
-.cat-amount { color: #e6a23c; font-weight: 600; width: 70px; }
-.cat-detail { color: #666; flex: 1; }
+.dialog-result { margin-top: 16px; padding: 16px; border: 1px solid var(--frosted-border); border-radius: 8px; background: var(--frosted-bg); }
+.plan-title-name { font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center; color: var(--text-primary); }
+.day-block { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--frosted-border); border-radius: 8px; }
+.activity { display: flex; gap: 8px; padding: 4px 0; font-size: 13px; color: var(--text-regular); }
+.act-time {
+  color: #7cd7ee;
+  font-weight: 600;
+  width: 50px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.act-loc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+}
+.plan-tips { margin-top: 8px; padding: 8px 12px; background: rgba(255,193,7,0.08); border: 1px solid rgba(255,193,7,0.25); font-size: 12px; color: var(--text-regular); border-radius: 6px; }
+.plan-cost { margin-top: 8px; padding: 6px 12px; background: rgba(58,210,159,0.08); border: 1px solid rgba(58,210,159,0.25); display: inline-block; font-size: 14px; font-weight: 600; color: #3ad29f; border-radius: 6px; }
+.budget-total { font-size: 18px; text-align: center; padding: 12px; margin-bottom: 12px; background: rgba(58,210,159,0.08); border: 1px solid rgba(58,210,159,0.25); border-radius: 6px; }
+.total-amount { color: #3ad29f; font-size: 22px; }
+.cat-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--frosted-border); font-size: 13px; color: var(--text-regular); }
+.cat-name {
+  font-weight: 600;
+  width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-amount {
+  color: #ffc107;
+  font-weight: 600;
+  width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-detail { color: var(--text-secondary); flex: 1; }
 
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -1932,7 +1974,6 @@ onMounted(fetchItineraries)
   .hero-content h1 {
     font-size: 1.5rem;
     letter-spacing: 1px;
-    text-shadow: 2px 2px 0 var(--pop-pink);
   }
 
   .hero-content p {

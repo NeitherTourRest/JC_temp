@@ -66,17 +66,17 @@ async function estimate() {
 
 <style scoped>
 .ai-page { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-.page-title { font-size: 22px; font-weight: 600; color: #2c2c2c; margin-bottom: 20px; }
-.form-card, .result-card { border: 2px solid #2c2c2c; border-radius: 4px; box-shadow: 3px 3px 0 #2c2c2c; min-height: 400px; }
-.empty { color: #999; text-align: center; padding: 80px 0; }
-.budget-total { font-size: 24px; text-align: center; padding: 20px; margin-bottom: 20px; background: #f0f9eb; border: 1px dashed #67c23a; }
-.total-amount { color: #67c23a; font-size: 28px; }
+.page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; }
+.form-card, .result-card { border: 1px solid var(--frosted-border); border-radius: var(--radius-card); box-shadow: var(--neu-shadow); min-height: 400px; background: var(--frosted-bg); backdrop-filter: blur(var(--glass-blur)); }
+.empty { color: var(--text-secondary); text-align: center; padding: 80px 0; }
+.budget-total { font-size: 24px; text-align: center; padding: 20px; margin-bottom: 20px; background: rgba(58,210,159,0.08); border: 1px solid rgba(58,210,159,0.2); border-radius: 8px; color: var(--text-primary); }
+.total-amount { color: var(--pop-green); font-size: 28px; }
 .categories { margin-bottom: 20px; }
-.cat-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-.cat-name { font-weight: 600; width: 80px; }
-.cat-amount { color: #e6a23c; font-weight: 600; width: 80px; }
-.cat-detail { color: #666; flex: 1; }
-.suggestions { margin-top: 20px; padding: 12px; background: #fff8e1; border: 1px dashed #e6a23c; }
-.raw-fallback { margin-top: 20px; padding: 12px; background: #f5f5f5; }
-.raw-fallback pre { white-space: pre-wrap; font-size: 12px; }
+.cat-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--frosted-border); font-size: 14px; }
+.cat-name { font-weight: 600; width: 80px; color: var(--text-regular); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-amount { color: var(--pop-orange); font-weight: 600; width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-detail { color: var(--text-secondary); flex: 1; }
+.suggestions { margin-top: 20px; padding: 12px; background: rgba(255,193,7,0.06); border: 1px solid rgba(255,193,7,0.15); border-radius: 8px; }
+.raw-fallback { margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+.raw-fallback pre { white-space: pre-wrap; font-size: 12px; color: var(--text-regular); }
 </style>

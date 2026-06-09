@@ -252,8 +252,8 @@ async function navigate() {
 .control-panel { width: 340px; flex-shrink: 0; overflow-y: auto; }
 .panel-section { margin-bottom: 16px; }
 .panel-section h4 { font-size: 15px; margin-bottom: 8px; color: #333; }
-.node-select-row { display: flex; gap: 6px; align-items: center; }
-.node-select-row .el-button { white-space: nowrap; }
+.node-select-row { display: flex; gap: 6px; align-items: center; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.node-select-row .el-button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 .result-section { margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0; }
 .result-summary { display: flex; gap: 16px; font-size: 14px; color: #409EFF; font-weight: 600; margin-bottom: 12px; }

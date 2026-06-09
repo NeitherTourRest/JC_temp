@@ -19,10 +19,10 @@ async function login() { if (!u.value || !p.value) { e.value = 'Fill all fields'
 </script>
 <style scoped>
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.auth-card { width: 380px; padding: 40px 32px; border-radius: 20px; text-align: center; }
-.auth-card h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 24px; }
+.auth-card { width: 380px; padding: 40px 32px; border-radius: var(--radius-card); text-align: center; }
+.auth-card h1 { font-family: inherit; font-size: 1.6rem; font-weight: 700; margin-bottom: 24px; color: var(--text-primary); }
 .full-btn { width: 100%; }
-.switch { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 16px; }
-.switch a { color: #22d3ee; text-decoration: none; }
-.err { color: #f87171; font-size: 13px; }
+.switch { font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+.switch a { color: var(--pop-pink); text-decoration: none; }
+.err { color: var(--pop-red); font-size: 13px; }
 </style>

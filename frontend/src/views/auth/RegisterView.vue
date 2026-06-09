@@ -21,10 +21,10 @@ async function reg() { if (!f.value.username || !f.value.password) { e.value = '
 </script>
 <style scoped>
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.auth-card { width: 400px; padding: 36px 28px; border-radius: 16px; text-align: center; }
-.auth-card h1 { font-family: 'Fredoka One', cursive; font-size: 1.6rem; text-transform: uppercase; margin-bottom: 20px; }
+.auth-card { width: 400px; padding: 36px 28px; border-radius: var(--radius-card); text-align: center; }
+.auth-card h1 { font-family: inherit; font-size: 1.6rem; margin-bottom: 20px; color: var(--text-primary); }
 .full-btn { width: 100%; }
-.switch { font-size: 13px; color: rgba(0,0,0,0.5); margin-top: 16px; }
-.switch a { color: #ff69b4; text-decoration: none; font-family: 'Fredoka One', cursive; }
-.err { color: #ff3b3b; font-size: 13px; margin-top: 8px; }
+.switch { font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+.switch a { color: var(--pop-pink); text-decoration: none; font-family: inherit; }
+.err { color: var(--pop-red); font-size: 13px; margin-top: 8px; }
 </style>

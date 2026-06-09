@@ -1,0 +1,35 @@
+- main [ref=e1]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - img "网页icon - 哲风壁纸" [ref=e8]
+      - generic [ref=e9]: 哲风壁纸
+    - generic [ref=e13]:
+      - link "壁纸社区" [ref=e16]:
+        - /url: /wallpaperForum
+        - img [ref=e18]
+        - generic [ref=e21]: 壁纸社区
+      - link "电脑壁纸" [ref=e24]:
+        - /url: /homeView
+        - img [ref=e26]
+        - generic [ref=e29]: 电脑壁纸
+      - link "手机壁纸" [ref=e32]:
+        - /url: /mobileView
+        - img [ref=e34]
+        - generic [ref=e36]: 手机壁纸
+      - link "头像制作" [ref=e39]:
+        - /url: /headImgView
+        - img [ref=e41]
+        - generic [ref=e44]: 头像制作
+      - link "哲风桌面软件 N" [ref=e47]:
+        - /url: /softwareDetails
+        - img [ref=e49]
+        - generic [ref=e51]:
+          - text: 哲风桌面软件
+          - generic [ref=e52]: "N"
+      - generic [ref=e53]:
+        - img [ref=e57]
+        - generic "活动中心 - 参与活动获得下载次数等奖励" [ref=e58]:
+          - img [ref=e59]
+    - generic [ref=e62]:
+      - text: 登入
+      - img "用户头像" [ref=e63]

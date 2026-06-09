@@ -236,7 +236,7 @@
           </div>
 
           <div class="preview-empty" v-else>
-            <el-icon :size="48" color="#c0c4cc"><Document /></el-icon>
+            <el-icon :size="48"><Document /></el-icon>
             <p>暂无内容预览</p>
             <p class="hint">填写标题和内容后，这里会实时展示日记效果</p>
           </div>
@@ -650,11 +650,12 @@ watch(() => route.params.id, () => {
 
 /* ── 表单面板 ── */
 .editor-form-panel {
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 12px;
+  background: var(--frosted-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
   padding: 28px;
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 
 /* ── 图片上传 ── */
@@ -670,7 +671,7 @@ watch(() => route.params.id, () => {
   height: 100px;
   border-radius: 8px;
   overflow: hidden;
-  border: 2px solid #ddd;
+  border: 1px solid var(--frosted-border);
   transition: border-color 0.2s;
 }
 .image-thumb.is-cover {
@@ -686,8 +687,8 @@ watch(() => route.params.id, () => {
   position: absolute;
   top: 4px;
   left: 4px;
-  background: var(--pop-yellow);
-  color: #000;
+  background: rgba(167,111,215,0.2);
+  color: var(--pop-yellow);
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
@@ -709,7 +710,7 @@ watch(() => route.params.id, () => {
 .upload-placeholder {
   width: 100px;
   height: 100px;
-  border: 2px dashed #000;
+  border: 1px dashed var(--frosted-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -748,11 +749,12 @@ watch(() => route.params.id, () => {
 }
 
 .preview-card {
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 12px;
+  background: var(--frosted-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
   overflow: hidden;
-  box-shadow: 6px 6px 0 #000;
+  box-shadow: var(--neu-shadow);
 }
 .preview-cover {
   position: relative;
@@ -787,7 +789,7 @@ watch(() => route.params.id, () => {
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 2px solid #000;
+  border-bottom: 1px solid var(--frosted-border);
   flex-wrap: wrap;
   font-size: 13px;
   color: var(--text-body);
@@ -803,6 +805,7 @@ watch(() => route.params.id, () => {
   font-size: 15px;
   line-height: 1.8;
   color: var(--text-body);
+  overflow-wrap: break-word;
   word-break: break-word;
 }
 .preview-content :deep(p) {
@@ -826,19 +829,21 @@ watch(() => route.params.id, () => {
 
 /* ── AI tools section ── */
 .ai-tools-section {
-  border: 3px solid #000;
-  background: #fff;
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  background: var(--frosted-bg);
+  backdrop-filter: blur(8px);
   width: 100%;
   overflow: hidden;
 }
 .ai-tools-header {
   padding: 10px 14px;
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-weight: 700;
   font-size: 14px;
-  background: var(--pop-yellow);
-  border-bottom: 3px solid #000;
-  color: #000;
+  background: rgba(167,111,215,0.15);
+  border-bottom: 1px solid var(--frosted-border);
+  color: var(--pop-yellow);
   letter-spacing: 1px;
 }
 .ai-tools-body { padding: 14px; display: flex; flex-direction: column; gap: 16px; }
@@ -846,12 +851,12 @@ watch(() => route.params.id, () => {
 .ai-tool-header { display: flex; justify-content: space-between; align-items: center; }
 .ai-tool-header span { font-weight: 700; font-size: 13px; color: var(--text-heading); }
 .ai-preview { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-.ai-thumb { width: 80px; height: 80px; object-fit: cover; border: 2px solid #000; border-radius: 6px; }
+.ai-thumb { width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--frosted-border); border-radius: 6px; }
 .ai-video-pending, .ai-video-fail { padding: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-body); }
 
 /* ── Video upload ── */
 .video-preview { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.video-player { max-width: 100%; max-height: 300px; border: 3px solid #000; border-radius: 8px; }
+.video-player { max-width: 100%; max-height: 300px; border: 1px solid var(--frosted-border); border-radius: 8px; }
 .video-remove-btn { align-self: flex-start; }
 .upload-trigger--wide .upload-placeholder { width: 100%; min-width: 200px; }
 .upload-trigger--wide.is-uploading { opacity: 0.6; pointer-events: none; }
@@ -867,10 +872,11 @@ watch(() => route.params.id, () => {
   align-items: center;
   justify-content: center;
   padding: 80px 40px;
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 12px;
-  box-shadow: 6px 6px 0 #000;
+  background: var(--frosted-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--neu-shadow);
   color: var(--text-muted);
 }
 .preview-empty p {
@@ -879,7 +885,7 @@ watch(() => route.params.id, () => {
 }
 .preview-empty .hint {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 /* ── 响应式 ── */

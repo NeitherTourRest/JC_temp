@@ -2,7 +2,7 @@
   <DefaultLayout>
     <div class="profile-page">
       <!-- 个人信息卡片 -->
-      <el-card class="profile-card" shadow="hover">
+      <el-card class="profile-card glass" shadow="hover">
         <div class="profile-header">
           <el-avatar :size="80" :src="profile.avatar" class="profile-avatar">
             {{ profile.nickname?.[0] || profile.username?.[0] || 'U' }}
@@ -31,7 +31,7 @@
       </el-card>
 
       <!-- 偏好设置 -->
-      <el-card class="preferences-card" shadow="hover">
+      <el-card class="preferences-card glass" shadow="hover">
         <template #header>
           <div class="card-header">
             <span class="card-title">偏好设置</span>
@@ -87,7 +87,7 @@
       </el-card>
 
       <!-- 快捷导航 -->
-      <el-card class="nav-card" shadow="hover">
+      <el-card class="nav-card glass" shadow="hover">
         <template #header>
           <span class="card-title">快捷导航</span>
         </template>
@@ -385,6 +385,13 @@ onMounted(() => {
   gap: 20px;
 }
 
+/* ── Frosted glass cards ── */
+.profile-card :deep(.el-card__body),
+.preferences-card :deep(.el-card__body),
+.nav-card :deep(.el-card__body) {
+  background: transparent;
+}
+
 /* 个人资料卡片 */
 .profile-card .profile-header {
   display: flex;
@@ -395,7 +402,7 @@ onMounted(() => {
 
 .profile-avatar {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #409eff, #67c23a);
+  background: var(--grad-primary);
   color: #fff;
   font-size: 32px;
   font-weight: 600;
@@ -410,13 +417,13 @@ onMounted(() => {
   margin: 0 0 4px 0;
   font-size: 22px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .profile-username {
   margin: 0;
   font-size: 14px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .profile-email-tag {
@@ -428,25 +435,25 @@ onMounted(() => {
   margin-left: auto;
 }
 
-/* 头像上传 */
+/* ── Avatar upload ── */
 .avatar-upload {
   position: relative;
   width: 120px;
   height: 120px;
-  border: 3px solid #000;
+  border: 1px solid var(--frosted-border);
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 3px 3px 0 #000;
-  background: #f5f5f5;
+  box-shadow: var(--neu-shadow);
+  background: var(--frosted-bg);
 }
-.avatar-upload:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; }
+.avatar-upload:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); }
 .avatar-preview { width: 100%; height: 100%; object-fit: cover; }
 .avatar-placeholder {
   width: 100%; height: 100%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 4px; color: #999; font-size: 12px;
+  gap: 4px; color: var(--text-secondary); font-size: 12px;
 }
 .upload-icon { font-size: 28px; }
 .avatar-uploading-overlay {
@@ -456,7 +463,7 @@ onMounted(() => {
   color: #fff; font-size: 14px; font-weight: 600;
 }
 
-/* 偏好设置 */
+/* ── Preference / nav card headers ── */
 .preferences-card .card-header,
 .nav-card .card-header {
   display: flex;
@@ -466,7 +473,7 @@ onMounted(() => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .preferences-form {
@@ -479,7 +486,7 @@ onMounted(() => {
   gap: 8px 16px;
 }
 
-/* 快捷导航 */
+/* ── Quick nav ── */
 .nav-links {
   display: flex;
   gap: 12px;
@@ -495,30 +502,31 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid #dcdfe6;
-  border-radius: 8px;
-  background: #fafafa;
-  transition: all 0.2s;
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  background: var(--frosted-bg);
+  color: var(--text-regular);
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .nav-link-btn:hover {
-  border-color: #409eff;
-  background: #ecf5ff;
-  color: #409eff;
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--neu-shadow-sm);
 }
 
-.nav-icon {
-  font-size: 20px;
-}
+.nav-icon { font-size: 20px; }
 
 .uid-text {
   font-family: 'Courier New', monospace;
   font-weight: 700;
-  color: #909399;
+  color: var(--text-secondary);
   letter-spacing: 1px;
 }
 
-/* 退出登录 */
+/* ── Logout ── */
 .logout-section {
   display: flex;
   justify-content: center;

@@ -233,7 +233,7 @@ onMounted(() => {
   padding: 8px 0;
 }
 
-/* ---- Header ---- */
+/* ── Header ── */
 .favorites-header {
   text-align: center;
   margin-bottom: 28px;
@@ -242,20 +242,23 @@ onMounted(() => {
 .favorites-title {
   font-size: 28px;
   font-weight: 700;
-  color: #303133;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .favorites-subtitle {
   font-size: 14px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
-/* ---- Tabs ---- */
+/* ── Tabs ── */
 .favorites-tabs-wrapper {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  background: var(--frosted-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--neu-shadow-sm);
   padding: 4px 20px;
   margin-bottom: 20px;
 }
@@ -266,6 +269,7 @@ onMounted(() => {
 
 .favorites-tabs :deep(.el-tabs__nav-wrap::after) {
   height: 1px;
+  background-color: var(--frosted-border);
 }
 
 .favorites-tabs :deep(.el-tabs__item) {
@@ -276,7 +280,7 @@ onMounted(() => {
   padding: 0 20px;
 }
 
-/* ---- Grid ---- */
+/* ── Grid ── */
 .favorites-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -296,26 +300,28 @@ onMounted(() => {
   }
 }
 
-/* ---- Favorite Card ---- */
+/* ── Favorite Card ── */
 .fav-card {
   position: relative;
 }
 
 .fav-card__inner {
-  background: #fff;
+  background: var(--frosted-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--frosted-border);
+  box-shadow: var(--neu-shadow-sm);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
-  border: 1px solid transparent;
 }
 
 .fav-card__inner:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(64, 158, 255, 0.12);
-  border-color: #409eff;
+  box-shadow: var(--neu-shadow);
+  border-color: rgba(255,255,255,0.12);
 }
 
 /* Card top: badge + remove */
@@ -327,7 +333,7 @@ onMounted(() => {
 }
 
 .fav-card__badge {
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
   font-weight: 500;
   font-size: 13px;
   padding: 2px 10px;
@@ -341,7 +347,7 @@ onMounted(() => {
 
 .fav-card__inner:hover .fav-card__remove-btn {
   opacity: 1;
-  border-color: #f56c6c;
+  border-color: var(--pop-red);
 }
 
 /* Card body */
@@ -351,7 +357,7 @@ onMounted(() => {
 
 .fav-card__target-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -371,8 +377,9 @@ onMounted(() => {
 .fav-card__target-text {
   font-size: 17px;
   font-weight: 600;
-  color: #303133;
-  word-break: break-all;
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 /* Date */
@@ -381,7 +388,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .fav-card__date-icon {
@@ -395,7 +402,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #409eff, #67c23a, #e6a23c, #f56c6c);
+  background: var(--grad-primary);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -405,24 +412,25 @@ onMounted(() => {
   transform: scaleX(1);
 }
 
-/* ---- Skeleton ---- */
+/* ── Skeleton ── */
 .favorites-skeleton {
-  background: #fff;
+  background: var(--frosted-bg);
+  border: 1px solid var(--frosted-border);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--neu-shadow-sm);
 }
 
 .favorites-skeleton-inner {
   padding: 0;
 }
 
-/* ---- Empty ---- */
+/* ── Empty ── */
 .favorites-empty {
   margin: 48px 0;
 }
 
-/* ---- Pagination ---- */
+/* ── Pagination ── */
 .favorites-pagination {
   display: flex;
   justify-content: center;

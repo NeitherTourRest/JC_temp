@@ -73,14 +73,15 @@ onMounted(async () => {
 
 <style scoped>
 .detail-page { max-width: 800px; margin: 0 auto; padding: 20px 0; }
-.center { text-align: center; padding: 80px; color: rgba(0,0,0,0.4); font-family: 'Fredoka One', cursive; }
-.back-btn { background: none; border: none; font-family: 'Fredoka One', cursive; font-size: 14px; cursor: pointer; color: #000; margin-bottom: 16px; }
+.center { text-align: center; padding: 80px; color: var(--text-muted); }
+.back-btn { background: none; border: none; font-family: inherit; font-size: 14px; cursor: pointer; color: var(--text-regular); margin-bottom: 16px; transition: color 0.2s; }
+.back-btn:hover { color: var(--pop-pink); }
 .hero { padding: 24px; margin-bottom: 16px; }
-.hero h1 { font-family: 'Fredoka One', cursive; font-size: 1.8rem; text-transform: uppercase; margin: 0 0 8px; }
-.hero-meta { display: flex; gap: 14px; font-size: 13px; color: rgba(0,0,0,0.5); flex-wrap: wrap; }
+.hero h1 { font-family: inherit; font-size: 1.8rem; margin: 0 0 8px; color: var(--text-primary); }
+.hero-meta { display: flex; gap: 14px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; }
 .actions { display: flex; gap: 8px; margin-bottom: 16px; }
 .gallery { padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.gallery img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #000; }
+.gallery img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--frosted-border); transition: opacity 0.2s; }
 .gallery img:hover { opacity: 0.8; }
 .diary-content { font-size: 15px; line-height: 1.8; white-space: pre-wrap; }
 @media (max-width: 768px) { .hero h1 { font-size: 1.4rem; } }

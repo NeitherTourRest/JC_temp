@@ -582,6 +582,7 @@ onBeforeUnmount(() => { if (map) map.destroy() })
 </script>
 
 <style scoped>
+/* ── Frosted Glass Dark Theme ── */
 .nav-container {
   display: flex;
   height: calc(100vh - 56px);
@@ -596,28 +597,36 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   width: 100%;
   height: 100%;
 }
+
+/* ── 地图提示浮层 ── */
 .map-hint, .mode-hint {
   position: absolute;
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--pixel-cream);
+  background: rgba(42, 40, 40, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 8px 16px;
-  border: 3px solid var(--pixel-black);
-  box-shadow: 3px 3px 0px var(--pixel-black);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 40px;
+  box-shadow: 2px 2px 6px #191919, -2px -2px 6px #514b51;
   z-index: 100;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
-  text-transform: uppercase;
+  color: #e8e8e8;
 }
+
+/* ── 控制面板 ── */
 .control-panel {
   width: 380px;
   padding: 16px;
-  background: var(--pixel-white);
-  border-left: 4px solid var(--pixel-black);
+  background: rgba(42, 40, 40, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -629,8 +638,8 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: var(--pixel-black);
-  border-bottom: 3px solid var(--pixel-black);
+  color: #e8e8e8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: 8px;
 }
 
@@ -640,31 +649,33 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   align-items: center;
   gap: 6px;
   padding: 8px 0;
-  border-bottom: 2px dashed var(--pixel-black);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .point-name {
   flex: 1;
+  min-width: 0;
   font-size: 13px;
-  color: var(--pixel-black);
+  color: #e8e8e8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Courier New', Courier, monospace;
 }
 .point-name.placeholder {
-  color: rgba(26,28,44,0.4);
+  color: #999;
   font-style: normal;
 }
 .point-coord {
   font-size: 11px;
-  color: var(--pixel-green);
-  font-family: 'Courier New', Courier, monospace;
+  color: #3ad29f;
 }
 
 /* ── 途径点列表 ── */
 .waypoints-section {
-  background: var(--pixel-cream);
-  border: 3px solid var(--pixel-black);
+  background: rgba(42, 40, 40, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
   padding: 10px;
 }
 .waypoints-header {
@@ -678,14 +689,14 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--pixel-black);
+  color: #e8e8e8;
 }
 .waypoint-row {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 6px 4px;
-  border-bottom: 2px dashed rgba(26,28,44,0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .waypoint-row:last-child { border-bottom: none; }
 .wp-num { min-width: 22px; text-align: center; }
@@ -693,13 +704,11 @@ onBeforeUnmount(() => { if (map) map.destroy() })
 .waypoints-empty {
   text-align: center;
   padding: 16px;
-  color: rgba(26,28,44,0.4);
+  color: #999;
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
-/* ── 出行方式 ── */
+/* ── 出行方式 + 策略 ── */
 .transport-section { padding: 4px 0; }
 .transport-group { display: flex; gap: 12px; margin-top: 6px; }
 .strategy-group { display: flex; gap: 8px; }
@@ -713,13 +722,28 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  border: 2px dashed rgba(26,28,44,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
   margin-bottom: 4px;
   cursor: pointer;
+  background: rgba(42, 40, 40, 0.25);
+  transition: background 0.2s, border-color 0.2s;
 }
-.poi-result-item:hover { background: var(--pixel-green-bright); }
-.poi-name { flex: 1; font-size: 13px; font-weight: bold; }
-.poi-coord { font-size: 11px; color: var(--pixel-green); }
+.poi-result-item:hover {
+  background: rgba(58, 210, 159, 0.12);
+  border-color: rgba(58, 210, 159, 0.3);
+}
+.poi-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: bold;
+  color: #e8e8e8;
+}
+.poi-coord { font-size: 11px; color: #3ad29f; }
 
 /* ── 规划按钮 ── */
 .plan-btn { margin-top: 4px; width: 100%; }
@@ -730,13 +754,16 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   display: flex;
   gap: 16px;
   padding: 10px;
-  background: var(--pixel-green-dark);
-  border: 3px solid var(--pixel-black);
+  background: rgba(42, 40, 40, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
   margin-bottom: 8px;
 }
 .stat-item { display: flex; flex-direction: column; }
-.stat-label { font-size: 11px; text-transform: uppercase; color: var(--pixel-green-bright); letter-spacing: 1px; }
-.stat-value { font-size: 16px; font-weight: bold; color: var(--pixel-green-bright); }
+.stat-label { font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px; }
+.stat-value { font-size: 16px; font-weight: bold; color: #3ad29f; }
 
 .visit-order { margin: 8px 0; }
 .order-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
@@ -748,12 +775,12 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border-left: 4px solid var(--pixel-green);
-  border-bottom: 2px solid rgba(26,28,44,0.2);
+  border-left: 3px solid #3ad29f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 4px;
 }
 .quick-links { display: flex; gap: 6px; margin-bottom: 12px; }
-.route-summary { font-size: 13px; color: var(--text-body); padding: 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.route-summary { font-size: 13px; color: #c8c8c8; padding: 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── 操作按钮 ── */
 .save-btn { margin-top: 8px; }
@@ -777,48 +804,75 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   align-items: center;
 }
 .indoor-toolbar-spacer { flex: 1; }
+
+/* ── 室内选择按钮（起点/终点） ── */
 .sel-btn {
   padding: 4px 10px;
-  border: 3px solid var(--pixel-black);
-  background: var(--pixel-cream);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(42, 40, 40, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
-  font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 2px 2px 0 var(--pixel-black);
-  transition: none;
-  max-width: 120px;
+  border-radius: 40px;
+  box-shadow: 2px 2px 6px #191919, -2px -2px 6px #514b51;
+  color: #e8e8e8;
+  transition: all 0.2s;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.sel-btn.active { background: var(--pixel-green); color: var(--pixel-green-bright); box-shadow: none; transform: translate(2px,2px); }
+.sel-btn:hover {
+  background: rgba(42, 40, 40, 0.7);
+  border-color: rgba(58, 210, 159, 0.3);
+}
+.sel-btn.active {
+  background: rgba(58, 210, 159, 0.15);
+  color: #3ad29f;
+  border-color: rgba(58, 210, 159, 0.4);
+  box-shadow: none;
+}
+
+/* ── 楼层标签 ── */
 .floor-tab {
   padding: 6px 16px;
-  border: 3px solid var(--pixel-black);
-  background: var(--pixel-cream);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(42, 40, 40, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
-  font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
   font-size: 14px;
   text-transform: uppercase;
-  box-shadow: 2px 2px 0px var(--pixel-black);
-  transition: none;
+  border-radius: 8px;
+  box-shadow: 2px 2px 6px #191919, -2px -2px 6px #514b51;
+  color: #e8e8e8;
+  transition: all 0.2s;
+}
+.floor-tab:hover {
+  background: rgba(42, 40, 40, 0.7);
 }
 .floor-tab.active {
-  background: var(--pixel-black);
-  color: var(--pixel-green-bright);
+  background: rgba(58, 210, 159, 0.15);
+  color: #3ad29f;
+  border-color: rgba(58, 210, 159, 0.4);
   box-shadow: none;
-  transform: translate(2px, 2px);
 }
+
+/* ── 室内平面图区域 ── */
 .indoor-plan-wrap {
   flex: 1;
   position: relative;
   overflow: hidden;
-  border: 4px solid var(--pixel-black);
-  background: var(--pixel-cream);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  background: rgba(26, 26, 26, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .indoor-svg {
   display: block;
@@ -826,40 +880,42 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   height: 100%;
   cursor: pointer;
 }
+
+/* ── 室内路径（SVG） ── */
 .indoor-edge {
-  stroke: var(--pixel-green);
+  stroke: #3ad29f;
   stroke-width: 2;
-  stroke-opacity: 0.6;
+  stroke-opacity: 0.4;
 }
-.indoor-edge.on-path { stroke-opacity: 0.2; }
+.indoor-edge.on-path { stroke-opacity: 0.1; }
 .indoor-route-line {
-  stroke: var(--pixel-red);
+  stroke: #dc3545;
   stroke-width: 4;
   stroke-opacity: 0.85;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .indoor-svg-node { cursor: pointer; }
-.indoor-svg-node:hover .ns-room { fill: var(--pixel-green-light); }
-.indoor-svg-node:hover .ns-stairs { fill: var(--pixel-green-light); }
-.ns-room { fill: var(--pixel-blue); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-lab { fill: var(--pixel-green-light); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-toilet { fill: #909090; stroke: var(--pixel-black); stroke-width: 2; }
-.ns-stairs { fill: var(--pixel-red); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-elevator { fill: var(--pixel-purple); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-entrance { fill: var(--pixel-green); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-lobby { fill: var(--pixel-black); stroke: var(--pixel-black); stroke-width: 2; }
-.ns-office { fill: #1ABC9C; stroke: var(--pixel-black); stroke-width: 2; }
+.indoor-svg-node:hover .ns-room { fill: #6fcf97; }
+.indoor-svg-node:hover .ns-stairs { fill: #6fcf97; }
+.ns-room       { fill: #7cd7ee;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-lab        { fill: #6fcf97;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-toilet     { fill: #909090;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-stairs     { fill: #dc3545;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-elevator   { fill: #a76fd7;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-entrance   { fill: #3ad29f;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-lobby      { fill: #e8e8e8;       stroke: #e8e8e8; stroke-width: 1.5; }
+.ns-office     { fill: #1ABC9C;       stroke: #e8e8e8; stroke-width: 1.5; }
+
 .indoor-node-label {
-  fill: var(--pixel-black);
-  font-family: 'Courier New', Courier, monospace;
+  fill: #e8e8e8;
   font-size: 11px;
   font-weight: bold;
   pointer-events: none;
 }
 .indoor-node-highlight {
   fill: none;
-  stroke: var(--pixel-red);
+  stroke: #dc3545;
   stroke-width: 3;
   stroke-dasharray: 4 3;
   animation: pulse 1s infinite;
@@ -868,14 +924,17 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+/* ── 室内路径信息栏 ── */
 .indoor-path-info {
   padding: 6px 10px;
-  background: var(--pixel-black);
-  color: var(--pixel-green-bright);
-  font-family: 'Courier New', Courier, monospace;
+  background: rgba(42, 40, 40, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #3ad29f;
   font-size: 12px;
   text-align: center;
-  border-top: 3px solid var(--pixel-green);
+  border-top: 1px solid rgba(58, 210, 159, 0.3);
 }
 .indoor-action-bar {
   display: flex;
@@ -883,35 +942,73 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   padding: 6px 0;
   justify-content: flex-end;
 }
+
+/* ── 室内标记点 ── */
 .indoor-marker-start, .indoor-marker-end {
-  font-family: 'Courier New', Courier, monospace;
   font-size: 11px;
   font-weight: bold;
   text-anchor: middle;
   pointer-events: none;
 }
-.indoor-marker-start { fill: var(--pixel-green); }
-.indoor-marker-end { fill: var(--pixel-red); }
+.indoor-marker-start { fill: #3ad29f; }
+.indoor-marker-end   { fill: #dc3545; }
+
+/* ── 室内步骤列表 ── */
 .indoor-step-list {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 8px;
 }
 .indoor-back-btn { width: 100%; }
+
+/* ── 室内节点列表项 ── */
 .indoor-node-item.selected {
-  background: var(--pixel-green-dark) !important;
-  color: var(--pixel-green-bright) !important;
+  background: rgba(58, 210, 159, 0.12) !important;
+  color: #3ad29f !important;
+  border-color: rgba(58, 210, 159, 0.3) !important;
 }
-.indoor-node-item.selected .node-name { color: var(--pixel-green-bright); }
-.indoor-node-item.selected .node-type-tag { background: var(--pixel-green); color: var(--pixel-green-bright); border-color: var(--pixel-green-bright); }
-.indoor-node-item.is-start { background: var(--pixel-green) !important; color: white !important; }
-.indoor-node-item.is-end { background: var(--pixel-red) !important; color: white !important; }
-.indoor-step-list { flex: 1; overflow-y: auto; margin-bottom: 8px; }
-.step-item { display: flex; gap: 10px; padding: 10px 8px; border-bottom: 2px solid rgba(26,28,44,0.15); align-items: flex-start; }
-.step-item.cf { background: #fff8e1; }
-.step-num { width: 24px; height: 24px; background: var(--pixel-green); color: var(--pixel-green-bright); text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; flex-shrink: 0; }
-.step-meta { font-size: 12px; color: rgba(26,28,44,0.5); margin-top: 2px; }
-.cf .step-num { background: var(--pixel-red); color: white; }
+.indoor-node-item.selected .node-name { color: #3ad29f; }
+.indoor-node-item.selected .node-type-tag {
+  background: rgba(58, 210, 159, 0.15);
+  color: #3ad29f;
+  border-color: rgba(58, 210, 159, 0.4);
+}
+.indoor-node-item.is-start {
+  background: rgba(58, 210, 159, 0.18) !important;
+  color: #3ad29f !important;
+  border-color: rgba(58, 210, 159, 0.5) !important;
+}
+.indoor-node-item.is-end {
+  background: rgba(220, 53, 69, 0.18) !important;
+  color: #dc3545 !important;
+  border-color: rgba(220, 53, 69, 0.5) !important;
+}
+
+/* ── 导航步骤 ── */
+.step-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  align-items: flex-start;
+}
+.step-item.cf { background: rgba(255, 248, 225, 0.05); }
+.step-num {
+  width: 24px;
+  height: 24px;
+  background: rgba(58, 210, 159, 0.15);
+  color: #3ad29f;
+  text-align: center;
+  line-height: 24px;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+.step-meta { font-size: 12px; color: #999; margin-top: 2px; }
+.cf .step-num { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+
+/* ── 室内右侧面板 ── */
 .indoor-right {
   width: 300px;
   flex-shrink: 0;
@@ -919,17 +1016,23 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   flex-direction: column;
   overflow: hidden;
 }
-.indoor-right h4 { margin: 0 0 4px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
-.indoor-hint { font-size: 12px; color: rgba(26,28,44,0.5); margin: 0 0 8px; font-family: 'Courier New', Courier, monospace; }
+.indoor-right h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #e8e8e8;
+}
+.indoor-hint { font-size: 12px; color: #999; margin: 0 0 8px; }
 .indoor-node-list { flex: 1; overflow-y: auto; }
 .indoor-floor-group { margin-bottom: 12px; }
 .floor-group-title {
   font-weight: bold;
   font-size: 14px;
   text-transform: uppercase;
-  color: var(--pixel-black);
+  color: #e8e8e8;
   padding: 4px 0;
-  border-bottom: 3px solid var(--pixel-black);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 4px;
 }
 .indoor-node-item {
@@ -938,13 +1041,31 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   gap: 6px;
   padding: 6px 8px;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 .indoor-node-item:hover {
-  background: var(--pixel-green-bright);
-  border-color: var(--pixel-black);
+  background: rgba(58, 210, 159, 0.08);
+  border-color: rgba(58, 210, 159, 0.25);
 }
 .node-icon { font-size: 14px; }
-.node-name { flex: 1; font-size: 13px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
-.node-type-tag { font-size: 10px; color: var(--pixel-green-dark); background: var(--pixel-cream); border: 2px solid var(--pixel-black); padding: 0 6px; font-family: 'Courier New', Courier, monospace; }
+.node-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: bold;
+  color: #e8e8e8;
+}
+.node-type-tag {
+  font-size: 10px;
+  color: #3ad29f;
+  background: rgba(42, 40, 40, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0 6px;
+}
 </style>

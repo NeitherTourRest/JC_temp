@@ -101,20 +101,22 @@ onMounted(fetch)
 .search-icon { color: var(--text-muted); }
 .cats { display: flex; gap: 6px; flex-wrap: wrap; }
 .cat-btn {
-  padding: 4px 12px;
-  background: #fff;
-  border: 2px solid #000;
-  color: var(--text-body);
-  border-radius: 8px;
+  padding: 4px 14px;
+  background: var(--frosted-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--frosted-border);
+  color: var(--text-regular);
+  border-radius: var(--radius-pill);
   font-size: 12px;
   cursor: pointer;
-  font-family: 'Lucida Console', monospace;
+  font-family: inherit;
   font-weight: 500;
-  transition: transform 0.12s, box-shadow 0.12s;
-  box-shadow: 2px 2px 0 #000;
+  transition: all 0.2s ease;
+  box-shadow: var(--neu-shadow-sm);
 }
-.cat-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #000; }
-.cat-btn.active { background: var(--pop-pink); color: #fff; border-color: #000; }
+.cat-btn:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); color: var(--text-primary); }
+.cat-btn.active { background: rgba(124,215,238,0.25); color: #fff; border-color: rgba(124,215,238,0.4); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .card { overflow: hidden; }
 .card-top { height: 60px; padding: 6px; display: flex; justify-content: flex-end; align-items: flex-start; }

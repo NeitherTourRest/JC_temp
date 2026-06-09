@@ -53,14 +53,18 @@
           <div v-if="!featuredSpots.length" class="empty-inline">
             <span>No spots available yet.</span>
           </div>
-          <div v-else class="h-scroll">
-            <div v-for="s in featuredSpots" :key="s.id" class="h-card glass-sm" @click="$router.push('/spots/' + s.id)">
-              <div class="h-card-img" :style="{ background: colors[s.id % colors.length] }">
-                <span class="h-badge">{{ s.category }}</span>
+          <div v-else class="home-container">
+            <div v-for="s in featuredSpots" :key="s.id" class="hao-card" @click="$router.push('/spots/' + s.id)">
+              <div class="card-img" :style="{ background: gradientFor(s.id) }">
+                <span class="card-cat-tag">{{ s.category }}</span>
               </div>
-              <div class="h-card-body">
+              <div class="card-overlay">
                 <h4>{{ s.name }}</h4>
-                <span class="h-rating">⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
+                <p>{{ s.description?.substring(0, 60) || '' }}</p>
+              </div>
+              <div class="card-bottom-bar">
+                <div>⭐ {{ s.avgRating?.toFixed(1) || '—' }}</div>
+                <div>{{ s.category }}</div>
               </div>
             </div>
           </div>
@@ -116,6 +120,10 @@ const statItems = computed(() => [
 ])
 
 const colors = ['#4fc3f7', '#81c784', '#ffb74d', '#e57373', '#ba68c8', '#4db6ac']
+function gradientFor(id: number): string {
+  const c = colors[id % colors.length]
+  return `linear-gradient(135deg, ${c}, ${c}88)`
+}
 const categories = [
   { name: '景点', path: '/spots', icon: '🏞️', color: '#e3f2fd' },
   { name: '美食', path: '/foods', icon: '🍜', color: '#fff3e0' },
@@ -163,21 +171,24 @@ onMounted(loadAll)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--pop-yellow), var(--pop-pink), var(--pop-blue));
+  background: var(--frosted-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--neu-shadow);
   margin-bottom: 20px;
   cursor: default;
 }
-.hero:hover { transform: none; box-shadow: 6px 6px 0 #000; }
 .hero-content { text-align: center; padding: 40px 20px; }
 .hero-content h1 {
   font-size: 2.2rem;
   font-weight: 800;
   margin: 0 0 6px;
-  color: #000;
-  text-shadow: 2px 2px 0 rgba(255,255,255,0.3);
+  color: var(--text-primary);
   letter-spacing: 1px;
 }
-.hero-content p { color: #000; opacity: 0.7; margin-bottom: 20px; font-size: 15px; }
+.hero-content p { color: var(--text-secondary); margin-bottom: 20px; font-size: 15px; }
 .hero-search { max-width: 480px; margin: 0 auto; }
 
 /* ── Stats ── */
@@ -212,26 +223,45 @@ onMounted(loadAll)
   justify-content: center;
   border-radius: 50%;
   margin: 0 auto 8px;
-  border: 2px solid #000;
+  border: 1px solid var(--frosted-border);
+  box-shadow: var(--neu-shadow-sm);
 }
 .cat-card span { font-size: 13px; font-weight: 600; color: var(--text-heading); }
 
-/* ── Horizontal scroll cards ── */
-.h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
-.h-card { min-width: 180px; overflow: hidden; flex-shrink: 0; }
-.h-card-img { height: 90px; padding: 6px; display: flex; justify-content: flex-end; align-items: flex-start; }
-.h-badge {
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  padding: 2px 10px;
-  border-radius: 6px;
+/* ── hao-card scoped overrides ── */
+.card-cat-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #e8e8e8;
+  padding: 2px 12px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  z-index: 2;
+  border: 1px solid rgba(255,255,255,0.08);
 }
-.h-card-body { padding: 10px 14px; }
-.h-card-body h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--text-heading); }
-.h-rating { font-size: 12px; color: var(--text-muted); }
+.hao-card .card-overlay h4 {
+  color: #e8e8e8;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+}
+.hao-card .card-overlay p {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+  text-align: center;
+  line-height: 1.4;
+}
+.hao-card .card-bottom-bar > div {
+  font-size: 85%;
+}
 
 /* ── Diary list ── */
 .diary-list { display: flex; flex-direction: column; gap: 12px; }
@@ -245,9 +275,9 @@ onMounted(loadAll)
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  background: #f0f0f0;
+  background: rgba(255,255,255,0.04);
   flex-shrink: 0;
-  border-right: 2px solid #000;
+  border-right: 1px solid var(--frosted-border);
 }
 .diary-body { padding: 14px 16px; flex: 1; min-width: 0; }
 .diary-body h4 { margin: 0 0 6px; font-size: 1rem; font-weight: 600; color: var(--text-heading); }
@@ -263,9 +293,8 @@ onMounted(loadAll)
   .hero-content h1 { font-size: 1.4rem; }
   .hero-content p { font-size: 13px; }
   .diary-card { flex-direction: column; }
-  .diary-img, .diary-img-placeholder { width: 100%; height: 140px; border-right: none; border-bottom: 2px solid #000; }
+  .diary-img, .diary-img-placeholder { width: 100%; height: 140px; border-right: none; border-bottom: 1px solid var(--frosted-border); }
   .stats-bar { gap: 8px; }
   .stat-item { padding: 14px 20px; min-width: 90px; }
-  .h-card { min-width: 150px; }
 }
 </style>

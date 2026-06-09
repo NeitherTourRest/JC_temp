@@ -1,0 +1,46 @@
+- main [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "网页icon - 哲风壁纸" [ref=e8]
+        - generic [ref=e9]: 哲风壁纸
+      - generic [ref=e13]:
+        - link "壁纸社区" [ref=e16]:
+          - /url: /wallpaperForum
+          - img [ref=e18]
+        - link "电脑壁纸" [ref=e23]:
+          - /url: /homeView
+          - img [ref=e25]
+        - link "手机壁纸" [ref=e30]:
+          - /url: /mobileView
+          - img [ref=e32]
+        - link "头像制作" [ref=e36]:
+          - /url: /headImgView
+          - img [ref=e38]
+        - link "哲风桌面壁纸软件-Hao Wallpaper" [ref=e43]:
+          - /url: /softwareDetails
+          - img [ref=e45]
+        - generic [ref=e47]:
+          - img [ref=e51]
+          - generic "活动中心 - 参与活动获得下载次数等奖励" [ref=e52]:
+            - img [ref=e53]
+      - generic [ref=e55]:
+        - text: 登入
+        - img "用户头像" [ref=e56]
+    - generic [ref=e59]:
+      - generic [ref=e60]: 「友站」 - >
+      - link "MacWk「精品Mac软件下载」" [ref=e64] [cursor=pointer]:
+        - /url: https://macwk.com/
+    - generic [ref=e65]:
+      - generic [ref=e68]: Copyright©2023-2026 西安哲风网络科技工作室
+      - link "陕ICP备2024022269号-1" [ref=e71] [cursor=pointer]:
+        - /url: https://beian.miit.gov.cn/
+      - link "陕公网安备61011202001080号" [ref=e74] [cursor=pointer]:
+        - /url: https://beian.mps.gov.cn/#/query/webSearch?code=61011202001080
+      - generic [ref=e77]: 在线客服：哲风壁纸（微信公众号）
+      - generic [ref=e80]: 联系官方：zfwallpaper
+      - generic [ref=e81]:
+        - link "用户协议" [ref=e82]:
+          - /url: /commentView
+        - link "隐私政策" [ref=e83]:
+          - /url: /privacyView

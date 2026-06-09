@@ -15,6 +15,10 @@ const statItems = computed(() => [
     { value: '10+', label: '用户' },
 ]);
 const colors = ['#4fc3f7', '#81c784', '#ffb74d', '#e57373', '#ba68c8', '#4db6ac'];
+function gradientFor(id) {
+    const c = colors[id % colors.length];
+    return `linear-gradient(135deg, ${c}, ${c}88)`;
+}
 const categories = [
     { name: '景点', path: '/spots', icon: '🏞️', color: '#e3f2fd' },
     { name: '美食', path: '/foods', icon: '🍜', color: '#fff3e0' },
@@ -57,12 +61,13 @@ debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
 let __VLS_directives;
-/** @type {__VLS_StyleScopedClasses['hero']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['section-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['cat-card']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-card-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-img']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
@@ -74,7 +79,6 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['diary-img-placeholder']} */ ;
 /** @type {__VLS_StyleScopedClasses['stats-bar']} */ ;
 /** @type {__VLS_StyleScopedClasses['stat-item']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-card']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
 /** @type {[typeof DefaultLayout, typeof DefaultLayout, ]} */ ;
@@ -269,7 +273,7 @@ else {
     }
     else {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "h-scroll" },
+            ...{ class: "home-container" },
         });
         for (const [s] of __VLS_getVForSourceType((__VLS_ctx.featuredSpots))) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -283,25 +287,30 @@ else {
                         __VLS_ctx.$router.push('/spots/' + s.id);
                     } },
                 key: (s.id),
-                ...{ class: "h-card glass-sm" },
+                ...{ class: "hao-card" },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                ...{ class: "h-card-img" },
-                ...{ style: ({ background: __VLS_ctx.colors[s.id % __VLS_ctx.colors.length] }) },
+                ...{ class: "card-img" },
+                ...{ style: ({ background: __VLS_ctx.gradientFor(s.id) }) },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "h-badge" },
+                ...{ class: "card-cat-tag" },
             });
             (s.category);
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-                ...{ class: "h-card-body" },
+                ...{ class: "card-overlay" },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.h4, __VLS_intrinsicElements.h4)({});
             (s.name);
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-                ...{ class: "h-rating" },
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+            (s.description?.substring(0, 60) || '');
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "card-bottom-bar" },
             });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
             (s.avgRating?.toFixed(1) || '—');
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
+            (s.category);
         }
     }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
@@ -417,13 +426,12 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['section']} */ ;
 /** @type {__VLS_StyleScopedClasses['section-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty-inline']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-scroll']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-card']} */ ;
-/** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-card-img']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-badge']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-card-body']} */ ;
-/** @type {__VLS_StyleScopedClasses['h-rating']} */ ;
+/** @type {__VLS_StyleScopedClasses['home-container']} */ ;
+/** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-img']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cat-tag']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-bottom-bar']} */ ;
 /** @type {__VLS_StyleScopedClasses['section']} */ ;
 /** @type {__VLS_StyleScopedClasses['section-header']} */ ;
 /** @type {__VLS_StyleScopedClasses['empty-inline']} */ ;
@@ -445,7 +453,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             pageLoading: pageLoading,
             pageError: pageError,
             statItems: statItems,
-            colors: colors,
+            gradientFor: gradientFor,
             categories: categories,
             handleSearch: handleSearch,
             loadAll: loadAll,
