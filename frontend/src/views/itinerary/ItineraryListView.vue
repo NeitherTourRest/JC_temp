@@ -24,20 +24,20 @@
       <!-- ── Loading State ─────────────────────────────── -->
       <div v-if="loading" class="loading-state">
         <div class="loading-spinner"></div>
-        <p>Loading your trips...</p>
+        <p>正在加载行程...</p>
       </div>
 
       <!-- ── Empty State ───────────────────────────────── -->
       <div v-else-if="!itineraries.length" class="empty-state">
         <div class="empty-icon">📋</div>
-        <h3>No trips yet</h3>
-        <p>Create your first travel itinerary and start exploring</p>
+        <h3>还没有行程</h3>
+        <p>创建你的第一个旅行计划，开始探索昌平</p>
         <el-button type="primary" size="large" @click="openCreateDialog">
           Create Your First Trip
         </el-button>
       </div>
 
-      <!-- ── Trip Cards Grid ───────────────────────────── -->
+      <!-- 行程卡片列表 -->
       <div v-else class="trips-grid">
         <div
           v-for="item in itineraries"
@@ -50,20 +50,20 @@
             :style="{ background: tripColors[item.id % tripColors.length] }"
           >
             <el-popconfirm
-              title="Delete this trip?"
-              confirm-button-text="Delete"
-              cancel-button-text="Cancel"
+              title="确定删除此行程？"
+              confirm-button-text="删除"
+              cancel-button-text="取消"
               @confirm="handleDelete(item.id)"
             >
               <template #reference>
-                <button class="trip-delete-btn" @click.stop title="Delete trip">✕</button>
+                <button class="trip-delete-btn" @click.stop title="删除行程">✕</button>
               </template>
             </el-popconfirm>
           </div>
           <div class="trip-body">
             <h3 class="trip-name">{{ item.name }}</h3>
             <div class="trip-stats">
-              <span class="stat">📍 {{ getSpotCount(item.spotIds) }} spots</span>
+              <span class="stat">📍 {{ getSpotCount(item.spotIds) }}个景点</span>
               <span class="stat">📏 {{ formatDistance(item.totalDistance) }}</span>
               <span class="stat">⏱ {{ formatTime(item.totalTime) }}</span>
             </div>
@@ -233,7 +233,7 @@
       <!-- ── Floating AI Buttons ────────────────────────── -->
       <div class="ai-float-group">
         <button class="ai-float-btn" title="AI Plan" @click="openAiPlanDialog">📋 Plan</button>
-        <button class="ai-float-btn" title="Budget" @click="openBudgetDialog">💰 Budget</button>
+        <button class="ai-float-btn" title="预算" @click="openBudgetDialog">💰 预算</button>
         <button class="ai-float-btn" title="AI Assistant" @click="openAiDialog">🤖 Chat</button>
       </div>
 
@@ -335,6 +335,9 @@
             <strong>{{ day.date }} · {{ day.theme }}</strong>
             <div v-for="act in day.schedule" :key="act.time" class="activity">
               <span class="act-time">{{ act.time }}</span>
+              <span class="act-match-icon" v-if="act.matchedType === 'spot'">📍</span>
+              <span class="act-match-icon" v-else-if="act.matchedType === 'food'">🍽️</span>
+              <span class="act-match-icon" v-else>❓</span>
               <span>{{ act.activity }}</span>
               <span class="act-loc">{{ act.location }}</span>
             </div>
@@ -360,7 +363,7 @@
               <el-form-item label="People"><el-input-number v-model="budgetForm.peopleCount" :min="1" :max="20" style="width:100%" /></el-form-item>
             </el-col>
           </el-row>
-          <el-form-item label="Spots to Visit"><el-input v-model="budgetForm.spots" placeholder="e.g. 十三陵,居庸关" /></el-form-item>
+          <el-form-item label="游览景点"><el-input v-model="budgetForm.spots" placeholder="例如：十三陵、居庸关" /></el-form-item>
           <el-row :gutter="16">
             <el-col :span="8">
               <el-form-item label="Transport"><el-select v-model="budgetForm.transport" style="width:100%">
@@ -468,7 +471,7 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { itineraryApi, type ItineraryResponse } from '@/api/itineraryApi'
-import type { TimeSlot, TimelineDay, TimelinePlan, RouteRequest } from '@/types/api'
+import type { TimeSlot, TimelineDay, TimelinePlan, RouteRequest, PlanDaySchedule, PlanActivityItem } from '@/types/api'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { spotApi } from '@/api/spotApi'
@@ -580,7 +583,7 @@ async function fetchItineraries() {
       total.value = body.data.totalElements
     }
   } catch (e) {
-    ElMessage.error('Failed to load trips')
+    ElMessage.error('加载行程失败')
     console.error(e)
   } finally {
     loading.value = false
@@ -603,11 +606,11 @@ async function handleCreate() {
   submitting.value = true
   try {
     await itineraryApi.create({ name: createForm.name })
-    ElMessage.success('Trip created!')
+    ElMessage.success('行程已创建！')
     createDialogVisible.value = false
     await fetchItineraries()
   } catch (e) {
-    ElMessage.error('Failed to create trip')
+    ElMessage.error('创建行程失败')
     console.error(e)
   } finally {
     submitting.value = false
@@ -620,10 +623,10 @@ async function handleCreate() {
 async function handleDelete(id: number) {
   try {
     await itineraryApi.del(id)
-    ElMessage.success('Trip deleted')
+    ElMessage.success('行程已删除')
     await fetchItineraries()
   } catch (e) {
-    ElMessage.error('Failed to delete trip')
+    ElMessage.error('删除行程失败')
     console.error(e)
   }
 }
@@ -1029,7 +1032,7 @@ async function sendAiMessage() {
       })
     }
   } catch {
-    aiMessages.value.push({ role: 'assistant', content: '⚠️ Failed to get AI response.', time: '' })
+    aiMessages.value.push({ role: 'assistant', content: '⚠️ 获取AI回复失败', time: '' })
   } finally {
     aiLoading.value = false
     scrollAiDown()
@@ -1076,7 +1079,7 @@ async function generatePlan() {
     const res = await aiApi.plan(planForm.value)
     planResult.value = res.data.data
   } catch {
-    planResult.value = { title: 'Request failed', days: [], tips: ['Check AI config'], estimatedCost: '' }
+    planResult.value = { title: '请求失败', days: [], tips: ['请检查AI配置'], estimatedCost: '' }
   } finally { planLoading.value = false }
 }
 async function estimateBudget() {
@@ -1091,26 +1094,50 @@ async function estimateBudget() {
 }
 function applyPlanResult() {
   if (!planResult.value || !planResult.value.days) return
-  // Build tripPlan days from plan result
-  tripPlan.days = planResult.value.days.map((day: any, di: number) => ({
+  // Build tripPlan days from plan result with spot/food matching
+  tripPlan.days = planResult.value.days.map((day: PlanDaySchedule, di: number) => ({
     dayIndex: di + 1,
     date: day.date || `Day ${di + 1}`,
-    slots: (day.schedule || []).map((a: any) => {
+    slots: (day.schedule || []).map((a: PlanActivityItem) => {
       const st = a.time || '09:00'
       const [sh, sm] = st.split(':').map(Number)
       const endH = Math.min(sh + 1, 23)
-      return {
+      const base: TimeSlot = {
         id: nextItemId(),
         startTime: st,
         endTime: `${String(endH).padStart(2,'0')}:${String(sm).padStart(2,'0')}`,
         name: a.activity || '',
         text: a.activity || '',
-        type: 'text' as const,
+        type: 'text',
       }
+      if (a.matchedType === 'spot' && a.matchedLat != null && a.matchedLng != null) {
+        base.type = 'spot'
+        base.spotId = a.matchedSpotId
+        base.spotName = a.matchedName || a.activity
+        base.lat = a.matchedLat
+        base.lng = a.matchedLng
+      } else if (a.matchedType === 'food' && a.matchedLat != null && a.matchedLng != null) {
+        base.type = 'food'
+        base.foodId = a.matchedFoodId
+        base.foodName = a.matchedName || a.activity
+        base.lat = a.matchedLat
+        base.lng = a.matchedLng
+      }
+      return base
     }),
   }))
-  ElMessage.success('Plan applied to trip')
+  ElMessage.success('已应用AI规划至行程 — 已关联 ' + countMatched(planResult.value.days) + ' 个地点')
   aiPlanDialogVisible.value = false
+}
+
+function countMatched(days: PlanDaySchedule[]): number {
+  let n = 0
+  for (const d of days) {
+    for (const a of (d.schedule || [])) {
+      if (a.matchedType === 'spot' || a.matchedType === 'food') n++
+    }
+  }
+  return n
 }
 
 /* ───────────────────────────────────────────────────────
@@ -1164,7 +1191,7 @@ async function routeDayPlan() {
 
     ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(totalDistance)} · ${formatTime(estimatedMinutes)}`)
   } catch (e) {
-    ElMessage.error('Route planning failed')
+    ElMessage.error('路线规划失败')
     console.error(e)
   } finally { routeLoading.value = false }
 }
@@ -1204,7 +1231,7 @@ async function handleSave() {
     })
     ElMessage.success('Trip saved!')
   } catch (e) {
-    ElMessage.error('Failed to save trip')
+    ElMessage.error('保存行程失败')
     console.error(e)
   }
 }
@@ -1990,6 +2017,13 @@ onMounted(fetchItineraries)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.act-match-icon {
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
 }
 .act-loc {
   color: var(--text-secondary);

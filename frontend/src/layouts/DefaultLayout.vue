@@ -25,7 +25,7 @@
       <div class="main-top-right">
         <div class="top-search-box">
           <span class="search-icon">🔍</span>
-          <input v-model="q" placeholder="Search spots..." @keyup.enter="doSearch" />
+          <input v-model="q" placeholder="搜索景点、美食..." @keyup.enter="doSearch" />
         </div>
 
         <!-- Profile -->
@@ -33,7 +33,7 @@
           <div class="top-avatar" :style="avatarStyle">{{ avatarLetter }}</div>
           <span class="top-username">{{ nickname }}</span>
         </div>
-        <button v-else class="top-login-btn" @click="$router.push('/login')">Login</button>
+        <button v-else class="top-login-btn" @click="$router.push('/login')">登录</button>
       </div>
     </header>
 
@@ -68,7 +68,7 @@ const isLoggedIn = computed(() => authStore.isAuthenticated)
 const nickname = computed(() => {
   if (authStore.user?.nickname) return authStore.user.nickname
   if (authStore.user?.username) return authStore.user.username
-  return localStorage.getItem('nickname') || 'User'
+  return localStorage.getItem('nickname') || '用户'
 })
 const avatarUrl = computed(() => {
   if (authStore.user?.avatar) return authStore.user.avatar
@@ -83,11 +83,11 @@ const avatarStyle = computed(() => avatarUrl.value ? {
 } : {})
 
 const navItems = [
-  { path: '/spots', icon: '🏞️', label: 'Spots' },
-  { path: '/foods', icon: '🍜', label: 'Food' },
-  { path: '/diaries', icon: '📓', label: 'Diaries' },
-  { path: '/navigation', icon: '🗺️', label: 'Map' },
-  { path: '/itineraries', icon: '📋', label: 'Trips' },
+  { path: '/spots', icon: '🏞️', label: '景点' },
+  { path: '/foods', icon: '🍜', label: '美食' },
+  { path: '/diaries', icon: '📓', label: '游记' },
+  { path: '/navigation', icon: '🗺️', label: '地图' },
+  { path: '/itineraries', icon: '📋', label: '行程' },
   { path: '/ai/chat', icon: '🤖', label: 'AI' },
 ]
 
@@ -98,16 +98,16 @@ function doSearch() {
 }
 
 const pageTitle = computed(() => ({
-  '/': 'Dashboard', '/spots': 'Spots', '/foods': 'Food',
-  '/diaries': 'Diaries', '/navigation': 'Map', '/ai/chat': 'AI Chat',
-  '/itineraries': 'Trips', '/profile': 'Profile'
+  '/': '首页', '/spots': '景点', '/foods': '美食',
+  '/diaries': '游记', '/navigation': '地图', '/ai/chat': 'AI 助手',
+  '/itineraries': '行程规划', '/profile': '个人中心'
 }[route.path] || 'JourneyCraft'))
 
 const pageDesc = computed(() => ({
-  '/': 'Explore Changping', '/spots': 'Discover amazing places',
-  '/foods': 'Find delicious food', '/diaries': 'Travel stories',
-  '/navigation': 'Plan your route', '/ai/chat': 'Ask me anything',
-  '/itineraries': 'Plan your journey', '/profile': 'Your account'
+  '/': '探索昌平，发现精彩', '/spots': '发现周边的精彩景点',
+  '/foods': '寻找美味的食物', '/diaries': '旅行故事',
+  '/navigation': '规划你的路线', '/ai/chat': '问我任何旅行问题',
+  '/itineraries': '规划你的旅程', '/profile': '你的账号信息'
 }[route.path] || ''))
 
 /* ── Tab slider — measures actual button positions for precision ── */

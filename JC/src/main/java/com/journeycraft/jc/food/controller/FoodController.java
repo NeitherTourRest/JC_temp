@@ -82,4 +82,10 @@ public class FoodController {
             @PathVariable Long id, @RequestParam int rating) {
         return ResponseEntity.ok(ApiResponse.success(foodService.rateFood(id, rating)));
     }
+
+    @PostMapping("/foods/{id}/congestion")
+    public ResponseEntity<ApiResponse<FoodResponse>> reportCongestion(
+            @PathVariable Long id, @RequestParam String level) {
+        return ResponseEntity.ok(ApiResponse.success(foodService.reportCongestion(id, level)));
+    }
 }

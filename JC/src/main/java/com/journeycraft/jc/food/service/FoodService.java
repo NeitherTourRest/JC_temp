@@ -3,17 +3,25 @@ package com.journeycraft.jc.food.service;
 import com.journeycraft.jc.common.dto.PageResponse;
 import com.journeycraft.jc.common.exception.BadRequestException;
 import com.journeycraft.jc.common.exception.ResourceNotFoundException;
+import com.journeycraft.jc.common.service.CongestionService;
 import com.journeycraft.jc.food.dto.FoodResponse;
 import com.journeycraft.jc.food.dto.FoodSearchRequest;
+import com.journeycraft.jc.food.entity.Food;
+import com.journeycraft.jc.food.entity.FoodReview;
 import com.journeycraft.jc.food.repository.FoodRepository;
+import com.journeycraft.jc.food.repository.FoodReviewRepository;
 import com.journeycraft.jc.navigation.algorithm.DijkstraAlgorithm;
 import com.journeycraft.jc.navigation.algorithm.FuzzyMatcher;
 import com.journeycraft.jc.navigation.graph.Graph;
 import com.journeycraft.jc.spot.repository.SpotRepository;
+import com.journeycraft.jc.user.entity.User;
+import com.journeycraft.jc.user.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class FoodService {
 
     private final FoodRepository foodRepository;
+    private final FoodReviewRepository foodReviewRepository;
+    private final UserRepository userRepository;
+    private final CongestionService congestionService;
     private final com.journeycraft.jc.navigation.graph.Graph navigationGraph;
     private final SpotRepository spotRepository;
 
@@ -115,14 +126,26 @@ public class FoodService {
         food.setPopularity(food.getPopularity() + 1);
         foodRepository.save(food);
 
-        // Look up congestion from parent spot
-        String congestion = null;
-        if (food.getSpotId() != null) {
-            congestion = spotRepository.findById(food.getSpotId())
-                    .map(s -> s.getCongestionLevel())
-                    .orElse(null);
-        }
+        // Update congestion from current votes
+        String congestion = congestionService.computeLevel("FOOD", id);
         return FoodResponse.withCongestion(food, congestion);
+    }
+
+    @Transactional
+    public FoodResponse reportCongestion(Long id, String level) {
+        var validLevels = Set.of("OVERFLOWING", "CROWDED", "MODERATE", "SPARSE", "EMPTY");
+        if (!validLevels.contains(level)) {
+            throw new BadRequestException("Invalid congestion level: " + level);
+        }
+        var food = foodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Food", id));
+        var user = getCurrentUser();
+
+        String newLevel = congestionService.report("FOOD", id, user.getId(), level);
+        food.setCongestionLevel(newLevel);
+        foodRepository.save(food);
+
+        return getFoodById(id);
     }
 
     @Transactional
@@ -133,14 +156,37 @@ public class FoodService {
         var food = foodRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Food", id));
 
-        int prevCount = food.getRatingCount() != null ? food.getRatingCount() : 0;
-        double prevAvg = food.getAvgRating() != null ? food.getAvgRating().doubleValue() : 0.0;
-        double newAvg = ((prevAvg * prevCount) + rating) / (prevCount + 1);
-        food.setAvgRating(java.math.BigDecimal.valueOf(Math.round(newAvg * 100.0) / 100.0));
-        food.setRatingCount(prevCount + 1);
+        var user = getCurrentUser();
+
+        // Upsert: update existing review or create new one
+        var existing = foodReviewRepository.findByFoodIdAndUserId(id, user.getId());
+        boolean isNew = existing.isEmpty();
+        if (existing.isPresent()) {
+            existing.get().setRating(rating);
+            foodReviewRepository.save(existing.get());
+        } else {
+            FoodReview review = FoodReview.builder()
+                    .foodId(id).userId(user.getId()).rating(rating).build();
+            foodReviewRepository.save(review);
+        }
+
+        // Recalculate average rating from all reviews
+        var allReviews = foodReviewRepository.findByFoodId(id);
+        double avg = allReviews.stream()
+                .mapToInt(FoodReview::getRating)
+                .average().orElse(0.0);
+        food.setAvgRating(java.math.BigDecimal.valueOf(Math.round(avg * 100.0) / 100.0));
+        if (isNew) {
+            food.setRatingCount(food.getRatingCount() != null ? food.getRatingCount() + 1 : 1);
+        }
         foodRepository.save(food);
 
-        // Reload with congestion
         return getFoodById(id);
+    }
+
+    private User getCurrentUser() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }

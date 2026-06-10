@@ -400,7 +400,7 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "editor-header" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
-(__VLS_ctx.isEditMode ? '编辑日记' : '新建日记');
+(__VLS_ctx.isEditMode ? '编辑游记' : '写游记');
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "header-actions" },
 });
@@ -1141,7 +1141,7 @@ const __VLS_193 = {
     onClick: (__VLS_ctx.handleSave)
 };
 __VLS_189.slots.default;
-(__VLS_ctx.isEditMode ? '保存修改' : '发布日记');
+(__VLS_ctx.isEditMode ? '保存' : '发布日记');
 var __VLS_189;
 const __VLS_194 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;

@@ -3,6 +3,7 @@ package com.journeycraft.jc.spot.service;
 import com.journeycraft.jc.common.dto.PageResponse;
 import com.journeycraft.jc.common.exception.BadRequestException;
 import com.journeycraft.jc.common.exception.ResourceNotFoundException;
+import com.journeycraft.jc.common.service.CongestionService;
 import com.journeycraft.jc.facility.dto.FacilityResponse;
 import com.journeycraft.jc.facility.repository.FacilityRepository;
 import com.journeycraft.jc.food.dto.FoodResponse;
@@ -10,10 +11,9 @@ import com.journeycraft.jc.food.entity.Food;
 import com.journeycraft.jc.food.repository.FoodRepository;
 import com.journeycraft.jc.navigation.algorithm.TopKSorter;
 import com.journeycraft.jc.spot.dto.*;
-import com.journeycraft.jc.spot.entity.CongestionReport;
 import com.journeycraft.jc.spot.entity.Spot;
 import com.journeycraft.jc.spot.entity.SpotReview;
-import com.journeycraft.jc.spot.repository.CongestionReportRepository;
+
 import com.journeycraft.jc.spot.repository.SpotRepository;
 import com.journeycraft.jc.spot.repository.SpotReviewRepository;
 import com.journeycraft.jc.user.entity.User;
@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +38,7 @@ public class SpotService {
     private final SpotReviewRepository spotReviewRepository;
     private final FoodRepository foodRepository;
     private final FacilityRepository facilityRepository;
-    private final CongestionReportRepository congestionReportRepository;
+    private final CongestionService congestionService;
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
 
@@ -174,59 +173,15 @@ public class SpotService {
     public SpotDetailResponse reportCongestion(Long id, String level) {
         var validLevels = Set.of("OVERFLOWING", "CROWDED", "MODERATE", "SPARSE", "EMPTY");
         if (!validLevels.contains(level)) {
-            throw new BadRequestException("Invalid congestion level: " + level +
-                    ". Valid: OVERFLOWING, CROWDED, MODERATE, SPARSE, EMPTY");
+            throw new BadRequestException("Invalid congestion level: " + level);
         }
         var spot = spotRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Spot", id));
-
         var user = getCurrentUser();
 
-        // Save report
-        var report = CongestionReport.builder()
-                .spotId(id).userId(user.getId()).level(level).build();
-        congestionReportRepository.save(report);
-
-        // Compute weighted congestion score from recent reports
-        var now = LocalDateTime.now();
-        var recentReports = congestionReportRepository
-                .findBySpotIdAndCreatedAtAfterOrderByCreatedAtDesc(id, now.minusHours(2));
-
-        double totalWeight = 0;
-        double weightedSum = 0;
-
-        for (var r : recentReports) {
-            double minutesAgo = java.time.Duration.between(r.getCreatedAt(), now).toMinutes();
-            double weight;
-            if (minutesAgo <= 30) weight = 1.0;
-            else if (minutesAgo <= 60) weight = 0.5;
-            else weight = 0.2;
-
-            double numericLevel = switch (r.getLevel()) {
-                case "OVERFLOWING" -> 5.0;
-                case "CROWDED" -> 4.0;
-                case "MODERATE" -> 3.0;
-                case "SPARSE" -> 2.0;
-                default -> 1.0; // EMPTY
-            };
-
-            weightedSum += numericLevel * weight;
-            totalWeight += weight;
-        }
-
-        // Map weighted average back to congestion level
-        if (totalWeight > 0) {
-            double avg = weightedSum / totalWeight;
-            String finalLevel;
-            if (avg >= 4.5) finalLevel = "OVERFLOWING";
-            else if (avg >= 3.5) finalLevel = "CROWDED";
-            else if (avg >= 2.5) finalLevel = "MODERATE";
-            else if (avg >= 1.5) finalLevel = "SPARSE";
-            else finalLevel = "EMPTY";
-            spot.setCongestionLevel(finalLevel);
-        } else {
-            spot.setCongestionLevel(level);
-        }
+        // Atomic upsert: each user has exactly one vote
+        String newLevel = congestionService.report("SPOT", id, user.getId(), level);
+        spot.setCongestionLevel(newLevel);
         spotRepository.save(spot);
 
         return getSpotDetail(id);

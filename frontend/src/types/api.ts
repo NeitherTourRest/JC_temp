@@ -66,6 +66,12 @@ export interface PlanActivityItem {
   location: string
   duration: string
   notes: string
+  matchedSpotId?: number
+  matchedFoodId?: number
+  matchedLat?: number
+  matchedLng?: number
+  matchedName?: string
+  matchedType?: 'spot' | 'food' | 'none'
 }
 
 export interface PlanDaySchedule {

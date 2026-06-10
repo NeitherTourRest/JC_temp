@@ -3,13 +3,13 @@
     <div class="auth-card glass">
       <h1>Join JourneyCraft</h1>
       <el-form @submit.prevent="reg">
-        <el-form-item><el-input v-model="f.username" placeholder="Username" size="large" /></el-form-item>
-        <el-form-item><el-input v-model="f.password" type="password" placeholder="Password" size="large" show-password /></el-form-item>
-        <el-form-item><el-input v-model="f.email" placeholder="Email" size="large" /></el-form-item>
-        <el-form-item><el-input v-model="f.nickname" placeholder="Nickname" size="large" /></el-form-item>
-        <el-form-item><el-button type="primary" size="large" class="full-btn" @click="reg" :loading="l">Sign Up</el-button></el-form-item>
+        <el-form-item><el-input v-model="f.username" placeholder="用户名" size="large" /></el-form-item>
+        <el-form-item><el-input v-model="f.password" type="password" placeholder="密码" size="large" show-password /></el-form-item>
+        <el-form-item><el-input v-model="f.email" placeholder="邮箱" size="large" /></el-form-item>
+        <el-form-item><el-input v-model="f.nickname" placeholder="昵称" size="large" /></el-form-item>
+        <el-form-item><el-button type="primary" size="large" class="full-btn" @click="reg" :loading="l">注册</el-button></el-form-item>
       </el-form>
-      <p class="switch">Have account? <router-link to="/login">Login</router-link></p>
+      <p class="switch">已有账号？ <router-link to="/login">立即登录</router-link></p>
       <p v-if="e" class="err">{{ e }}</p>
     </div>
   </div>
@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'; import { useRouter } from 'vue-router'; import { authApi } from '@/api/authApi'
 const r = useRouter(); const f = ref({ username: '', password: '', email: '', nickname: '' }); const l = ref(false); const e = ref('')
-async function reg() { if (!f.value.username || !f.value.password) { e.value = 'Username and password required'; return }; l.value = true; e.value = ''; try { await authApi.register(f.value); r.push('/login') } catch (x: any) { e.value = x?.response?.data?.message || 'Failed' } finally { l.value = false } }
+async function reg() { if (!f.value.username || !f.value.password) { e.value = '请输入用户名和密码'; return }; l.value = true; e.value = ''; try { await authApi.register(f.value); r.push('/login') } catch (x: any) { e.value = x?.response?.data?.message || '注册失败' } finally { l.value = false } }
 </script>
 <style scoped>
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }

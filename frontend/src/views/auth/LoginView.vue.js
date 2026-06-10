@@ -9,14 +9,14 @@ const p = ref('');
 const l = ref(false);
 const e = ref('');
 async function login() { if (!u.value || !p.value) {
-    e.value = 'Fill all fields';
+    e.value = '请输入用户名和密码';
     return;
 } ; l.value = true; e.value = ''; try {
     await a.login(u.value, p.value);
     r.push('/');
 }
 catch (x) {
-    e.value = x?.response?.data?.message || 'Login failed';
+    e.value = x?.response?.data?.message || '登录失败';
 }
 finally {
     l.value = false;
@@ -63,12 +63,12 @@ const __VLS_12 = {}.ElInput;
 // @ts-ignore
 const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
     modelValue: (__VLS_ctx.u),
-    placeholder: "Username",
+    placeholder: "用户名",
     size: "large",
 }));
 const __VLS_14 = __VLS_13({
     modelValue: (__VLS_ctx.u),
-    placeholder: "Username",
+    placeholder: "用户名",
     size: "large",
 }, ...__VLS_functionalComponentArgsRest(__VLS_13));
 var __VLS_11;
@@ -84,14 +84,14 @@ const __VLS_20 = {}.ElInput;
 const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
     modelValue: (__VLS_ctx.p),
     type: "password",
-    placeholder: "Password",
+    placeholder: "密码",
     size: "large",
     showPassword: true,
 }));
 const __VLS_22 = __VLS_21({
     modelValue: (__VLS_ctx.p),
     type: "password",
-    placeholder: "Password",
+    placeholder: "密码",
     size: "large",
     showPassword: true,
 }, ...__VLS_functionalComponentArgsRest(__VLS_21));

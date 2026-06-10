@@ -13,7 +13,7 @@ async function generate() {
         result.value = res.data.data;
     }
     catch {
-        result.value = { title: '请求失败', days: [], tips: ['请检查AI配置'], estimatedCost: '' };
+        result.value = { title: '生成计划失败', days: [], tips: ['请检查AI配置。'], estimatedCost: '' };
     }
     finally {
         loading.value = false;
@@ -85,10 +85,10 @@ const __VLS_20 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
 const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
-    label: "旅行天数",
+    label: "天数",
 }));
 const __VLS_22 = __VLS_21({
-    label: "旅行天数",
+    label: "天数",
 }, ...__VLS_functionalComponentArgsRest(__VLS_21));
 __VLS_23.slots.default;
 const __VLS_24 = {}.ElInputNumber;
@@ -120,11 +120,11 @@ const __VLS_32 = {}.ElInput;
 // @ts-ignore
 const __VLS_33 = __VLS_asFunctionalComponent(__VLS_32, new __VLS_32({
     modelValue: (__VLS_ctx.form.interests),
-    placeholder: "如：自然风光,历史古迹,美食",
+    placeholder: "例如：自然风光、历史古迹",
 }));
 const __VLS_34 = __VLS_33({
     modelValue: (__VLS_ctx.form.interests),
-    placeholder: "如：自然风光,历史古迹,美食",
+    placeholder: "例如：自然风光、历史古迹",
 }, ...__VLS_functionalComponentArgsRest(__VLS_33));
 var __VLS_31;
 const __VLS_36 = {}.ElFormItem;
@@ -254,13 +254,13 @@ const __VLS_81 = __VLS_asFunctionalComponent(__VLS_80, new __VLS_80({
     modelValue: (__VLS_ctx.form.additionalInfo),
     type: "textarea",
     rows: (3),
-    placeholder: "如：想去的景点、特别需求",
+    placeholder: "有什么特殊需求...",
 }));
 const __VLS_82 = __VLS_81({
     modelValue: (__VLS_ctx.form.additionalInfo),
     type: "textarea",
     rows: (3),
-    placeholder: "如：想去的景点、特别需求",
+    placeholder: "有什么特殊需求...",
 }, ...__VLS_functionalComponentArgsRest(__VLS_81));
 var __VLS_79;
 const __VLS_84 = {}.ElButton;

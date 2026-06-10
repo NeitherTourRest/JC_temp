@@ -39,7 +39,7 @@ async function loadAll() {
             stats.value.diaries = d.data.data.totalElements;
     }
     catch (e) {
-        pageError.value = e?.message || 'Failed to load dashboard data.';
+        pageError.value = e?.message || '加载首页数据失败';
     }
     finally {
         pageLoading.value = false;

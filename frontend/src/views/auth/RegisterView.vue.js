@@ -7,14 +7,14 @@ const f = ref({ username: '', password: '', email: '', nickname: '' });
 const l = ref(false);
 const e = ref('');
 async function reg() { if (!f.value.username || !f.value.password) {
-    e.value = 'Username and password required';
+    e.value = '请输入用户名和密码';
     return;
 } ; l.value = true; e.value = ''; try {
     await authApi.register(f.value);
     r.push('/login');
 }
 catch (x) {
-    e.value = x?.response?.data?.message || 'Failed';
+    e.value = x?.response?.data?.message || '注册失败';
 }
 finally {
     l.value = false;
@@ -61,12 +61,12 @@ const __VLS_12 = {}.ElInput;
 // @ts-ignore
 const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
     modelValue: (__VLS_ctx.f.username),
-    placeholder: "Username",
+    placeholder: "用户名",
     size: "large",
 }));
 const __VLS_14 = __VLS_13({
     modelValue: (__VLS_ctx.f.username),
-    placeholder: "Username",
+    placeholder: "用户名",
     size: "large",
 }, ...__VLS_functionalComponentArgsRest(__VLS_13));
 var __VLS_11;
@@ -82,14 +82,14 @@ const __VLS_20 = {}.ElInput;
 const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
     modelValue: (__VLS_ctx.f.password),
     type: "password",
-    placeholder: "Password",
+    placeholder: "密码",
     size: "large",
     showPassword: true,
 }));
 const __VLS_22 = __VLS_21({
     modelValue: (__VLS_ctx.f.password),
     type: "password",
-    placeholder: "Password",
+    placeholder: "密码",
     size: "large",
     showPassword: true,
 }, ...__VLS_functionalComponentArgsRest(__VLS_21));
@@ -105,12 +105,12 @@ const __VLS_28 = {}.ElInput;
 // @ts-ignore
 const __VLS_29 = __VLS_asFunctionalComponent(__VLS_28, new __VLS_28({
     modelValue: (__VLS_ctx.f.email),
-    placeholder: "Email",
+    placeholder: "邮箱",
     size: "large",
 }));
 const __VLS_30 = __VLS_29({
     modelValue: (__VLS_ctx.f.email),
-    placeholder: "Email",
+    placeholder: "邮箱",
     size: "large",
 }, ...__VLS_functionalComponentArgsRest(__VLS_29));
 var __VLS_27;
@@ -125,12 +125,12 @@ const __VLS_36 = {}.ElInput;
 // @ts-ignore
 const __VLS_37 = __VLS_asFunctionalComponent(__VLS_36, new __VLS_36({
     modelValue: (__VLS_ctx.f.nickname),
-    placeholder: "Nickname",
+    placeholder: "昵称",
     size: "large",
 }));
 const __VLS_38 = __VLS_37({
     modelValue: (__VLS_ctx.f.nickname),
-    placeholder: "Nickname",
+    placeholder: "昵称",
     size: "large",
 }, ...__VLS_functionalComponentArgsRest(__VLS_37));
 var __VLS_35;

@@ -10,20 +10,20 @@
       <!-- Loading -->
       <div v-if="loading" class="loading-msg">
         <span class="loading-spinner"></span>
-        <span>Searching foods...</span>
+        <span>正在搜索美食...</span>
       </div>
 
       <!-- Error -->
       <div v-else-if="errorMsg" class="error-msg">
         <span class="error-icon">⚠️</span>
         <span>{{ errorMsg }}</span>
-        <el-button size="small" @click="fetch">Retry</el-button>
+        <el-button size="small" @click="fetch">重试</el-button>
       </div>
 
       <!-- Empty -->
       <div v-else-if="!foods.length" class="empty">
         <span style="font-size:2rem;display:block;margin-bottom:12px">🍽️</span>
-        No foods found{{ keyword ? ' for "' + keyword + '"' : '' }}{{ activeCat !== 'All' ? ' in ' + activeCat : '' }}
+        没有找到美食{{ keyword ? ' for "' + keyword + '"' : '' }}{{ activeCat !== 'All' ? ' in ' + activeCat : '' }}
       </div>
 
       <!-- Results -->
@@ -73,7 +73,7 @@ async function fetch() {
     const r = await foodApi.search(params)
     foods.value = r.data.data?.content || []
   } catch (e: any) {
-    errorMsg.value = e?.message || 'Failed to load foods. Please try again.'
+    errorMsg.value = e?.message || '加载美食失败，请重试。'
     foods.value = []
   } finally {
     loading.value = false

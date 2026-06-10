@@ -6,9 +6,9 @@ import com.journeycraft.jc.food.entity.Food;
 import com.journeycraft.jc.food.repository.FoodRepository;
 import com.journeycraft.jc.common.dto.PageResponse;
 import com.journeycraft.jc.common.exception.ResourceNotFoundException;
+import com.journeycraft.jc.common.service.CongestionService;
 import com.journeycraft.jc.facility.repository.FacilityRepository;
 import com.journeycraft.jc.spot.dto.SpotResponse;
-import com.journeycraft.jc.spot.repository.CongestionReportRepository;
 import com.journeycraft.jc.user.repository.UserRepository;
 import com.journeycraft.jc.spot.dto.SpotSearchRequest;
 import com.journeycraft.jc.spot.entity.Spot;
@@ -42,7 +42,7 @@ class SpotServiceTest {
     @Mock private SpotReviewRepository spotReviewRepository;
     @Mock private FoodRepository foodRepository;
     @Mock private FacilityRepository facilityRepository;
-    @Mock private CongestionReportRepository congestionReportRepository;
+    @Mock private CongestionService congestionService;
     @Mock private UserRepository userRepository;
     @Mock private UserPreferenceRepository userPreferenceRepository;
 
@@ -52,7 +52,7 @@ class SpotServiceTest {
 
     @BeforeEach
     void setUp() {
-        spotService = new SpotService(spotRepository, spotReviewRepository, foodRepository, facilityRepository, congestionReportRepository, userRepository, userPreferenceRepository);
+        spotService = new SpotService(spotRepository, spotReviewRepository, foodRepository, facilityRepository, congestionService, userRepository, userPreferenceRepository);
 
         spot1 = Spot.builder().id(1L).name("Great Wall").category("scenic")
                 .popularity(100).avgRating(BigDecimal.valueOf(4.5)).latitude(40.0).longitude(116.0).build();

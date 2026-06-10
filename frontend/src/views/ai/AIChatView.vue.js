@@ -105,7 +105,7 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElement
     ...{ class: "sidebar-toggle" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-(__VLS_ctx.showSidebar ? 'Hide' : 'Chats');
+(__VLS_ctx.showSidebar ? '隐藏' : '聊天');
 __VLS_asFunctionalElement(__VLS_intrinsicElements.aside, __VLS_intrinsicElements.aside)({
     ...{ class: "ai-sidebar" },
     ...{ class: ({ open: __VLS_ctx.showSidebar }) },
@@ -169,7 +169,7 @@ for (const [session] of __VLS_getVForSourceType((__VLS_ctx.ai.sortedSessions))) 
                 __VLS_ctx.handleDeleteSession(session.id);
             } },
         ...{ class: "session-delete" },
-        title: "Delete chat",
+        title: "删除聊天",
     });
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -241,14 +241,14 @@ const __VLS_12 = {}.ElInput;
 const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
     ...{ 'onKeyup': {} },
     modelValue: (__VLS_ctx.input),
-    placeholder: "Ask me about travel...",
+    placeholder: "问我任何旅行问题...",
     size: "large",
     disabled: (__VLS_ctx.ai.sending),
 }));
 const __VLS_14 = __VLS_13({
     ...{ 'onKeyup': {} },
     modelValue: (__VLS_ctx.input),
-    placeholder: "Ask me about travel...",
+    placeholder: "问我任何旅行问题...",
     size: "large",
     disabled: (__VLS_ctx.ai.sending),
 }, ...__VLS_functionalComponentArgsRest(__VLS_13));

@@ -1,24 +1,24 @@
 <template>
   <DefaultLayout>
     <div class="ai-page">
-      <div class="page-header"><h2 class="page-title">AI行程规划</h2></div>
+      <div class="page-header"><h2 class="page-title">AI 行程规划</h2></div>
       <el-row :gutter="20">
         <el-col :span="10">
           <el-card class="form-card">
             <el-form label-position="top">
-              <el-form-item label="旅行天数"><el-input-number v-model="form.days" :min="1" :max="14" /></el-form-item>
-              <el-form-item label="兴趣偏好"><el-input v-model="form.interests" placeholder="如：自然风光,历史古迹,美食" /></el-form-item>
+              <el-form-item label="天数"><el-input-number v-model="form.days" :min="1" :max="14" /></el-form-item>
+              <el-form-item label="兴趣偏好"><el-input v-model="form.interests" placeholder="例如：自然风光、历史古迹" /></el-form-item>
               <el-form-item label="预算水平"><el-select v-model="form.budget"><el-option label="低" value="低" /><el-option label="中" value="中" /><el-option label="高" value="高" /></el-select></el-form-item>
               <el-form-item label="出行方式"><el-select v-model="form.transport"><el-option label="步行" value="步行" /><el-option label="骑行" value="骑行" /><el-option label="驾车" value="驾车" /></el-select></el-form-item>
-              <el-form-item label="额外要求"><el-input v-model="form.additionalInfo" type="textarea" :rows="3" placeholder="如：想去的景点、特别需求" /></el-form-item>
-              <el-button type="primary" @click="generate" :loading="loading" style="width:100%">生成行程规划</el-button>
+              <el-form-item label="额外要求"><el-input v-model="form.additionalInfo" type="textarea" :rows="3" placeholder="有什么特殊需求..." /></el-form-item>
+              <el-button type="primary" @click="generate" :loading="loading" style="width:100%">生成计划</el-button>
             </el-form>
           </el-card>
         </el-col>
         <el-col :span="14">
           <el-card class="result-card">
             <div v-if="!result && !loading" class="empty">填写左侧信息，点击生成</div>
-            <div v-if="loading" class="empty">AI正在为您规划行程...</div>
+            <div v-if="loading" class="empty">正在生成...</div>
             <div v-if="result">
               <h3 class="plan-title">{{ result.title }}</h3>
               <div v-for="day in result.days" :key="day.day" class="day-block">
@@ -30,10 +30,10 @@
                 </div>
               </div>
               <div v-if="result.tips?.length" class="tips-section">
-                <h4>💡 出行建议</h4>
+                <h4>💡 小贴士</h4>
                 <p v-for="(tip, i) in result.tips" :key="i">• {{ tip }}</p>
               </div>
-              <div v-if="result.estimatedCost" class="cost-tag">💰 {{ result.estimatedCost }}</div>
+              <div v-if="result.estimatedCost" class="cost-tag">💰 预估费用：{{ result.estimatedCost }}</div>
               <div v-if="result.rawResponse" class="raw-fallback">
                 <h4>AI原始回复：</h4>
                 <pre>{{ result.rawResponse }}</pre>
@@ -60,7 +60,7 @@ async function generate() {
   try {
     const res = await aiApi.plan(form.value)
     result.value = res.data.data
-  } catch { result.value = { title: '请求失败', days: [], tips: ['请检查AI配置'], estimatedCost: '' } }
+  } catch { result.value = { title: '生成计划失败', days: [], tips: ['请检查AI配置。'], estimatedCost: '' } }
   finally { loading.value = false }
 }
 </script>

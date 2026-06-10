@@ -4,7 +4,7 @@
       <div v-if="loading" class="center">Loading...</div>
       <div v-else-if="!diary" class="center">Diary not found</div>
       <div v-else class="content">
-        <button class="back-btn" @click="$router.push('/diaries')">&#8592; Back</button>
+        <button class="back-btn" @click="$router.push('/diaries')">&#8592; 返回</button>
         <div class="hero glass">
           <h1>{{ diary.title }}</h1>
           <div class="hero-meta">
@@ -16,8 +16,8 @@
           <el-tag v-if="diary.destination" size="small" type="warning" style="margin-top: 8px;">{{ diary.destination }}</el-tag>
         </div>
         <div class="actions" v-if="isOwner">
-          <el-button type="primary" @click="$router.push('/diaries/' + diary.id + '/edit')">Edit</el-button>
-          <el-button type="danger" @click="del">Delete</el-button>
+          <el-button type="primary" @click="$router.push('/diaries/' + diary.id + '/edit')">编辑</el-button>
+          <el-button type="danger" @click="del">删除</el-button>
         </div>
         <div v-if="diary.images?.length" class="gallery glass">
           <img v-for="(img,i) in diary.images" :key="i" :src="img" @click="previewIdx=i;showPreview=true" />
@@ -62,7 +62,7 @@ const rendered = computed(() => {
 
 async function del() {
   if (!diary.value) return
-  try { await ElMessageBox.confirm('Delete?', 'Confirm', { type: 'warning' }); await diaryApi.del(diary.value.id); ElMessage.success('Deleted'); router.push('/diaries') } catch (e: any) { if (e !== 'cancel') console.error('Delete diary error:', e) }
+  try { await ElMessageBox.confirm('确定删除这篇游记？', '确认', { type: 'warning' }); await diaryApi.del(diary.value.id); ElMessage.success('游记已删除'); router.push('/diaries') } catch (e: any) { if (e !== 'cancel') console.error('删除游记失败:', e) }
 }
 async function rate(v: number) { try { await diaryApi.rate(diary.value!.id, v); ElMessage.success('Rated!') } catch (e) { console.error('Rate error:', e); ElMessage.error('Failed') } }
 

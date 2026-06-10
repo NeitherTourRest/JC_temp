@@ -2,7 +2,7 @@
   <DefaultLayout>
     <div class="diary-editor">
       <div class="editor-header">
-        <h2>{{ isEditMode ? '编辑日记' : '新建日记' }}</h2>
+        <h2>{{ isEditMode ? '编辑游记' : '写游记' }}</h2>
         <div class="header-actions">
           <el-switch
             v-model="previewMode"
@@ -107,10 +107,10 @@
               </div>
             </el-form-item>
 
-            <!-- AI 辅助工具 -->
+            <!-- AI 工具 -->
             <el-form-item>
               <div class="ai-tools-section glass-sm">
-                <div class="ai-tools-header">🤖 AI 辅助工具</div>
+                <div class="ai-tools-header">🤖 AI 工具</div>
                 <div class="ai-tools-body">
                   <div class="ai-tool">
                     <div class="ai-tool-header">
@@ -125,7 +125,7 @@
                   </div>
                   <div class="ai-tool">
                     <div class="ai-tool-header">
-                      <span>🎵 AI 生成背景音乐</span>
+                      <span>🎵 AI 生成音乐</span>
                       <el-button size="small" type="primary" @click="genMusic" :loading="aiMusicLoading" :disabled="!aiMusicPrompt.trim()">生成</el-button>
                     </div>
                     <el-input v-model="aiMusicPrompt" placeholder="描述音乐风格，如：轻快的吉他曲" />
@@ -172,7 +172,7 @@
                 @click="handleSave"
                 class="save-btn"
               >
-                {{ isEditMode ? '保存修改' : '发布日记' }}
+                {{ isEditMode ? '保存' : '发布日记' }}
               </el-button>
               <el-button size="large" @click="router.back()">取消</el-button>
             </el-form-item>

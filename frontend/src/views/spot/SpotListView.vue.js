@@ -21,7 +21,7 @@ async function fetch() {
         spots.value = r.data.data?.content || [];
     }
     catch (e) {
-        errorMsg.value = e?.message || 'Failed to load spots. Please try again.';
+        errorMsg.value = e?.message || '加载景点失败，请重试。';
         spots.value = [];
     }
     finally {

@@ -1,19 +1,34 @@
 /// <reference types="../../../node_modules/.vue-global-types/vue_3.5_0_0_0.d.ts" />
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { Star, StarFilled, View, LocationFilled, Shop } from '@element-plus/icons-vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { foodApi } from '@/api/foodApi';
 import { spotApi } from '@/api/spotApi';
+import { useAuthStore } from '@/stores/authStore';
+import apiClient from '@/api/axios';
 const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 const loading = ref(true);
 const foodId = computed(() => Number(route.params.id));
 const food = ref(null);
-const userRating = ref(0);
-const rated = ref(false);
+const userRating = ref(Number(localStorage.getItem('foodRating_' + route.params.id)) || 0);
+const rated = ref(userRating.value > 0);
 const nearbySpots = ref([]);
+const congestionLevel = ref('EMPTY');
+const congJustReported = ref(false);
+const selectedCongestion = ref('');
+const congLoading = ref(false);
 let mapInstance = null;
+const congestionOptions = [
+    { value: 'OVERFLOWING', label: '爆满' },
+    { value: 'CROWDED', label: '拥挤' },
+    { value: 'MODERATE', label: '适中' },
+    { value: 'SPARSE', label: '较少' },
+    { value: 'EMPTY', label: '空闲' },
+];
 const heroStyle = computed(() => {
     const img = food.value?.imageUrl;
     if (img)
@@ -21,8 +36,11 @@ const heroStyle = computed(() => {
     return { background: 'linear-gradient(135deg, var(--pop-orange), var(--pop-red))' };
 });
 const congestionLabel = computed(() => {
-    const m = { OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '挺多', SPARSE: '挺少', EMPTY: '基本没人' };
-    return m[food.value?.congestionLevel || ''] || '';
+    const m = {
+        OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '适中',
+        SPARSE: '较少', EMPTY: '空闲',
+    };
+    return m[congestionLevel.value] || congestionLevel.value;
 });
 function formatNumber(num) {
     if (num >= 10000)
@@ -58,11 +76,45 @@ async function onRateChange(rating) {
             food.value.ratingCount = res.data.data.ratingCount;
             userRating.value = rating;
             rated.value = true;
-            ElMessage.success('Rating submitted!');
+            localStorage.setItem('foodRating_' + food.value.id, String(rating));
+            ElMessage.success('评分已提交！');
         }
     }
     catch {
-        ElMessage.error('Rating failed');
+        ElMessage.error('评分失败');
+    }
+}
+async function submitCongestion() {
+    if (!selectedCongestion.value || !food.value)
+        return;
+    if (!authStore.isAuthenticated) {
+        ElMessage.warning('请先登录再上报拥挤度');
+        router.push('/login?redirect=' + route.path);
+        return;
+    }
+    congLoading.value = true;
+    try {
+        const r = await apiClient.post('/foods/' + food.value.id + '/congestion', null, { params: { level: selectedCongestion.value } });
+        if (r.data.data) {
+            congestionLevel.value = r.data.data.congestionLevel || selectedCongestion.value;
+            congJustReported.value = true;
+            setTimeout(() => { congJustReported.value = false; }, 2000);
+            ElMessage.success('拥挤度已上报！');
+        }
+    }
+    catch (e) {
+        console.error('Congestion error:', e);
+        if (e?.response?.status === 401) {
+            ElMessage.error('登录已过期 — 请重新登录');
+            authStore.logout();
+            router.push('/login?redirect=' + route.path);
+        }
+        else {
+            ElMessage.error('拥挤度上报失败：' + (e?.response?.data?.message || e?.message || '服务器错误'));
+        }
+    }
+    finally {
+        congLoading.value = false;
     }
 }
 async function loadFood() {
@@ -70,6 +122,7 @@ async function loadFood() {
     try {
         const res = await foodApi.getById(foodId.value);
         food.value = res.data.data;
+        congestionLevel.value = res.data.data?.congestionLevel || 'EMPTY';
         // Try to load nearby spots
         const spotRes = await spotApi.search({ size: 5 });
         nearbySpots.value = spotRes.data.data?.content?.slice(0, 5) || [];
@@ -102,6 +155,8 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['detail-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['rating-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['rate-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['cong-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['cong-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['nearby-spot-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['ns-info']} */ ;
 /** @type {__VLS_StyleScopedClasses['ns-info']} */ ;
@@ -240,10 +295,10 @@ if (__VLS_ctx.food) {
         });
         (__VLS_ctx.food.priceRange);
     }
-    if (__VLS_ctx.food.congestionLevel) {
+    if (__VLS_ctx.congestionLevel) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "hero-congestion" },
-            ...{ class: ('hc-' + __VLS_ctx.food.congestionLevel.toLowerCase()) },
+            ...{ class: ('hc-' + __VLS_ctx.congestionLevel.toLowerCase()) },
         });
         (__VLS_ctx.congestionLabel);
     }
@@ -333,7 +388,6 @@ if (__VLS_ctx.food) {
         ...{ 'onChange': {} },
         modelValue: (__VLS_ctx.userRating),
         max: (5),
-        disabled: (__VLS_ctx.rated),
         size: "large",
         showScore: true,
         scoreTemplate: "{value} / 5",
@@ -342,7 +396,6 @@ if (__VLS_ctx.food) {
         ...{ 'onChange': {} },
         modelValue: (__VLS_ctx.userRating),
         max: (5),
-        disabled: (__VLS_ctx.rated),
         size: "large",
         showScore: true,
         scoreTemplate: "{value} / 5",
@@ -363,6 +416,65 @@ if (__VLS_ctx.food) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
         ...{ class: "detail-section" },
     });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "rating-card glass-sm" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "congestion-row" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "congestion-badge" },
+        ...{ class: (['cong-' + __VLS_ctx.congestionLevel.toLowerCase(), { 'cong-pulse': __VLS_ctx.congJustReported }]) },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "cong-label" },
+    });
+    (__VLS_ctx.congestionLabel);
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "congestion-report-group" },
+    });
+    for (const [opt] of __VLS_getVForSourceType((__VLS_ctx.congestionOptions))) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+            ...{ onClick: (...[$event]) => {
+                    if (!(__VLS_ctx.food))
+                        return;
+                    __VLS_ctx.selectedCongestion = opt.value;
+                } },
+            key: (opt.value),
+            ...{ class: "cong-btn" },
+            ...{ class: ({ active: __VLS_ctx.selectedCongestion === opt.value }) },
+        });
+        (opt.label);
+    }
+    const __VLS_64 = {}.ElButton;
+    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+    // @ts-ignore
+    const __VLS_65 = __VLS_asFunctionalComponent(__VLS_64, new __VLS_64({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: "primary",
+        loading: (__VLS_ctx.congLoading),
+        disabled: (!__VLS_ctx.selectedCongestion),
+    }));
+    const __VLS_66 = __VLS_65({
+        ...{ 'onClick': {} },
+        size: "small",
+        type: "primary",
+        loading: (__VLS_ctx.congLoading),
+        disabled: (!__VLS_ctx.selectedCongestion),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_65));
+    let __VLS_68;
+    let __VLS_69;
+    let __VLS_70;
+    const __VLS_71 = {
+        onClick: (__VLS_ctx.submitCongestion)
+    };
+    __VLS_67.slots.default;
+    var __VLS_67;
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
+        ...{ class: "detail-section" },
+    });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({
         ...{ class: "section-title" },
     });
@@ -373,130 +485,130 @@ if (__VLS_ctx.food) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
         ...{ class: "detail-section" },
     });
-    const __VLS_64 = {}.ElDescriptions;
+    const __VLS_72 = {}.ElDescriptions;
     /** @type {[typeof __VLS_components.ElDescriptions, typeof __VLS_components.elDescriptions, typeof __VLS_components.ElDescriptions, typeof __VLS_components.elDescriptions, ]} */ ;
     // @ts-ignore
-    const __VLS_65 = __VLS_asFunctionalComponent(__VLS_64, new __VLS_64({
-        column: (2),
-        border: true,
-        size: "large",
-        title: "美食详情",
-    }));
-    const __VLS_66 = __VLS_65({
-        column: (2),
-        border: true,
-        size: "large",
-        title: "美食详情",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_65));
-    __VLS_67.slots.default;
-    const __VLS_68 = {}.ElDescriptionsItem;
-    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
-    // @ts-ignore
-    const __VLS_69 = __VLS_asFunctionalComponent(__VLS_68, new __VLS_68({
-        label: "名称",
-    }));
-    const __VLS_70 = __VLS_69({
-        label: "名称",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_69));
-    __VLS_71.slots.default;
-    (__VLS_ctx.food.name);
-    var __VLS_71;
-    const __VLS_72 = {}.ElDescriptionsItem;
-    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
-    // @ts-ignore
     const __VLS_73 = __VLS_asFunctionalComponent(__VLS_72, new __VLS_72({
-        label: "菜系",
+        column: (2),
+        border: true,
+        size: "large",
+        title: "美食详情",
     }));
     const __VLS_74 = __VLS_73({
-        label: "菜系",
+        column: (2),
+        border: true,
+        size: "large",
+        title: "美食详情",
     }, ...__VLS_functionalComponentArgsRest(__VLS_73));
     __VLS_75.slots.default;
-    if (__VLS_ctx.food.cuisine) {
-        const __VLS_76 = {}.ElTag;
-        /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
-        // @ts-ignore
-        const __VLS_77 = __VLS_asFunctionalComponent(__VLS_76, new __VLS_76({
-            size: "small",
-        }));
-        const __VLS_78 = __VLS_77({
-            size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_77));
-        __VLS_79.slots.default;
-        (__VLS_ctx.food.cuisine);
-        var __VLS_79;
-    }
-    else {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    }
-    var __VLS_75;
+    const __VLS_76 = {}.ElDescriptionsItem;
+    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_77 = __VLS_asFunctionalComponent(__VLS_76, new __VLS_76({
+        label: "名称",
+    }));
+    const __VLS_78 = __VLS_77({
+        label: "名称",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_77));
+    __VLS_79.slots.default;
+    (__VLS_ctx.food.name);
+    var __VLS_79;
     const __VLS_80 = {}.ElDescriptionsItem;
     /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
     // @ts-ignore
     const __VLS_81 = __VLS_asFunctionalComponent(__VLS_80, new __VLS_80({
-        label: "餐厅",
+        label: "菜系",
     }));
     const __VLS_82 = __VLS_81({
-        label: "餐厅",
+        label: "菜系",
     }, ...__VLS_functionalComponentArgsRest(__VLS_81));
     __VLS_83.slots.default;
-    (__VLS_ctx.food.restaurantName || '--');
+    if (__VLS_ctx.food.cuisine) {
+        const __VLS_84 = {}.ElTag;
+        /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
+        // @ts-ignore
+        const __VLS_85 = __VLS_asFunctionalComponent(__VLS_84, new __VLS_84({
+            size: "small",
+        }));
+        const __VLS_86 = __VLS_85({
+            size: "small",
+        }, ...__VLS_functionalComponentArgsRest(__VLS_85));
+        __VLS_87.slots.default;
+        (__VLS_ctx.food.cuisine);
+        var __VLS_87;
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    }
     var __VLS_83;
-    const __VLS_84 = {}.ElDescriptionsItem;
-    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
-    // @ts-ignore
-    const __VLS_85 = __VLS_asFunctionalComponent(__VLS_84, new __VLS_84({
-        label: "价格区间",
-    }));
-    const __VLS_86 = __VLS_85({
-        label: "价格区间",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_85));
-    __VLS_87.slots.default;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: "price-text" },
-    });
-    (__VLS_ctx.food.priceRange || '--');
-    var __VLS_87;
     const __VLS_88 = {}.ElDescriptionsItem;
     /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
     // @ts-ignore
     const __VLS_89 = __VLS_asFunctionalComponent(__VLS_88, new __VLS_88({
-        label: "评分",
+        label: "餐厅",
     }));
     const __VLS_90 = __VLS_89({
-        label: "评分",
+        label: "餐厅",
     }, ...__VLS_functionalComponentArgsRest(__VLS_89));
     __VLS_91.slots.default;
-    (__VLS_ctx.food.avgRating?.toFixed(1));
+    (__VLS_ctx.food.restaurantName || '--');
     var __VLS_91;
     const __VLS_92 = {}.ElDescriptionsItem;
     /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
     // @ts-ignore
     const __VLS_93 = __VLS_asFunctionalComponent(__VLS_92, new __VLS_92({
-        label: "热度",
+        label: "价格区间",
     }));
     const __VLS_94 = __VLS_93({
-        label: "热度",
+        label: "价格区间",
     }, ...__VLS_functionalComponentArgsRest(__VLS_93));
     __VLS_95.slots.default;
-    (__VLS_ctx.formatNumber(__VLS_ctx.food.popularity));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "price-text" },
+    });
+    (__VLS_ctx.food.priceRange || '--');
     var __VLS_95;
+    const __VLS_96 = {}.ElDescriptionsItem;
+    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_97 = __VLS_asFunctionalComponent(__VLS_96, new __VLS_96({
+        label: "评分",
+    }));
+    const __VLS_98 = __VLS_97({
+        label: "评分",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_97));
+    __VLS_99.slots.default;
+    (__VLS_ctx.food.avgRating?.toFixed(1));
+    var __VLS_99;
+    const __VLS_100 = {}.ElDescriptionsItem;
+    /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
+    // @ts-ignore
+    const __VLS_101 = __VLS_asFunctionalComponent(__VLS_100, new __VLS_100({
+        label: "热度",
+    }));
+    const __VLS_102 = __VLS_101({
+        label: "热度",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_101));
+    __VLS_103.slots.default;
+    (__VLS_ctx.formatNumber(__VLS_ctx.food.popularity));
+    var __VLS_103;
     if (__VLS_ctx.food.description) {
-        const __VLS_96 = {}.ElDescriptionsItem;
+        const __VLS_104 = {}.ElDescriptionsItem;
         /** @type {[typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, typeof __VLS_components.ElDescriptionsItem, typeof __VLS_components.elDescriptionsItem, ]} */ ;
         // @ts-ignore
-        const __VLS_97 = __VLS_asFunctionalComponent(__VLS_96, new __VLS_96({
+        const __VLS_105 = __VLS_asFunctionalComponent(__VLS_104, new __VLS_104({
             label: "描述",
             span: (2),
         }));
-        const __VLS_98 = __VLS_97({
+        const __VLS_106 = __VLS_105({
             label: "描述",
             span: (2),
-        }, ...__VLS_functionalComponentArgsRest(__VLS_97));
-        __VLS_99.slots.default;
+        }, ...__VLS_functionalComponentArgsRest(__VLS_105));
+        __VLS_107.slots.default;
         (__VLS_ctx.food.description);
-        var __VLS_99;
+        var __VLS_107;
     }
-    var __VLS_67;
+    var __VLS_75;
     if (__VLS_ctx.nearbySpots.length) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
             ...{ class: "detail-section" },
@@ -566,6 +678,14 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['rate-row']} */ ;
 /** @type {__VLS_StyleScopedClasses['rated-badge']} */ ;
 /** @type {__VLS_StyleScopedClasses['detail-section']} */ ;
+/** @type {__VLS_StyleScopedClasses['rating-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
+/** @type {__VLS_StyleScopedClasses['congestion-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['congestion-badge']} */ ;
+/** @type {__VLS_StyleScopedClasses['cong-label']} */ ;
+/** @type {__VLS_StyleScopedClasses['congestion-report-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['cong-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['section-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['food-map']} */ ;
 /** @type {__VLS_StyleScopedClasses['detail-section']} */ ;
@@ -594,10 +714,16 @@ const __VLS_self = (await import('vue')).defineComponent({
             userRating: userRating,
             rated: rated,
             nearbySpots: nearbySpots,
+            congestionLevel: congestionLevel,
+            congJustReported: congJustReported,
+            selectedCongestion: selectedCongestion,
+            congLoading: congLoading,
+            congestionOptions: congestionOptions,
             heroStyle: heroStyle,
             congestionLabel: congestionLabel,
             formatNumber: formatNumber,
             onRateChange: onRateChange,
+            submitCongestion: submitCongestion,
         };
     },
 });

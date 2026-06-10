@@ -22,14 +22,14 @@ async function del() {
     if (!diary.value)
         return;
     try {
-        await ElMessageBox.confirm('Delete?', 'Confirm', { type: 'warning' });
+        await ElMessageBox.confirm('确定删除这篇游记？', '确认', { type: 'warning' });
         await diaryApi.del(diary.value.id);
-        ElMessage.success('Deleted');
+        ElMessage.success('游记已删除');
         router.push('/diaries');
     }
     catch (e) {
         if (e !== 'cancel')
-            console.error('Delete diary error:', e);
+            console.error('删除游记失败:', e);
     }
 }
 async function rate(v) { try {

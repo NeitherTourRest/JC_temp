@@ -1,25 +1,25 @@
 <template>
   <DefaultLayout>
     <div class="ai-page">
-      <div class="page-header"><h2 class="page-title">AI预算估计</h2></div>
+      <div class="page-header"><h2 class="page-title">AI 预算估算</h2></div>
       <el-row :gutter="20">
         <el-col :span="10">
           <el-card class="form-card">
             <el-form label-position="top">
-              <el-form-item label="旅行天数"><el-input-number v-model="form.days" :min="1" :max="30" /></el-form-item>
+              <el-form-item label="天数"><el-input-number v-model="form.days" :min="1" :max="30" /></el-form-item>
               <el-form-item label="人数"><el-input-number v-model="form.peopleCount" :min="1" :max="20" /></el-form-item>
-              <el-form-item label="计划游览景点"><el-input v-model="form.spots" placeholder="如：十三陵,居庸关" /></el-form-item>
+              <el-form-item label="计划游览的景点"><el-input v-model="form.spots" placeholder="例如：明十三陵、居庸关" /></el-form-item>
               <el-form-item label="交通方式"><el-select v-model="form.transport"><el-option label="公共交通" value="公共交通" /><el-option label="自驾" value="自驾" /><el-option label="混合" value="混合" /></el-select></el-form-item>
-              <el-form-item label="餐饮偏好"><el-select v-model="form.diningPref"><el-option label="简餐" value="简餐" /><el-option label="普通" value="普通" /><el-option label="美食体验" value="美食体验" /></el-select></el-form-item>
-              <el-form-item label="住宿要求"><el-select v-model="form.accommodation"><el-option label="经济型" value="经济型" /><el-option label="舒适型" value="舒适型" /><el-option label="高档" value="高档" /></el-select></el-form-item>
-              <el-button type="primary" @click="estimate" :loading="loading" style="width:100%">生成预算报告</el-button>
+              <el-form-item label="餐饮偏好"><el-select v-model="form.diningPref"><el-option label="简单" value="简单" /><el-option label="普通" value="普通" /><el-option label="精致" value="精致" /></el-select></el-form-item>
+              <el-form-item label="住宿标准"><el-select v-model="form.accommodation"><el-option label="经济" value="经济" /><el-option label="舒适" value="舒适" /><el-option label="豪华" value="豪华" /></el-select></el-form-item>
+              <el-button type="primary" @click="estimate" :loading="loading" style="width:100%">估算</el-button>
             </el-form>
           </el-card>
         </el-col>
         <el-col :span="14">
           <el-card class="result-card">
             <div v-if="!result && !loading" class="empty">填写左侧信息，点击生成预算</div>
-            <div v-if="loading" class="empty">AI正在计算预算...</div>
+            <div v-if="loading" class="empty">正在估算...</div>
             <div v-if="result">
               <h3 class="budget-total">💰 总预算：<span class="total-amount">{{ result.totalBudget }}</span></h3>
               <div class="categories">
@@ -52,14 +52,14 @@ import { aiApi } from '@/api/aiApi'
 
 const loading = ref(false)
 const result = ref<any>(null)
-const form = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' })
+const form = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济' })
 
 async function estimate() {
   loading.value = true; result.value = null
   try {
     const res = await aiApi.budget(form.value)
     result.value = res.data.data
-  } catch { result.value = { totalBudget: 'N/A', categories: [], suggestions: ['请检查AI配置'] } }
+  } catch { result.value = { totalBudget: '预算估算失败', categories: [], suggestions: ['请检查AI配置。'] } }
   finally { loading.value = false }
 }
 </script>

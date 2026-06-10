@@ -16,7 +16,7 @@ async function fetch() {
         diaries.value = r.data.data?.content || [];
     }
     catch (e) {
-        errorMsg.value = e?.message || 'Failed to load diaries. Please try again.';
+        errorMsg.value = e?.message || '加载游记失败，请稍后重试。';
         diaries.value = [];
     }
     finally {
@@ -139,7 +139,7 @@ else if (!__VLS_ctx.diaries.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
         ...{ style: {} },
     });
-    (__VLS_ctx.tab === 'mine' ? ' — start writing!' : '');
+    (__VLS_ctx.tab === 'mine' ? ' — 快来写第一篇！' : '');
 }
 else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({

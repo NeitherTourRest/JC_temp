@@ -3,22 +3,22 @@
     <div class="ai-chat-container">
       <!-- Mobile sidebar toggle -->
       <button class="sidebar-toggle" @click="showSidebar = !showSidebar">
-        <span>💬 {{ showSidebar ? 'Hide' : 'Chats' }}</span>
+        <span>💬 {{ showSidebar ? '隐藏' : '聊天' }}</span>
       </button>
 
       <!-- ── Left Sidebar: Session List ── -->
       <aside class="ai-sidebar" :class="{ open: showSidebar }">
         <div class="sidebar-header">
-          <h3 class="sidebar-title">💬 Chats</h3>
+          <h3 class="sidebar-title">💬 聊天</h3>
           <el-button type="primary" size="small" @click="handleNewChat">
-            + New Chat
+            + 新建聊天
           </el-button>
         </div>
 
         <div class="session-list" v-loading="ai.loading">
           <div v-if="!ai.loading && ai.sortedSessions.length === 0" class="empty-sessions">
-            <p>No chats yet</p>
-            <p class="text-sm">Start a new conversation!</p>
+            <p>暂无聊天</p>
+            <p class="text-sm">开始新的对话！</p>
           </div>
           <div
             v-for="session in ai.sortedSessions"
@@ -30,7 +30,7 @@
             <span class="session-title" :title="session.title">{{ session.title }}</span>
             <button
               class="session-delete"
-              title="Delete chat"
+              title="删除聊天"
               @click.stop="handleDeleteSession(session.id)"
             >&times;</button>
           </div>
@@ -43,8 +43,8 @@
           <!-- Welcome / empty state -->
           <div v-if="ai.messages.length === 0 && !ai.sending" class="chat-welcome">
             <div class="welcome-icon">🤖</div>
-            <h2>AI Travel Assistant</h2>
-            <p>Ask me about spots, food, routes, or plan your trip in Changping!</p>
+            <h2>AI 助手</h2>
+            <p>你好！我是你的昌平旅行AI助手。我可以回答关于景点、美食、路线的问题，也可以帮你规划行程！</p>
           </div>
 
           <!-- Messages -->
@@ -63,7 +63,7 @@
             <div class="msg-bubble assistant">
               <div class="msg-avatar">🤖</div>
               <div class="msg-content">
-                <span class="typing-dots">Thinking</span>
+                <span class="typing-dots">思考中</span>
               </div>
             </div>
           </div>
@@ -73,7 +73,7 @@
         <div class="input-bar">
           <el-input
             v-model="input"
-            placeholder="Ask me about travel..."
+            placeholder="问我任何旅行问题..."
             size="large"
             @keyup.enter="handleSend"
             :disabled="ai.sending"
@@ -85,7 +85,7 @@
             :loading="ai.sending"
             class="send-btn"
           >
-            SEND!
+            发送
           </el-button>
         </div>
       </div>

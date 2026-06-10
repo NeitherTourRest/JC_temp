@@ -20,12 +20,12 @@
       <!-- Loading / Error states -->
       <div v-if="pageLoading" class="loading-msg">
         <span class="loading-spinner"></span>
-        <span>Loading dashboard...</span>
+        <span>正在加载首页...</span>
       </div>
       <div v-else-if="pageError" class="error-msg">
         <span class="error-icon">⚠️</span>
         <span>{{ pageError }}</span>
-        <el-button size="small" @click="loadAll">Retry</el-button>
+        <el-button size="small" @click="loadAll">重试</el-button>
       </div>
       <template v-else>
         <!-- Categories -->
@@ -46,7 +46,7 @@
             <el-button text type="primary" @click="$router.push('/spots')">查看全部</el-button>
           </div>
           <div v-if="!featuredSpots.length" class="empty-inline">
-            <span>No spots available yet.</span>
+            <span>暂无景点数据</span>
           </div>
           <div v-else class="home-container">
             <div v-for="s in featuredSpots" :key="s.id" class="hao-card" @click="$router.push('/spots/' + s.id)">
@@ -72,7 +72,7 @@
             <el-button text type="primary" @click="$router.push('/diaries')">查看全部</el-button>
           </div>
           <div v-if="!recentDiaries.length" class="empty-inline">
-            <span>No diaries yet — be the first to write one!</span>
+            <span>暂无游记</span>
           </div>
           <div v-else class="diary-list">
             <div v-for="d in recentDiaries" :key="d.id" class="diary-card glass-sm" @click="$router.push('/diaries/' + d.id)">
@@ -136,7 +136,7 @@ async function loadAll() {
     if (sc?.data?.data?.totalElements != null) stats.value.spots = sc.data.data.totalElements
     if (d?.data?.data?.totalElements != null) stats.value.diaries = d.data.data.totalElements
   } catch (e: any) {
-    pageError.value = e?.message || 'Failed to load dashboard data.'
+    pageError.value = e?.message || '加载首页数据失败'
   } finally {
     pageLoading.value = false
   }

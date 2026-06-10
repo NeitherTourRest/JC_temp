@@ -20,7 +20,7 @@
               </span>
               <span v-if="food.priceRange" class="hero-price">{{ food.priceRange }}</span>
               <!-- Congestion badge -->
-              <span v-if="food.congestionLevel" class="hero-congestion" :class="'hc-' + food.congestionLevel.toLowerCase()">
+              <span v-if="congestionLevel" class="hero-congestion" :class="'hc-' + congestionLevel.toLowerCase()">
                 {{ congestionLabel }}
               </span>
             </div>
@@ -39,17 +39,38 @@
         <!-- Rating widget -->
         <section class="detail-section">
           <div class="rating-card glass-sm">
-            <h3>⭐ Rate this food</h3>
+            <h3>⭐ 给这个美食评分</h3>
             <div class="rate-row">
-              <el-rate v-model="userRating" :max="5" :disabled="rated" @change="onRateChange" size="large" show-score score-template="{value} / 5" />
-              <span v-if="rated" class="rated-badge">✓ You rated {{ userRating }}/5</span>
+              <el-rate v-model="userRating" :max="5" @change="onRateChange" size="large" show-score score-template="{value} / 5" />
+              <span v-if="rated" class="rated-badge">✓ 你的评分 {{ userRating }}/5</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Congestion report -->
+        <section class="detail-section">
+          <div class="rating-card glass-sm">
+            <h3>上报拥挤度</h3>
+            <div class="congestion-row">
+              <div class="congestion-badge" :class="['cong-' + congestionLevel.toLowerCase(), { 'cong-pulse': congJustReported }]">
+                <span class="cong-label">{{ congestionLabel }}</span>
+              </div>
+              <div class="congestion-report-group">
+                <button v-for="opt in congestionOptions" :key="opt.value"
+                  class="cong-btn" :class="{ active: selectedCongestion === opt.value }"
+                  @click="selectedCongestion = opt.value">
+                  {{ opt.label }}
+                </button>
+                <el-button size="small" type="primary" :loading="congLoading"
+                  :disabled="!selectedCongestion" @click="submitCongestion">提交</el-button>
+              </div>
             </div>
           </div>
         </section>
 
         <!-- AMap location -->
         <section class="detail-section">
-          <h3 class="section-title">📍 Location</h3>
+          <h3 class="section-title">📍 位置</h3>
           <div id="food-map-container" class="food-map"></div>
         </section>
 
@@ -68,7 +89,7 @@
 
         <!-- Nearby spots -->
         <section class="detail-section" v-if="nearbySpots.length">
-          <h3 class="section-title">📍 Nearby Spots</h3>
+          <h3 class="section-title">📍 附近景点</h3>
           <div class="nearby-spots-grid">
             <div v-for="s in nearbySpots" :key="s.id" class="nearby-spot-card" @click="$router.push('/spots/' + s.id)">
               <span class="ns-icon">🏞️</span>
@@ -82,8 +103,8 @@
 
         <!-- Reviews placeholder -->
         <section class="detail-section">
-          <h3 class="section-title">💬 Reviews</h3>
-          <div class="empty-hint">Reviews coming soon</div>
+          <h3 class="section-title">💬 评价</h3>
+          <div class="empty-hint">评价功能即将上线</div>
         </section>
       </template>
     </div>
@@ -92,22 +113,38 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Star, StarFilled, View, LocationFilled, Shop } from '@element-plus/icons-vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { foodApi } from '@/api/foodApi'
 import { spotApi } from '@/api/spotApi'
+import { useAuthStore } from '@/stores/authStore'
+import apiClient from '@/api/axios'
 import type { FoodResponse } from '@/types/api'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 const loading = ref(true)
 const foodId = computed(() => Number(route.params.id))
 const food = ref<FoodResponse | null>(null)
-const userRating = ref(0)
-const rated = ref(false)
+const userRating = ref(Number(localStorage.getItem('foodRating_' + route.params.id)) || 0)
+const rated = ref(userRating.value > 0)
 const nearbySpots = ref<any[]>([])
+const congestionLevel = ref('EMPTY')
+const congJustReported = ref(false)
+const selectedCongestion = ref('')
+const congLoading = ref(false)
 let mapInstance: any = null
+
+const congestionOptions = [
+  { value: 'OVERFLOWING', label: '爆满' },
+  { value: 'CROWDED', label: '拥挤' },
+  { value: 'MODERATE', label: '适中' },
+  { value: 'SPARSE', label: '较少' },
+  { value: 'EMPTY', label: '空闲' },
+]
 
 const heroStyle = computed(() => {
   const img = (food as any).value?.imageUrl
@@ -116,8 +153,11 @@ const heroStyle = computed(() => {
 })
 
 const congestionLabel = computed(() => {
-  const m: Record<string, string> = { OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '挺多', SPARSE: '挺少', EMPTY: '基本没人' }
-  return m[food.value?.congestionLevel || ''] || ''
+  const m: Record<string, string> = {
+    OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '适中',
+    SPARSE: '较少', EMPTY: '空闲',
+  }
+  return m[congestionLevel.value] || congestionLevel.value
 })
 
 function formatNumber(num: number): string {
@@ -147,9 +187,39 @@ async function onRateChange(rating: number) {
       food.value!.ratingCount = res.data.data.ratingCount
       userRating.value = rating
       rated.value = true
-      ElMessage.success('Rating submitted!')
+      localStorage.setItem('foodRating_' + food.value.id, String(rating))
+      ElMessage.success('评分已提交！')
     }
-  } catch { ElMessage.error('Rating failed') }
+  } catch { ElMessage.error('评分失败') }
+}
+
+async function submitCongestion() {
+  if (!selectedCongestion.value || !food.value) return
+  if (!authStore.isAuthenticated) {
+    ElMessage.warning('请先登录再上报拥挤度')
+    router.push('/login?redirect=' + route.path)
+    return
+  }
+  congLoading.value = true
+  try {
+    const r = await apiClient.post('/foods/' + food.value.id + '/congestion', null,
+      { params: { level: selectedCongestion.value } })
+    if (r.data.data) {
+      congestionLevel.value = (r.data.data as any).congestionLevel || selectedCongestion.value
+      congJustReported.value = true
+      setTimeout(() => { congJustReported.value = false }, 2000)
+      ElMessage.success('拥挤度已上报！')
+    }
+  } catch (e: any) {
+    console.error('Congestion error:', e)
+    if (e?.response?.status === 401) {
+      ElMessage.error('登录已过期 — 请重新登录')
+      authStore.logout()
+      router.push('/login?redirect=' + route.path)
+    } else {
+      ElMessage.error('拥挤度上报失败：' + (e?.response?.data?.message || e?.message || '服务器错误'))
+    }
+  } finally { congLoading.value = false }
 }
 
 async function loadFood() {
@@ -157,6 +227,7 @@ async function loadFood() {
   try {
     const res = await foodApi.getById(foodId.value)
     food.value = res.data.data
+    congestionLevel.value = res.data.data?.congestionLevel || 'EMPTY'
     // Try to load nearby spots
     const spotRes = await spotApi.search({ size: 5 })
     nearbySpots.value = spotRes.data.data?.content?.slice(0, 5) || []
@@ -223,6 +294,21 @@ onBeforeUnmount(() => {
   padding: 4px 12px; background: rgba(58,210,159,0.12);
   border: 1px solid rgba(58,210,159,0.3); border-radius: var(--radius-pill);
 }
+
+/* Congestion (matches SpotDetailView) */
+.congestion-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.congestion-badge { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--frosted-border); font-weight: 700; font-size: 16px; }
+.cong-overflowing { background: rgba(255,59,59,0.35); color: #ff6b6b; }
+.cong-crowded { background: rgba(255,145,0,0.35); color: #ffb347; }
+.cong-moderate { background: rgba(255,193,7,0.35); color: #ffd700; }
+.cong-sparse { background: rgba(58,210,159,0.4); color: #6fcf97; }
+.cong-empty { background: rgba(124,215,238,0.35); color: #7cd7ee; }
+.cong-pulse { animation: congPulse 0.6s ease-in-out 3; }
+@keyframes congPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1);box-shadow:0 0 20px rgba(124,215,238,0.4)} }
+.congestion-report-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
+.cong-btn { padding: 4px 12px; border: 1px solid var(--frosted-border); border-radius: var(--radius-pill); background: var(--frosted-bg); color: var(--text-regular); cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.2s ease; }
+.cong-btn:hover { color: var(--text-primary); border-color: rgba(124,215,238,0.3); }
+.cong-btn.active { background: rgba(124,215,238,0.15); color: #7cd7ee; border-color: rgba(124,215,238,0.4); }
 
 /* Nearby spots */
 .nearby-spots-grid { display: flex; flex-direction: column; gap: 8px; }

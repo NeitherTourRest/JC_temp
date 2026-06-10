@@ -23,7 +23,7 @@ async function fetch() {
         foods.value = r.data.data?.content || [];
     }
     catch (e) {
-        errorMsg.value = e?.message || 'Failed to load foods. Please try again.';
+        errorMsg.value = e?.message || '加载美食失败，请重试。';
         foods.value = [];
     }
     finally {

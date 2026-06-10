@@ -29,6 +29,9 @@ import static org.mockito.Mockito.*;
 class FoodServiceTest {
 
     @Mock private FoodRepository foodRepository;
+    @Mock private com.journeycraft.jc.food.repository.FoodReviewRepository foodReviewRepository;
+    @Mock private com.journeycraft.jc.user.repository.UserRepository userRepository;
+    @Mock private com.journeycraft.jc.common.service.CongestionService congestionService;
     @Mock private com.journeycraft.jc.navigation.graph.Graph navigationGraph;
     @Mock private SpotRepository spotRepository;
 
@@ -38,7 +41,7 @@ class FoodServiceTest {
 
     @BeforeEach
     void setUp() {
-        foodService = new FoodService(foodRepository, navigationGraph, spotRepository);
+        foodService = new FoodService(foodRepository, foodReviewRepository, userRepository, congestionService, navigationGraph, spotRepository);
 
         pizza = Food.builder().id(1L).name("Margherita Pizza").cuisine("Italian")
                 .restaurantName("Pizza Palace").popularity(90).avgRating(BigDecimal.valueOf(4.5))

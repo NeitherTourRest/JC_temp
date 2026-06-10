@@ -4,7 +4,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { aiApi } from '@/api/aiApi';
 const loading = ref(false);
 const result = ref(null);
-const form = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' });
+const form = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济' });
 async function estimate() {
     loading.value = true;
     result.value = null;
@@ -13,7 +13,7 @@ async function estimate() {
         result.value = res.data.data;
     }
     catch {
-        result.value = { totalBudget: 'N/A', categories: [], suggestions: ['请检查AI配置'] };
+        result.value = { totalBudget: '预算估算失败', categories: [], suggestions: ['请检查AI配置。'] };
     }
     finally {
         loading.value = false;
@@ -85,10 +85,10 @@ const __VLS_20 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
 const __VLS_21 = __VLS_asFunctionalComponent(__VLS_20, new __VLS_20({
-    label: "旅行天数",
+    label: "天数",
 }));
 const __VLS_22 = __VLS_21({
-    label: "旅行天数",
+    label: "天数",
 }, ...__VLS_functionalComponentArgsRest(__VLS_21));
 __VLS_23.slots.default;
 const __VLS_24 = {}.ElInputNumber;
@@ -133,10 +133,10 @@ const __VLS_36 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
 const __VLS_37 = __VLS_asFunctionalComponent(__VLS_36, new __VLS_36({
-    label: "计划游览景点",
+    label: "计划游览的景点",
 }));
 const __VLS_38 = __VLS_37({
-    label: "计划游览景点",
+    label: "计划游览的景点",
 }, ...__VLS_functionalComponentArgsRest(__VLS_37));
 __VLS_39.slots.default;
 const __VLS_40 = {}.ElInput;
@@ -144,11 +144,11 @@ const __VLS_40 = {}.ElInput;
 // @ts-ignore
 const __VLS_41 = __VLS_asFunctionalComponent(__VLS_40, new __VLS_40({
     modelValue: (__VLS_ctx.form.spots),
-    placeholder: "如：十三陵,居庸关",
+    placeholder: "例如：明十三陵、居庸关",
 }));
 const __VLS_42 = __VLS_41({
     modelValue: (__VLS_ctx.form.spots),
-    placeholder: "如：十三陵,居庸关",
+    placeholder: "例如：明十三陵、居庸关",
 }, ...__VLS_functionalComponentArgsRest(__VLS_41));
 var __VLS_39;
 const __VLS_44 = {}.ElFormItem;
@@ -230,12 +230,12 @@ const __VLS_72 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
 // @ts-ignore
 const __VLS_73 = __VLS_asFunctionalComponent(__VLS_72, new __VLS_72({
-    label: "简餐",
-    value: "简餐",
+    label: "简单",
+    value: "简单",
 }));
 const __VLS_74 = __VLS_73({
-    label: "简餐",
-    value: "简餐",
+    label: "简单",
+    value: "简单",
 }, ...__VLS_functionalComponentArgsRest(__VLS_73));
 const __VLS_76 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
@@ -252,12 +252,12 @@ const __VLS_80 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
 // @ts-ignore
 const __VLS_81 = __VLS_asFunctionalComponent(__VLS_80, new __VLS_80({
-    label: "美食体验",
-    value: "美食体验",
+    label: "精致",
+    value: "精致",
 }));
 const __VLS_82 = __VLS_81({
-    label: "美食体验",
-    value: "美食体验",
+    label: "精致",
+    value: "精致",
 }, ...__VLS_functionalComponentArgsRest(__VLS_81));
 var __VLS_71;
 var __VLS_67;
@@ -265,10 +265,10 @@ const __VLS_84 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
 const __VLS_85 = __VLS_asFunctionalComponent(__VLS_84, new __VLS_84({
-    label: "住宿要求",
+    label: "住宿标准",
 }));
 const __VLS_86 = __VLS_85({
-    label: "住宿要求",
+    label: "住宿标准",
 }, ...__VLS_functionalComponentArgsRest(__VLS_85));
 __VLS_87.slots.default;
 const __VLS_88 = {}.ElSelect;
@@ -285,34 +285,34 @@ const __VLS_92 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
 // @ts-ignore
 const __VLS_93 = __VLS_asFunctionalComponent(__VLS_92, new __VLS_92({
-    label: "经济型",
-    value: "经济型",
+    label: "经济",
+    value: "经济",
 }));
 const __VLS_94 = __VLS_93({
-    label: "经济型",
-    value: "经济型",
+    label: "经济",
+    value: "经济",
 }, ...__VLS_functionalComponentArgsRest(__VLS_93));
 const __VLS_96 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
 // @ts-ignore
 const __VLS_97 = __VLS_asFunctionalComponent(__VLS_96, new __VLS_96({
-    label: "舒适型",
-    value: "舒适型",
+    label: "舒适",
+    value: "舒适",
 }));
 const __VLS_98 = __VLS_97({
-    label: "舒适型",
-    value: "舒适型",
+    label: "舒适",
+    value: "舒适",
 }, ...__VLS_functionalComponentArgsRest(__VLS_97));
 const __VLS_100 = {}.ElOption;
 /** @type {[typeof __VLS_components.ElOption, typeof __VLS_components.elOption, ]} */ ;
 // @ts-ignore
 const __VLS_101 = __VLS_asFunctionalComponent(__VLS_100, new __VLS_100({
-    label: "高档",
-    value: "高档",
+    label: "豪华",
+    value: "豪华",
 }));
 const __VLS_102 = __VLS_101({
-    label: "高档",
-    value: "高档",
+    label: "豪华",
+    value: "豪华",
 }, ...__VLS_functionalComponentArgsRest(__VLS_101));
 var __VLS_91;
 var __VLS_87;

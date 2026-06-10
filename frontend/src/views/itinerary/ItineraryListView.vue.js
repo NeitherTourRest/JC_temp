@@ -88,7 +88,7 @@ async function fetchItineraries() {
         }
     }
     catch (e) {
-        ElMessage.error('Failed to load trips');
+        ElMessage.error('加载行程失败');
         console.error(e);
     }
     finally {
@@ -110,12 +110,12 @@ async function handleCreate() {
     submitting.value = true;
     try {
         await itineraryApi.create({ name: createForm.name });
-        ElMessage.success('Trip created!');
+        ElMessage.success('行程已创建！');
         createDialogVisible.value = false;
         await fetchItineraries();
     }
     catch (e) {
-        ElMessage.error('Failed to create trip');
+        ElMessage.error('创建行程失败');
         console.error(e);
     }
     finally {
@@ -128,11 +128,11 @@ async function handleCreate() {
 async function handleDelete(id) {
     try {
         await itineraryApi.del(id);
-        ElMessage.success('Trip deleted');
+        ElMessage.success('行程已删除');
         await fetchItineraries();
     }
     catch (e) {
-        ElMessage.error('Failed to delete trip');
+        ElMessage.error('删除行程失败');
         console.error(e);
     }
 }
@@ -547,7 +547,7 @@ async function sendAiMessage() {
         }
     }
     catch {
-        aiMessages.value.push({ role: 'assistant', content: '⚠️ Failed to get AI response.', time: '' });
+        aiMessages.value.push({ role: 'assistant', content: '⚠️ 获取AI回复失败', time: '' });
     }
     finally {
         aiLoading.value = false;
@@ -594,7 +594,7 @@ async function generatePlan() {
         planResult.value = res.data.data;
     }
     catch {
-        planResult.value = { title: 'Request failed', days: [], tips: ['Check AI config'], estimatedCost: '' };
+        planResult.value = { title: '请求失败', days: [], tips: ['请检查AI配置'], estimatedCost: '' };
     }
     finally {
         planLoading.value = false;
@@ -617,7 +617,7 @@ async function estimateBudget() {
 function applyPlanResult() {
     if (!planResult.value || !planResult.value.days)
         return;
-    // Build tripPlan days from plan result
+    // Build tripPlan days from plan result with spot/food matching
     tripPlan.days = planResult.value.days.map((day, di) => ({
         dayIndex: di + 1,
         date: day.date || `Day ${di + 1}`,
@@ -625,7 +625,7 @@ function applyPlanResult() {
             const st = a.time || '09:00';
             const [sh, sm] = st.split(':').map(Number);
             const endH = Math.min(sh + 1, 23);
-            return {
+            const base = {
                 id: nextItemId(),
                 startTime: st,
                 endTime: `${String(endH).padStart(2, '0')}:${String(sm).padStart(2, '0')}`,
@@ -633,10 +633,35 @@ function applyPlanResult() {
                 text: a.activity || '',
                 type: 'text',
             };
+            if (a.matchedType === 'spot' && a.matchedLat != null && a.matchedLng != null) {
+                base.type = 'spot';
+                base.spotId = a.matchedSpotId;
+                base.spotName = a.matchedName || a.activity;
+                base.lat = a.matchedLat;
+                base.lng = a.matchedLng;
+            }
+            else if (a.matchedType === 'food' && a.matchedLat != null && a.matchedLng != null) {
+                base.type = 'food';
+                base.foodId = a.matchedFoodId;
+                base.foodName = a.matchedName || a.activity;
+                base.lat = a.matchedLat;
+                base.lng = a.matchedLng;
+            }
+            return base;
         }),
     }));
-    ElMessage.success('Plan applied to trip');
+    ElMessage.success('已应用AI规划至行程 — 已关联 ' + countMatched(planResult.value.days) + ' 个地点');
     aiPlanDialogVisible.value = false;
+}
+function countMatched(days) {
+    let n = 0;
+    for (const d of days) {
+        for (const a of (d.schedule || [])) {
+            if (a.matchedType === 'spot' || a.matchedType === 'food')
+                n++;
+        }
+    }
+    return n;
 }
 /* ───────────────────────────────────────────────────────
    Planning mode: save
@@ -684,7 +709,7 @@ async function routeDayPlan() {
         ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(totalDistance)} · ${formatTime(estimatedMinutes)}`);
     }
     catch (e) {
-        ElMessage.error('Route planning failed');
+        ElMessage.error('路线规划失败');
         console.error(e);
     }
     finally {
@@ -728,7 +753,7 @@ async function handleSave() {
         ElMessage.success('Trip saved!');
     }
     catch (e) {
-        ElMessage.error('Failed to save trip');
+        ElMessage.error('保存行程失败');
         console.error(e);
     }
 }
@@ -929,15 +954,15 @@ if (__VLS_ctx.viewMode === 'list') {
             // @ts-ignore
             const __VLS_29 = __VLS_asFunctionalComponent(__VLS_28, new __VLS_28({
                 ...{ 'onConfirm': {} },
-                title: "Delete this trip?",
-                confirmButtonText: "Delete",
-                cancelButtonText: "Cancel",
+                title: "确定删除此行程？",
+                confirmButtonText: "删除",
+                cancelButtonText: "取消",
             }));
             const __VLS_30 = __VLS_29({
                 ...{ 'onConfirm': {} },
-                title: "Delete this trip?",
-                confirmButtonText: "Delete",
-                cancelButtonText: "Cancel",
+                title: "确定删除此行程？",
+                confirmButtonText: "删除",
+                cancelButtonText: "取消",
             }, ...__VLS_functionalComponentArgsRest(__VLS_29));
             let __VLS_32;
             let __VLS_33;
@@ -959,7 +984,7 @@ if (__VLS_ctx.viewMode === 'list') {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
                     ...{ onClick: () => { } },
                     ...{ class: "trip-delete-btn" },
-                    title: "Delete trip",
+                    title: "删除行程",
                 });
             }
             var __VLS_31;
@@ -1452,7 +1477,7 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (__VLS_ctx.openBudgetDialog) },
         ...{ class: "ai-float-btn" },
-        title: "Budget",
+        title: "预算",
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (__VLS_ctx.openAiDialog) },
@@ -1938,6 +1963,21 @@ else {
                     ...{ class: "act-time" },
                 });
                 (act.time);
+                if (act.matchedType === 'spot') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "act-match-icon" },
+                    });
+                }
+                else if (act.matchedType === 'food') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "act-match-icon" },
+                    });
+                }
+                else {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "act-match-icon" },
+                    });
+                }
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
                 (act.activity);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
@@ -2105,10 +2145,10 @@ else {
     /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
     // @ts-ignore
     const __VLS_289 = __VLS_asFunctionalComponent(__VLS_288, new __VLS_288({
-        label: "Spots to Visit",
+        label: "游览景点",
     }));
     const __VLS_290 = __VLS_289({
-        label: "Spots to Visit",
+        label: "游览景点",
     }, ...__VLS_functionalComponentArgsRest(__VLS_289));
     __VLS_291.slots.default;
     const __VLS_292 = {}.ElInput;
@@ -2116,11 +2156,11 @@ else {
     // @ts-ignore
     const __VLS_293 = __VLS_asFunctionalComponent(__VLS_292, new __VLS_292({
         modelValue: (__VLS_ctx.budgetForm.spots),
-        placeholder: "e.g. 十三陵,居庸关",
+        placeholder: "例如：十三陵、居庸关",
     }));
     const __VLS_294 = __VLS_293({
         modelValue: (__VLS_ctx.budgetForm.spots),
-        placeholder: "e.g. 十三陵,居庸关",
+        placeholder: "例如：十三陵、居庸关",
     }, ...__VLS_functionalComponentArgsRest(__VLS_293));
     var __VLS_291;
     const __VLS_296 = {}.ElRow;
@@ -2825,6 +2865,9 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['day-block']} */ ;
 /** @type {__VLS_StyleScopedClasses['activity']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-time']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-loc']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-tips']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-cost']} */ ;

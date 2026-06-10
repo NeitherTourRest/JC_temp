@@ -1,85 +1,89 @@
 <template>
   <DefaultLayout>
-    <div class="detail-page" v-loading="loading">
-      <div v-if="!loading && !spot" class="error-state">
-        <h2>404</h2>
-        <p>Spot not found</p>
-        <el-button type="primary" @click="$router.push('/spots')">← Back to Spots</el-button>
-      </div>
+    <div v-loading="loading" class="spot-detail">
+      <el-result v-if="!loading && !spot" icon="error" title="景点未找到" sub-title="无法加载该景点信息">
+        <template #extra><el-button type="primary" @click="$router.push('/spots')">返回景点列表</el-button></template>
+      </el-result>
 
       <template v-if="spot">
         <!-- Hero -->
-        <div class="detail-hero" :style="{ background: heroBg }">
-          <div class="hero-overlay"></div>
+        <section class="hero" :style="{ background: heroBg }">
+          <div class="hero-overlay" />
           <div class="hero-content">
-            <el-button class="back-btn" text @click="$router.push('/spots')">← BACK</el-button>
-            <h1>{{ spot.name }}</h1>
-            <div class="hero-tags">
+            <div class="hero-badges">
               <el-tag size="small" type="warning">{{ spot.category }}</el-tag>
-              <el-tag v-if="spot.address" size="small" type="primary">📍 {{ spot.address }}</el-tag>
+              <el-tag v-if="spot.address" size="small" type="primary">{{ spot.address }}</el-tag>
+              <span class="hero-rating">{{ spot.avgRating?.toFixed(1) || '--' }}</span>
+              <span v-if="spot.ticketPrice" class="hero-price">¥{{ spot.ticketPrice }}</span>
+              <span class="hero-congestion" :class="'hc-' + congestionLevel.toLowerCase()">
+                {{ congestionLabel }}
+              </span>
+            </div>
+            <h1 class="hero-title">{{ spot.name }}</h1>
+            <p v-if="spot.description" class="hero-description">{{ spot.description }}</p>
+            <div class="hero-meta">
+              <div class="meta-item">{{ spot.popularity || 0 }} 浏览</div>
+              <div class="meta-item">{{ spot.ratingCount || 0 }} 评论</div>
+              <div v-if="spot.openingHours" class="meta-item">{{ spot.openingHours }}</div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Stats row -->
-        <div class="stats-row">
-          <div class="stat-item"><span class="stat-num">⭐ {{ spot.avgRating?.toFixed(1) || '—' }}</span><span>Rating</span></div>
-          <div class="stat-item"><span class="stat-num">👁 {{ spot.popularity || 0 }}</span><span>Popularity</span></div>
-          <div class="stat-item"><span class="stat-num">📝 {{ spot.ratingCount || 0 }}</span><span>Reviews</span></div>
-          <div class="stat-item" v-if="spot.ticketPrice"><span class="stat-num">¥{{ spot.ticketPrice }}</span><span>Ticket</span></div>
-        </div>
-
-        <!-- Congestion display + report -->
-        <div class="content-section">
-          <div class="congestion-row">
-            <div class="congestion-badge" :class="['cong-' + congestionLevel.toLowerCase(), { 'cong-pulse': congJustReported }]">
-              <span class="cong-icon">{{ congestionIcon }}</span>
-              <span class="cong-label">{{ congestionLabel }}</span>
-            </div>
-            <div class="congestion-report-group">
-              <span class="cong-report-hint">Report current crowd:</span>
-              <button v-for="opt in congestionOptions" :key="opt.value"
-                class="cong-btn" :class="{ active: selectedCongestion === opt.value }"
-                @click="selectedCongestion = opt.value">
-                {{ opt.label }}
-              </button>
-              <el-button size="small" type="primary" :loading="congLoading"
-                :disabled="!selectedCongestion" @click="submitCongestion">Submit</el-button>
+        <!-- Rating widget -->
+        <section class="detail-section">
+          <div class="rating-card glass-sm">
+            <h3>给这个景点评分</h3>
+            <div class="rate-row">
+              <el-rate v-model="userRating" :max="5" @change="onRateChange" size="large" show-score score-template="{value} / 5" />
+              <span v-if="rated" class="rated-badge">你的评分 {{ userRating }}/5</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Description -->
-        <div class="content-section">
-          <div class="content-card">
-            <h3>📖 About</h3>
-            <p>{{ spot.description || 'No description available.' }}</p>
-            <div v-if="spot.openingHours" class="info-line"><strong>🕐 Hours:</strong> {{ spot.openingHours }}</div>
+        <!-- Congestion report -->
+        <section class="detail-section">
+          <div class="rating-card glass-sm">
+            <h3>上报拥挤度</h3>
+            <div class="congestion-row">
+              <div class="congestion-badge" :class="'cong-' + congestionLevel.toLowerCase()">
+                <span class="cong-label">{{ congestionLabel }}</span>
+              </div>
+              <div class="congestion-report-group">
+                <button v-for="opt in congestionOptions" :key="opt.value"
+                  class="cong-btn" :class="{ active: selectedCongestion === opt.value }"
+                  @click="selectedCongestion = opt.value">
+                  {{ opt.label }}
+                </button>
+                <el-button size="small" type="primary" :loading="congLoading"
+                  :disabled="!selectedCongestion" @click="submitCongestion">提交</el-button>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
         <!-- AMap location -->
-        <div class="content-section">
-          <h3 class="section-title">📍 Location</h3>
+        <section class="detail-section">
+          <h3 class="section-title">位置</h3>
           <div id="spot-map-container" class="spot-map"></div>
-        </div>
+        </section>
 
-        <!-- User rating widget -->
-        <div class="content-section">
-          <div class="rating-card">
-            <h3>⭐ Rate this spot</h3>
-            <div class="rate-row">
-              <el-rate v-model="userRating" :max="5" :disabled="rated"
-                @change="onRateChange" size="large" show-score
-                score-template="{value} / 5" />
-              <span v-if="rated" class="rated-badge">✓ You rated {{ userRating }}/5</span>
-            </div>
-          </div>
-        </div>
+        <!-- Detail table -->
+        <section class="detail-section">
+          <el-descriptions :column="2" border size="large" title="景点详情">
+            <el-descriptions-item label="名称">{{ spot.name }}</el-descriptions-item>
+            <el-descriptions-item label="类别"><el-tag size="small">{{ spot.category }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="评分">{{ spot.avgRating?.toFixed(1) }} / 5.0</el-descriptions-item>
+            <el-descriptions-item label="热度">{{ spot.popularity || 0 }}</el-descriptions-item>
+            <el-descriptions-item v-if="spot.address" label="地址" :span="2">{{ spot.address }}</el-descriptions-item>
+            <el-descriptions-item v-if="spot.openingHours" label="营业时间">{{ spot.openingHours }}</el-descriptions-item>
+            <el-descriptions-item v-if="spot.ticketPrice" label="门票">¥{{ spot.ticketPrice }}</el-descriptions-item>
+            <el-descriptions-item v-if="spot.description" label="描述" :span="2">{{ spot.description }}</el-descriptions-item>
+          </el-descriptions>
+        </section>
 
         <!-- Facilities -->
-        <div class="content-section" v-if="facilities.length">
-          <h3 class="section-title">🏗️ Facilities</h3>
+        <section class="detail-section" v-if="facilities.length">
+          <h3 class="section-title">设施</h3>
           <div v-for="(group, cat) in groupedFacilities" :key="cat" class="facility-group">
             <h4 class="fac-group-title">{{ group.label }}</h4>
             <div class="facility-grid">
@@ -91,38 +95,51 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Nearby food by walking distance -->
-        <div class="content-section" v-if="walkingFoods.length">
-          <h3 class="section-title">🍜 Nearby Food (walking distance)</h3>
+        <section class="detail-section" v-if="walkingFoods.length">
+          <h3 class="section-title">附近美食（步行距离）</h3>
           <div class="walking-food-list">
             <div v-for="f in walkingFoods" :key="f.id" class="walking-food-card" @click="$router.push('/foods/' + f.id)">
               <div class="wfc-top">
                 <strong class="wfc-name">{{ f.name }}</strong>
-                <span class="wfc-rating">⭐ {{ f.avgRating?.toFixed(1) || '—' }}</span>
+                <span class="wfc-rating">{{ f.avgRating?.toFixed(1) || '--' }}</span>
               </div>
               <div class="wfc-meta">
                 <span v-if="f.cuisine" class="wfc-cuisine">{{ f.cuisine }}</span>
-                <span v-if="f.restaurantName" class="wfc-restaurant">🏪 {{ f.restaurantName }}</span>
-                <span class="wfc-distance">🚶 ~{{ walkingDistance(f) }}m</span>
+                <span v-if="f.restaurantName" class="wfc-restaurant">{{ f.restaurantName }}</span>
+                <span class="wfc-distance">~{{ walkingDistance(f) }}m</span>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        <!-- Nearby spots -->
+        <section class="detail-section" v-if="featuredSpots.length">
+          <h3 class="section-title">附近景点</h3>
+          <div class="nearby-spots-grid">
+            <div v-for="s in featuredSpots" :key="s.id" class="nearby-spot-card" @click="$router.push('/spots/' + s.id)">
+              <div class="ns-info">
+                <strong>{{ s.name }}</strong>
+                <span>{{ s.category }} - {{ s.avgRating?.toFixed(1) }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- Reviews -->
-        <div class="content-section">
-          <h3 class="section-title">💬 Reviews</h3>
-          <div v-if="!reviews.length" class="empty-hint">No reviews yet. Be the first!</div>
+        <section class="detail-section">
+          <h3 class="section-title">评价</h3>
+          <div v-if="!reviews.length" class="empty-hint">暂无评价，快来写第一条！</div>
           <div v-for="r in reviews" :key="r.id" class="review-card">
             <div class="review-header">
               <strong>User #{{ r.userId }}</strong>
-              <span>⭐ {{ r.rating }}/5</span>
+              <span>{{ r.rating }}/5</span>
             </div>
             <p v-if="r.content">{{ r.content }}</p>
           </div>
-        </div>
+        </section>
       </template>
     </div>
   </DefaultLayout>
@@ -153,6 +170,7 @@ const spot = ref<SpotResponse | null>(null)
 const reviews = ref<any[]>([])
 const facilities = ref<FacilityItem[]>([])
 const walkingFoods = ref<FoodItem[]>([])
+const featuredSpots = ref<any[]>([])
 const loading = ref(true)
 const congestionLevel = ref('EMPTY')
 const congJustReported = ref(false)
@@ -164,48 +182,40 @@ const congLoading = ref(false)
 
 let mapInstance: any = null
 
-const colors = ['#ffdd00', '#ff69b4', '#00bfff', '#00e676', '#ff9100']
-const heroColor = computed(() => colors[(spot.value?.id || 0) % colors.length])
 const heroBg = computed(() => {
-  const img = (spot.value as any)?.imageUrl
-  if (img) return `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${img}) center/cover no-repeat`
-  return heroColor.value
+  const img = (spot as any).value?.imageUrl
+  if (img) return `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${img}) center/cover`
+  return 'linear-gradient(135deg, #a76fd7, #7cd7ee)'
 })
 
 const congestionOptions = [
   { value: 'OVERFLOWING', label: '爆满' },
   { value: 'CROWDED', label: '拥挤' },
-  { value: 'MODERATE', label: '挺多' },
-  { value: 'SPARSE', label: '挺少' },
-  { value: 'EMPTY', label: '基本没人' }
+  { value: 'MODERATE', label: '适中' },
+  { value: 'SPARSE', label: '较少' },
+  { value: 'EMPTY', label: '空闲' },
 ]
 
 const congestionLabel = computed(() => {
   const m: Record<string, string> = {
-    OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '挺多', SPARSE: '挺少', EMPTY: '基本没人'
+    OVERFLOWING: '爆满', CROWDED: '拥挤', MODERATE: '适中',
+    SPARSE: '较少', EMPTY: '空闲',
   }
   return m[congestionLevel.value] || congestionLevel.value
 })
 
-const congestionIcon = computed(() => {
-  const m: Record<string, string> = {
-    OVERFLOWING: '🔴', CROWDED: '🟠', MODERATE: '🟡', SPARSE: '🟢', EMPTY: '🔵'
-  }
-  return m[congestionLevel.value] || '⚪'
-})
-
 function facilityIcon(category: string): string {
   const icons: Record<string, string> = {
-    TOILET: '🚻', PARKING: '🅿️', SERVICE: '🔧', SHOP: '🏪',
-    CAFE: '☕', HOSPITAL: '🏥', AED: '❤️', ATM: '🏧', INFO: 'ℹ️', RESTAURANT: '🍽️'
+    TOILET: '[W]', PARKING: '[P]', SERVICE: '[S]', SHOP: '[M]',
+    CAFE: '[C]', HOSPITAL: '[H]', AED: '[+]', ATM: '[A]', INFO: '[i]', RESTAURANT: '[R]',
   }
-  return icons[category] || '📍'
+  return icons[category] || '[?]'
 }
 
 const categoryLabels: Record<string, string> = {
-  TOILET: '🚻 Toilets', PARKING: '🅿️ Parking', SERVICE: '🔧 Service', SHOP: '🏪 Shops',
-  CAFE: '☕ Cafes', HOSPITAL: '🏥 Medical', AED: '❤️ AED', ATM: '🏧 ATMs', INFO: 'ℹ️ Info',
-  RESTAURANT: '🍽️ Restaurants'
+  TOILET: 'Toilets', PARKING: 'Parking', SERVICE: 'Service', SHOP: 'Shops',
+  CAFE: 'Cafes', HOSPITAL: 'Medical', AED: 'AED', ATM: 'ATMs', INFO: 'Info',
+  RESTAURANT: 'Restaurants',
 }
 
 const groupedFacilities = computed(() => {
@@ -234,14 +244,10 @@ function highlightFacility(f: FacilityItem) {
 function initMap(lat: number, lng: number) {
   const container = document.getElementById('spot-map-container')
   if (!container) return
-
-  // Wait for AMap SDK
   const tryInit = () => {
     if (!(window as any).AMap) { setTimeout(tryInit, 500); return }
     const AMap = (window as any).AMap
-    mapInstance = new AMap.Map(container, {
-      zoom: 15, center: [lng, lat], resizeEnable: true
-    })
+    mapInstance = new AMap.Map(container, { zoom: 15, center: [lng, lat], resizeEnable: true })
     new AMap.Marker({ position: [lng, lat], map: mapInstance })
   }
   tryInit()
@@ -250,7 +256,7 @@ function initMap(lat: number, lng: number) {
 async function onRateChange(rating: number) {
   if (rating < 1 || !spot.value) { userRating.value = 0; return }
   if (!authStore.isAuthenticated) {
-    ElMessage.warning('Please log in to rate spots')
+    ElMessage.warning('请先登录再评分')
     router.push('/login?redirect=' + route.path)
     userRating.value = 0
     return
@@ -266,16 +272,16 @@ async function onRateChange(rating: number) {
       userRating.value = rating
       rated.value = true
       localStorage.setItem('spotRating_' + spot.value.id, String(rating))
-      ElMessage.success('Rating submitted!')
+      ElMessage.success('评分已提交！')
     }
   } catch (e: any) {
     console.error('Rate error:', e)
     if (e?.response?.status === 401) {
-      ElMessage.error('Session expired — please log in again')
+      ElMessage.error('登录已过期 - 请重新登录')
       authStore.logout()
       router.push('/login?redirect=' + route.path)
     } else {
-      ElMessage.error('Failed to submit rating: ' + (e?.response?.data?.message || e?.message || 'unknown error'))
+      ElMessage.error('评分提交失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
     }
   } finally { rateLoading.value = false }
 }
@@ -283,7 +289,7 @@ async function onRateChange(rating: number) {
 async function submitCongestion() {
   if (!selectedCongestion.value || !spot.value) return
   if (!authStore.isAuthenticated) {
-    ElMessage.warning('Please log in to report congestion')
+    ElMessage.warning('请先登录再上报拥挤度')
     router.push('/login?redirect=' + route.path)
     return
   }
@@ -295,16 +301,16 @@ async function submitCongestion() {
       congestionLevel.value = (r.data.data as any).congestionLevel || selectedCongestion.value
       congJustReported.value = true
       setTimeout(() => { congJustReported.value = false }, 2000)
-      ElMessage.success('Congestion reported!')
+      ElMessage.success('拥挤度已上报！')
     }
   } catch (e: any) {
     console.error('Congestion error:', e)
     if (e?.response?.status === 401) {
-      ElMessage.error('Session expired — please log in again')
+      ElMessage.error('登录已过期 - 请重新登录')
       authStore.logout()
       router.push('/login?redirect=' + route.path)
     } else {
-      ElMessage.error('Failed to report congestion: ' + (e?.response?.data?.message || e?.message || 'server error'))
+      ElMessage.error('拥挤度上报失败：' + (e?.response?.data?.message || e?.message || '服务器错误'))
     }
   } finally { congLoading.value = false }
 }
@@ -324,13 +330,15 @@ onMounted(async () => {
   finally { loading.value = false }
 
   if (spot.value) {
-    // Wait a tick for DOM to render before init map
     nextTick(() => initMap(spot.value!.latitude, spot.value!.longitude))
-
-    // Fetch nearby foods by walking distance
     try {
       const nearby = await apiClient.get('/spots/' + id + '/foods/nearby', { params: { maxDistance: 2000 } })
       if (nearby.data.data) walkingFoods.value = nearby.data.data
+    } catch { /* okay */ }
+    try {
+      const s = await spotApi.search({ size: 6 })
+      const all = s.data.data?.content || []
+      featuredSpots.value = all.filter((x: any) => x.id !== id).slice(0, 4)
     } catch { /* okay */ }
   }
 })
@@ -341,176 +349,85 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.detail-page { max-width: 800px; margin: 0 auto; }
-.error-state { text-align: center; padding: 80px 20px; color: var(--text-primary); }
-.error-state h2 { font-size: 4rem; margin: 0; }
-
-/* Hero — frosted glass */
-.detail-hero {
-  position: relative; padding: 40px 24px; margin-bottom: 16px;
-  border: 1px solid var(--frosted-border); border-radius: var(--radius-card);
-  box-shadow: var(--neu-shadow); min-height: 180px;
-  display: flex; align-items: flex-end; overflow: hidden;
+.spot-detail { max-width: 900px; margin: 0 auto; }
+.hero {
+  position: relative; min-height: 240px;
+  border-radius: var(--radius-card);
+  overflow: hidden; margin-bottom: 20px;
+  display: flex; align-items: flex-end;
+  background-size: cover !important;
+  background-position: center !important;
 }
 .hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
-  pointer-events: none; border-radius: var(--radius-card);
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+  pointer-events: none;
 }
-.hero-content { position: relative; z-index: 1; color: #fff; width: 100%; }
-.back-btn { margin-bottom: 12px; }
-.detail-hero h1 {
-  font-size: 2rem; margin: 8px 0; letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5); color: #fff;
-  overflow-wrap: break-word;
+.hero-content {
+  position: relative; z-index: 1;
+  padding: 24px; width: 100%;
+  color: #fff;
 }
-.hero-tags :deep(.el-tag) { border: 1px solid rgba(255,255,255,0.3) !important; }
-
-/* Stats — frosted glass */
-.stats-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.stat-item {
-  flex: 1; min-width: 100px; text-align: center; padding: 16px 8px;
-  background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm);
-}
-.stat-num { display: block; font-size: 1.5rem; color: var(--text-primary); }
-.stat-item span:last-child { font-size: 12px; text-transform: uppercase; color: var(--text-secondary); }
-
-/* Congestion — frosted glass */
-.congestion-row {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px;
-  background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm);
-}
-.congestion-badge {
-  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
-  border-radius: var(--radius-pill); border: 1px solid var(--frosted-border);
-  font-weight: 700; font-size: 16px;
-}
-.cong-icon { font-size: 20px; }
-.cong-overflowing { background: rgba(220,53,69,0.4); color: #fff; }
-.cong-crowded { background: rgba(255,152,0,0.4); color: #fff; }
-.cong-moderate { background: rgba(255,193,7,0.35); color: #fff; }
-.cong-sparse { background: rgba(58,210,159,0.4); color: #fff; }
-.cong-empty { background: rgba(124,215,238,0.35); color: #fff; }
-.cong-pulse { animation: congPulse 0.6s ease-in-out 3; }
-@keyframes congPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(124,215,238,0.4); }
-  100% { transform: scale(1); }
-}
-.congestion-report-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
-.cong-report-hint { color: var(--text-secondary); font-size: 12px; }
-.cong-btn {
-  padding: 4px 12px; border: 1px solid var(--frosted-border); border-radius: var(--radius-pill);
-  background: var(--frosted-bg); backdrop-filter: blur(6px);
-  font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-regular);
-  box-shadow: var(--neu-shadow-sm); transition: all 0.2s ease;
-}
-.cong-btn:hover { transform: translateY(-1px); box-shadow: var(--neu-shadow); }
-.cong-btn.active { background: rgba(167,111,215,0.3); border-color: rgba(167,111,215,0.4); color: #fff; }
-
-/* Content */
-.content-section { margin-bottom: 20px; }
-.section-title { font-size: 1.3rem; margin: 0 0 12px; letter-spacing: 1px; color: var(--text-primary); }
-.content-card {
-  padding: 20px; background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm);
-}
-.content-card h3 { font-size: 1.2rem; margin: 0 0 8px; color: var(--text-primary); }
-.content-card p { margin: 0; line-height: 1.6; color: var(--text-regular); }
-.info-line { margin-top: 10px; font-size: 14px; color: var(--text-regular); }
-
-/* Map */
-.spot-map {
-  height: 300px; border: 1px solid var(--frosted-border);
-  border-radius: var(--radius-card); box-shadow: var(--neu-shadow-sm);
-  overflow: hidden;
-}
-
-/* Rating card — frosted glass */
-.rating-card {
-  padding: 20px; background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm);
-}
+.hero-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.hero-rating { font-size: 15px; font-weight: 700; color: #fbbf24; }
+.hero-price { font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.15); padding: 2px 10px; border-radius: 20px; }
+.hero-congestion { font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.6); }
+.hc-overflowing { background: #ff3b3b; color: #fff; }
+.hc-crowded { background: #ff9100; color: #fff; }
+.hc-moderate { background: #ffdd00; color: #000; }
+.hc-sparse { background: #00e676; color: #000; }
+.hc-empty { background: #00bfff; color: #fff; }
+.hero-title { font-size: 2rem; font-weight: 800; margin: 0 0 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); overflow-wrap: break-word; }
+.hero-description { font-size: 14px; opacity: 0.85; margin: 0 0 8px; line-height: 1.5; }
+.hero-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; opacity: 0.75; }
+.meta-item { display: flex; align-items: center; gap: 4px; }
+.detail-section { margin-bottom: 18px; }
+.rating-card { padding: 20px; }
 .rating-card h3 { font-size: 1.2rem; margin: 0 0 12px; color: var(--text-primary); }
 .rate-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.rate-row :deep(.el-rate) { line-height: 1; }
-.rate-row :deep(.el-rate__icon) { font-size: 24px !important; margin-right: 4px; }
-.rate-row :deep(.el-rate__item) { transition: transform 0.15s; }
-.rate-row :deep(.el-rate__item:hover) { transform: scale(1.2); }
-.rated-badge {
-  font-size: 13px; color: var(--pop-green); font-weight: 600;
-  padding: 4px 12px; background: rgba(58,210,159,0.12);
-  border: 1px solid rgba(58,210,159,0.3); border-radius: var(--radius-pill);
-}
-
-/* Facilities — pill tags */
+.rate-row :deep(.el-rate__icon) { font-size: 24px !important; }
+.rated-badge { font-size: 13px; color: var(--pop-green); font-weight: 600; padding: 4px 12px; background: rgba(58,210,159,0.12); border: 1px solid rgba(58,210,159,0.3); border-radius: var(--radius-pill); }
+.congestion-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.congestion-badge { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--frosted-border); font-weight: 700; font-size: 16px; }
+.cong-overflowing { background: rgba(255,59,59,0.35); color: #ff6b6b; }
+.cong-crowded { background: rgba(255,145,0,0.35); color: #ffb347; }
+.cong-moderate { background: rgba(255,193,7,0.35); color: #ffd700; }
+.cong-sparse { background: rgba(58,210,159,0.4); color: #6fcf97; }
+.cong-empty { background: rgba(124,215,238,0.35); color: #7cd7ee; }
+@keyframes congPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1);box-shadow:0 0 20px rgba(124,215,238,0.4)} }
+.congestion-report-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
+.cong-btn { padding: 4px 12px; border: 1px solid var(--frosted-border); border-radius: var(--radius-pill); background: var(--frosted-bg); color: var(--text-regular); cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.2s ease; }
+.cong-btn:hover { color: var(--text-primary); border-color: rgba(124,215,238,0.3); }
+.cong-btn.active { background: rgba(124,215,238,0.15); color: #7cd7ee; border-color: rgba(124,215,238,0.4); }
+.spot-map { width: 100%; height: 300px; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--frosted-border); }
+.section-title { font-size: 1.2rem; font-weight: 600; color: var(--text-heading); margin: 0 0 12px; }
+.facility-group { margin-bottom: 14px; }
+.fac-group-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
 .facility-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.facility-tag {
-  display: flex; align-items: center; gap: 4px; padding: 6px 14px;
-  border: 1px solid var(--frosted-border); border-radius: var(--radius-pill);
-  background: var(--frosted-bg); backdrop-filter: blur(6px);
-  font-size: 12px; font-weight: 600; color: var(--text-regular);
-  box-shadow: var(--neu-shadow-sm); transition: all 0.2s ease;
-}
-.fac-icon { font-size: 16px; }
-.fac-name { color: var(--text-primary); }
-.fac-toilet { background: rgba(91,141,239,0.3); border-color: rgba(91,141,239,0.4); }
-.fac-parking { background: rgba(58,210,159,0.25); border-color: rgba(58,210,159,0.35); }
-.fac-aed { background: rgba(220,53,69,0.25); border-color: rgba(220,53,69,0.35); }
-.fac-shop { background: rgba(167,111,215,0.25); border-color: rgba(167,111,215,0.35); }
-.fac-info { background: rgba(255,152,0,0.25); border-color: rgba(255,152,0,0.35); }
-.fac-cafe { background: rgba(212,165,116,0.25); border-color: rgba(212,165,116,0.35); }
-.fac-hospital { background: rgba(220,53,69,0.25); border-color: rgba(220,53,69,0.35); }
-.fac-atm { background: rgba(156,39,176,0.25); border-color: rgba(156,39,176,0.35); }
-.fac-service { background: rgba(96,125,139,0.25); border-color: rgba(96,125,139,0.35); }
-
-/* Walking food list */
+.facility-tag { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--frosted-bg); border: 1px solid var(--frosted-border); border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; transition: all 0.15s; box-shadow: var(--neu-shadow-sm); }
+.facility-tag:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); }
+.fac-icon { font-size: 15px; }
+.fac-name { color: var(--text-regular); }
 .walking-food-list { display: flex; flex-direction: column; gap: 8px; }
-.walking-food-card {
-  padding: 12px 14px; background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm); cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
-}
+.walking-food-card { padding: 12px 14px; background: var(--frosted-bg); backdrop-filter: blur(8px); border: 1px solid var(--frosted-border); border-radius: 8px; cursor: pointer; transition: all 0.15s; box-shadow: var(--neu-shadow-sm); }
 .walking-food-card:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); }
 .wfc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.wfc-name { font-size: 14px; color: var(--text-primary); }
+.wfc-name { font-size: 14px; color: var(--text-heading); }
 .wfc-rating { font-size: 12px; color: var(--text-regular); }
 .wfc-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
-.wfc-cuisine {
-  padding: 2px 8px; background: rgba(167,111,215,0.2);
-  border: 1px solid rgba(167,111,215,0.3); border-radius: var(--radius-pill);
-  color: #c9a0e8; font-weight: 600;
-}
+.wfc-cuisine { padding: 2px 8px; background: rgba(167,111,215,0.2); border-radius: 12px; color: #c9a0e8; font-weight: 600; }
 .wfc-restaurant { color: var(--text-secondary); }
-.wfc-distance { color: #7cd7ee; font-weight: 600; }
-
-/* Facility group */
-.facility-group { margin-bottom: 10px; }
-.fac-group-title { font-size: 13px; font-weight: 700; margin: 0 0 6px; letter-spacing: 0.5px; color: var(--text-primary); }
-.facility-tag.clickable { cursor: pointer; }
-.facility-tag.clickable:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); }
-
-/* Reviews — frosted glass */
-.review-card {
-  padding: 14px; margin-bottom: 10px;
-  background: var(--frosted-bg); backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--frosted-border); border-radius: 12px;
-  box-shadow: var(--neu-shadow-sm);
-}
-.review-header { display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--text-primary); }
-.review-card p { margin: 0; font-size: 14px; color: var(--text-regular); }
-.empty-hint { color: var(--text-muted); font-size: 14px; padding: 20px; text-align: center; }
+.wfc-distance { color: var(--text-muted); }
+.nearby-spots-grid { display: flex; flex-direction: column; gap: 8px; }
+.nearby-spot-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--frosted-bg); border: 1px solid var(--frosted-border); border-radius: 8px; cursor: pointer; transition: all 0.15s; box-shadow: var(--neu-shadow-sm); }
+.nearby-spot-card:hover { transform: translateY(-2px); box-shadow: var(--neu-shadow); }
+.ns-info { flex: 1; min-width: 0; }
+.ns-info strong { display: block; font-size: 14px; color: var(--text-heading); margin-bottom: 2px; }
+.ns-info span { font-size: 12px; color: var(--text-muted); }
+.review-card { padding: 14px; background: var(--frosted-bg); border: 1px solid var(--frosted-border); border-radius: 8px; margin-bottom: 8px; }
+.review-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+.review-header strong { color: var(--text-primary); }
+.review-header span { color: #ffc107; }
+.review-card p { font-size: 13px; color: var(--text-regular); line-height: 1.5; margin: 0; }
+.empty-hint { text-align: center; padding: 30px 20px; color: var(--text-muted); font-size: 13px; }
 </style>

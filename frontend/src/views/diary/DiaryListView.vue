@@ -3,31 +3,31 @@
     <div class="diary-page">
       <div class="toolbar glass-sm">
         <div class="tabs">
-          <button :class="['tab', { active: tab === 'all' }]" @click="tab='all'; fetch()">🔥 All</button>
-          <button :class="['tab', { active: tab === 'mine' }]" @click="tab='mine'; fetch()">📖 Mine</button>
+          <button :class="['tab', { active: tab === 'all' }]" @click="tab='all'; fetch()">🔥 全部</button>
+          <button :class="['tab', { active: tab === 'mine' }]" @click="tab='mine'; fetch()">📖 我的</button>
         </div>
         <div class="toolbar-right">
-          <el-button type="primary" size="small" @click="$router.push('/diaries/new')">+ Write</el-button>
+          <el-button type="primary" size="small" @click="$router.push('/diaries/new')">+ 写游记</el-button>
         </div>
       </div>
 
       <!-- Loading -->
       <div v-if="loading" class="loading-msg">
         <span class="loading-spinner"></span>
-        <span>Loading diaries...</span>
+        <span>正在加载游记...</span>
       </div>
 
       <!-- Error -->
       <div v-else-if="errorMsg" class="error-msg">
         <span class="error-icon">⚠️</span>
         <span>{{ errorMsg }}</span>
-        <el-button size="small" @click="fetch">Retry</el-button>
+        <el-button size="small" @click="fetch">重试</el-button>
       </div>
 
       <!-- Empty -->
       <div v-else-if="!diaries.length" class="empty">
         <span style="font-size:2rem;display:block;margin-bottom:12px">📝</span>
-        No diaries yet{{ tab === 'mine' ? ' — start writing!' : '' }}
+        还没有游记{{ tab === 'mine' ? ' — 快来写第一篇！' : '' }}
       </div>
 
       <!-- Results -->
@@ -75,7 +75,7 @@ async function fetch() {
       : await diaryApi.list({ size: 30 })
     diaries.value = r.data.data?.content || []
   } catch (e: any) {
-    errorMsg.value = e?.message || 'Failed to load diaries. Please try again.'
+    errorMsg.value = e?.message || '加载游记失败，请稍后重试。'
     diaries.value = []
   } finally {
     loading.value = false
