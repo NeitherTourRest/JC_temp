@@ -1,0 +1,19 @@
+# ========================
+# JourneyCraft AI API Keys
+# ========================
+# 复制此文件为 ai-api-key.properties 并填入你的 Key
+# 该文件已在 .gitignore 中，不会提交到仓库
+#
+# 获取 API Key:
+#   DeepSeek: https://platform.deepseek.com
+#   MiniMax:  https://platform.minimax.io
+# ========================
+
+# DeepSeek - 用于 AI 聊天、行程规划、预算估算
+deepseek.api.key=sk-your_deepseek_api_key_here
+deepseek.api.url=https://api.deepseek.com
+deepseek.model=deepseek-chat
+
+# MiniMax - 用于图片生成、视频生成、音乐生成
+minimax.api.key=sk-your_minimax_api_key_here
+minimax.api.url=https://api.minimax.io
