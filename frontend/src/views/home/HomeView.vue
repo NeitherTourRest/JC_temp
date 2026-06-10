@@ -50,7 +50,7 @@
           </div>
           <div v-else class="home-container">
             <div v-for="s in featuredSpots" :key="s.id" class="hao-card" @click="$router.push('/spots/' + s.id)">
-              <div class="card-img">
+              <div class="card-img" :style="{ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }">
                 <span class="card-cat-tag">{{ s.category }}</span>
               </div>
               <div class="card-overlay">
@@ -211,22 +211,6 @@ onMounted(loadAll)
 .cat-card span { font-size: 13px; font-weight: 600; color: var(--text-heading); }
 
 /* ── hao-card scoped overrides ── */
-.card-cat-tag {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #e8e8e8;
-  padding: 2px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  z-index: 2;
-  border: 1px solid rgba(255,255,255,0.08);
-}
 .hao-card .card-overlay h4 {
   color: #e8e8e8;
   font-size: 1rem;
@@ -245,8 +229,24 @@ onMounted(loadAll)
   font-size: 85%;
 }
 .hao-card .card-img {
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid var(--frosted-border);
+  background-size: cover !important;
+  background-position: center !important;
+}
+.hao-card .card-img .card-cat-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #e8e8e8;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 /* ── Diary list ── */

@@ -37,7 +37,7 @@ let __VLS_components;
 let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cover-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['grid']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
@@ -133,21 +133,24 @@ else {
             ...{ class: "card glass" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "card-body" },
+            ...{ class: "card-cover" },
+            ...{ style: ({ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }) },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+            ...{ class: "card-cover-overlay" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "card-header" },
+            ...{ class: "card-cover-content" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "card-cuisine-tag" },
         });
-        (f.cuisine || 'Food');
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "card-rating" },
-        });
-        (f.avgRating?.toFixed(1) || '—');
+        (f.cuisine || '美食');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
         (f.name);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "card-body" },
+        });
         if (f.restaurantName) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
                 ...{ class: "rest" },
@@ -157,6 +160,10 @@ else {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "foot" },
         });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "card-rating" },
+        });
+        (f.avgRating?.toFixed(1) || '—');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
         (f.popularity);
         if (f.priceRange) {
@@ -178,12 +185,14 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['card']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-body']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cover']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cover-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-cover-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-cuisine-tag']} */ ;
-/** @type {__VLS_StyleScopedClasses['card-rating']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['rest']} */ ;
 /** @type {__VLS_StyleScopedClasses['foot']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-rating']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {

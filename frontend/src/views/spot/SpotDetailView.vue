@@ -1,12 +1,17 @@
 <template>
   <DefaultLayout>
     <div v-loading="loading" class="spot-detail">
+      <!-- Full-page background image -->
+      <div v-if="spot?.imageUrl" class="detail-bg" :style="{ backgroundImage: `url(${spot.imageUrl})` }" />
+      <div class="detail-bg-overlay" />
+
       <el-result v-if="!loading && !spot" icon="error" title="景点未找到" sub-title="无法加载该景点信息">
         <template #extra><el-button type="primary" @click="$router.push('/spots')">返回景点列表</el-button></template>
       </el-result>
 
       <template v-if="spot">
-        <!-- Hero -->
+        <div class="detail-content">
+          <!-- Hero -->
         <section class="hero" :style="{ background: heroBg }">
           <div class="hero-overlay" />
           <div class="hero-content">
@@ -140,6 +145,7 @@
             <p v-if="r.content">{{ r.content }}</p>
           </div>
         </section>
+          </div> <!-- /detail-content -->
       </template>
     </div>
   </DefaultLayout>
@@ -349,14 +355,37 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.spot-detail { max-width: 900px; margin: 0 auto; }
+.spot-detail { max-width: 900px; margin: 0 auto; position: relative; }
+
+/* ── Full-page background ── */
+.detail-bg {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-size: cover; background-position: center;
+  filter: blur(20px) brightness(0.5);
+  transform: scale(1.1); /* hide blur edges */
+  z-index: 0;
+  pointer-events: none;
+}
+.detail-bg-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 0;
+  pointer-events: none;
+}
+.detail-content {
+  position: relative; z-index: 1;
+}
+
+/* ── Hero ── */
 .hero {
-  position: relative; min-height: 240px;
+  position: relative; min-height: 200px;
   border-radius: var(--radius-card);
   overflow: hidden; margin-bottom: 20px;
   display: flex; align-items: flex-end;
-  background-size: cover !important;
-  background-position: center !important;
+  background: rgba(42,40,40,0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--frosted-border);
 }
 .hero-overlay {
   position: absolute; inset: 0;

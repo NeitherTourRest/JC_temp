@@ -29,14 +29,17 @@
       <!-- Results -->
       <div v-else class="grid">
         <div v-for="f in foods" :key="f.id" class="card glass" @click="$router.push('/foods/' + f.id)">
-          <div class="card-body">
-            <div class="card-header">
-              <span class="card-cuisine-tag">{{ f.cuisine || 'Food' }}</span>
-              <span class="card-rating">⭐ {{ f.avgRating?.toFixed(1) || '—' }}</span>
+          <div class="card-cover" :style="{ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }">
+            <div class="card-cover-overlay" />
+            <div class="card-cover-content">
+              <span class="card-cuisine-tag">{{ f.cuisine || '美食' }}</span>
+              <h3>{{ f.name }}</h3>
             </div>
-            <h3>{{ f.name }}</h3>
+          </div>
+          <div class="card-body">
             <p v-if="f.restaurantName" class="rest">@ {{ f.restaurantName }}</p>
             <div class="foot">
+              <span class="card-rating">⭐ {{ f.avgRating?.toFixed(1) || '—' }}</span>
               <span>👁 {{ f.popularity }}</span>
               <span v-if="f.priceRange">{{ f.priceRange }}</span>
             </div>
@@ -111,23 +114,41 @@ onMounted(fetch)
 }
 .cat-btn:hover { transform: translateY(-1px); color: var(--text-primary); }
 .cat-btn.active { background: rgba(124,215,238,0.2); color: #fff; border-color: rgba(124,215,238,0.35); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.card { overflow: hidden; }
-.card-body { padding: 16px; }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.card { overflow: hidden; display: flex; flex-direction: column; }
+.card-cover {
+  position: relative; min-height: 140px;
+  background-size: cover !important; background-position: center !important;
+  display: flex; align-items: flex-end;
+}
+.card-cover-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);
+  pointer-events: none;
+}
+.card-cover-content {
+  position: relative; z-index: 1;
+  padding: 14px; width: 100%;
+}
+.card-cover-content h3 {
+  font-size: 1.05rem; font-weight: 700; color: #fff; margin: 4px 0 0;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.card-body { padding: 12px 14px; flex: 1; }
 .card-cuisine-tag {
-  background: rgba(58,210,159,0.12);
+  display: inline-block;
+  background: rgba(58,210,159,0.2);
   color: #3ad29f;
   padding: 2px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  border: 1px solid rgba(58,210,159,0.2);
+  border: 1px solid rgba(58,210,159,0.3);
+  backdrop-filter: blur(4px);
 }
 .card-rating { font-size: 13px; font-weight: 600; color: #ffc107; }
-.card-body h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; color: var(--text-heading); }
 .rest { font-size: 12px; color: var(--text-muted); margin: 0 0 4px; }
-.foot { display: flex; gap: 10px; font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+.foot { display: flex; gap: 10px; font-size: 12px; color: var(--text-muted); margin-top: 6px; flex-wrap: wrap; }
 .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 14px; }
 @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 </style>

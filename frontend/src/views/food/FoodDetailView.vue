@@ -1,11 +1,16 @@
 <template>
   <DefaultLayout>
     <div v-loading="loading" class="food-detail" element-loading-text="加载中...">
+      <!-- Full-page background image -->
+      <div v-if="food?.imageUrl" class="detail-bg" :style="{ backgroundImage: `url(${food.imageUrl})` }" />
+      <div class="detail-bg-overlay" />
+
       <el-result v-if="!loading && !food" icon="error" title="美食未找到" sub-title="无法加载该美食信息">
         <template #extra><el-button type="primary" @click="$router.push('/foods')">返回美食列表</el-button></template>
       </el-result>
 
       <template v-if="food">
+        <div class="detail-content">
         <!-- Hero -->
         <section class="hero" :style="heroStyle">
           <div class="hero-overlay" />
@@ -106,6 +111,7 @@
           <h3 class="section-title">💬 评价</h3>
           <div class="empty-hint">评价功能即将上线</div>
         </section>
+        </div> <!-- /detail-content -->
       </template>
     </div>
   </DefaultLayout>
@@ -248,8 +254,34 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.food-detail { max-width: 1100px; margin: 0 auto; padding-bottom: 48px; }
-.hero { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 24px; min-height: 280px; display: flex; align-items: flex-end; }
+.food-detail { max-width: 1100px; margin: 0 auto; padding-bottom: 48px; position: relative; }
+
+/* ── Full-page background ── */
+.detail-bg {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-size: cover; background-position: center;
+  filter: blur(20px) brightness(0.5);
+  transform: scale(1.1);
+  z-index: 0;
+  pointer-events: none;
+}
+.detail-bg-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 0;
+  pointer-events: none;
+}
+.detail-content {
+  position: relative; z-index: 1;
+}
+
+.hero {
+  position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 24px; min-height: 280px; display: flex; align-items: flex-end;
+  background: rgba(42,40,40,0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--frosted-border);
+}
 .hero-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%), linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.05) 100%); pointer-events: none; }
 .hero-content { position: relative; z-index: 1; padding: 36px 32px 28px; width: 100%; color: #fff; }
 .hero-badges { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }

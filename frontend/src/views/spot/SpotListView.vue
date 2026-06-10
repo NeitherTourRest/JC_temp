@@ -29,14 +29,17 @@
       <!-- Results -->
       <div v-else class="spots-grid">
         <div v-for="s in spots" :key="s.id" class="spot-card glass" @click="$router.push('/spots/' + s.id)">
-          <div class="spot-body">
-            <div class="spot-header">
+          <div class="spot-cover" :style="{ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }">
+            <div class="spot-cover-overlay" />
+            <div class="spot-cover-content">
               <span class="spot-cat-tag">{{ s.category }}</span>
-              <span class="spot-rating">⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
+              <h3>{{ s.name }}</h3>
             </div>
-            <h3>{{ s.name }}</h3>
+          </div>
+          <div class="spot-body">
             <p class="spot-desc">{{ (s.description || '').substring(0, 80) }}{{ (s.description || '').length > 80 ? '...' : '' }}</p>
             <div class="spot-foot">
+              <span class="spot-rating">⭐ {{ s.avgRating?.toFixed(1) || '—' }}</span>
               <span>👁 {{ s.popularity || '—' }}</span>
               <span v-if="s.address" class="spot-addr">📍 {{ s.address?.substring(0, 18) }}</span>
             </div>
@@ -120,23 +123,41 @@ onMounted(fetch)
 }
 .loading-msg { display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-.spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.spot-card { overflow: hidden; }
-.spot-body { padding: 16px; }
-.spot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.spot-card { overflow: hidden; display: flex; flex-direction: column; }
+.spot-cover {
+  position: relative; min-height: 160px;
+  background-size: cover !important; background-position: center !important;
+  display: flex; align-items: flex-end;
+}
+.spot-cover-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+  pointer-events: none;
+}
+.spot-cover-content {
+  position: relative; z-index: 1;
+  padding: 14px; width: 100%;
+}
+.spot-cover-content h3 {
+  font-size: 1.1rem; font-weight: 700; color: #fff; margin: 4px 0 0;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.spot-body { padding: 12px 14px; flex: 1; }
 .spot-cat-tag {
-  background: rgba(124,215,238,0.12);
+  display: inline-block;
+  background: rgba(124,215,238,0.2);
   color: #7cd7ee;
   padding: 2px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  border: 1px solid rgba(124,215,238,0.2);
+  border: 1px solid rgba(124,215,238,0.3);
+  backdrop-filter: blur(4px);
 }
-.spot-rating { font-size: 13px; font-weight: 600; color: #ffc107; }
-.spot-body h3 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; color: var(--text-heading); }
-.spot-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+.spot-desc { font-size: 12px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .spot-foot { display: flex; gap: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+.spot-rating { font-size: 13px; font-weight: 600; color: #ffc107; }
 .spot-addr { font-size: 11px; }
 
 @media (max-width: 768px) {

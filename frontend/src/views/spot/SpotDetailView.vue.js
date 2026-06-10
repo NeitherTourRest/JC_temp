@@ -233,6 +233,15 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "spot-detail" },
 });
 __VLS_asFunctionalDirective(__VLS_directives.vLoading)(null, { ...__VLS_directiveBindingRestFields, value: (__VLS_ctx.loading) }, null, null);
+if (__VLS_ctx.spot?.imageUrl) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+        ...{ class: "detail-bg" },
+        ...{ style: ({ backgroundImage: `url(${__VLS_ctx.spot.imageUrl})` }) },
+    });
+}
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+    ...{ class: "detail-bg-overlay" },
+});
 if (!__VLS_ctx.loading && !__VLS_ctx.spot) {
     const __VLS_4 = {}.ElResult;
     /** @type {[typeof __VLS_components.ElResult, typeof __VLS_components.elResult, typeof __VLS_components.ElResult, typeof __VLS_components.elResult, ]} */ ;
@@ -277,6 +286,9 @@ if (!__VLS_ctx.loading && !__VLS_ctx.spot) {
     var __VLS_7;
 }
 if (__VLS_ctx.spot) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "detail-content" },
+    });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.section, __VLS_intrinsicElements.section)({
         ...{ class: "hero" },
         ...{ style: ({ background: __VLS_ctx.heroBg }) },
@@ -772,6 +784,9 @@ if (__VLS_ctx.spot) {
 }
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spot-detail']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-bg']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-bg-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-overlay']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-content']} */ ;

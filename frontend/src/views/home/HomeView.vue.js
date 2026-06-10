@@ -58,6 +58,8 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['card-overlay']} */ ;
 /** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['hao-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['card-img']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-img']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['diary-body']} */ ;
@@ -231,6 +233,7 @@ else {
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "card-img" },
+                ...{ style: ({ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }) },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                 ...{ class: "card-cat-tag" },

@@ -38,7 +38,7 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-cover-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['spots-grid']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
@@ -134,21 +134,24 @@ else {
             ...{ class: "spot-card glass" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "spot-body" },
+            ...{ class: "spot-cover" },
+            ...{ style: ({ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }) },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+            ...{ class: "spot-cover-overlay" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "spot-header" },
+            ...{ class: "spot-cover-content" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "spot-cat-tag" },
         });
         (s.category);
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "spot-rating" },
-        });
-        (s.avgRating?.toFixed(1) || '—');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
         (s.name);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "spot-body" },
+        });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
             ...{ class: "spot-desc" },
         });
@@ -157,6 +160,10 @@ else {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "spot-foot" },
         });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "spot-rating" },
+        });
+        (s.avgRating?.toFixed(1) || '—');
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
         (s.popularity || '—');
         if (s.address) {
@@ -180,12 +187,14 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spots-grid']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-card']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-body']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-cover']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-cover-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-cover-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-cat-tag']} */ ;
-/** @type {__VLS_StyleScopedClasses['spot-rating']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-desc']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-foot']} */ ;
+/** @type {__VLS_StyleScopedClasses['spot-rating']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-addr']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
