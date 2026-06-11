@@ -16,4 +16,4 @@ deepseek.model=deepseek-chat
 
 # MiniMax - 用于图片生成、视频生成、音乐生成
 minimax.api.key=sk-your_minimax_api_key_here
-minimax.api.url=https://api.minimax.io
+minimax.api.url=https://api.minimaxi.com

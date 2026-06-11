@@ -21,7 +21,7 @@ public class AIConfig {
 
     // MiniMax
     private String minimaxApiKey = "";
-    private String minimaxApiUrl = "https://api.minimax.io";
+    private String minimaxApiUrl = "https://api.minimaxi.com";
 
     @PostConstruct
     public void init() {

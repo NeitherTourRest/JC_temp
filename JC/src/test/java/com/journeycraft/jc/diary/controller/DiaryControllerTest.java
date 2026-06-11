@@ -26,8 +26,8 @@ class DiaryControllerTest {
     @Mock private DiaryService diaryService;
     @InjectMocks private DiaryController controller;
 
-    private final DiaryResponse sampleDiary = new DiaryResponse("d1", 1L, "My Trip", "Great!", "Beijing",
-            null, null, null, null, 50, 4.0, 5, true, null, null);
+    private final DiaryResponse sampleDiary = new DiaryResponse("d1", 1L, "My Trip", "Great!", null, "Beijing",
+            null, null, null, null, 50, 4.0, 5, true, null, null, null, null, null);
 
     @Test
     @DisplayName("listDiaries returns paginated public diaries")
@@ -69,7 +69,7 @@ class DiaryControllerTest {
     void createDiary() {
         when(diaryService.createDiary(any())).thenReturn(sampleDiary);
 
-        var request = new DiaryRequest("My Trip", "Great!", "Beijing", null, null, null, null, true);
+        var request = new DiaryRequest("My Trip", "Great!", null, "Beijing", null, null, null, null, true);
         var response = controller.createDiary(request);
         var body = response.getBody();
         assertNotNull(body);

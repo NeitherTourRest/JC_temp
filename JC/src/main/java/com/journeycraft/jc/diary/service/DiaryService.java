@@ -11,8 +11,9 @@ import com.journeycraft.jc.diary.repository.DiaryRepository;
 import com.journeycraft.jc.user.entity.User;
 import com.journeycraft.jc.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,8 @@ public class DiaryService {
     private final DiaryRatingRepository diaryRatingRepository;
     private final UserRepository userRepository;
 
+    private static final Logger log = LoggerFactory.getLogger(DiaryService.class);
+
     @Transactional
     public DiaryResponse createDiary(DiaryRequest request) {
         var user = getCurrentUser();
@@ -35,9 +38,25 @@ public class DiaryService {
                 .userId(user.getId())
                 .title(request.title())
                 .content(request.content())
+                .contentHtml(request.contentHtml())
                 .destination(request.destination())
                 .spotId(request.spotId())
                 .isPublic(request.isPublic() != null ? request.isPublic() : true);
+
+        // Compress contentHtml if present
+        if (request.contentHtml() != null && !request.contentHtml().isBlank()) {
+            try {
+                var cr = DiaryCompressor.compress(request.contentHtml());
+                diaryBuilder.contentCompressed(cr.compressedData());
+                diaryBuilder.originalSize((long) cr.originalSize());
+                diaryBuilder.compressedSize((long) cr.compressedSize());
+                log.info("Diary compression: {} bytes -> {} bytes (ratio: {}x, level {})",
+                    cr.originalSize(), cr.compressedSize(),
+                    String.format("%.2f", cr.ratio()), cr.level());
+            } catch (Exception e) {
+                log.warn("Failed to compress diary content, storing uncompressed: {}", e.getMessage());
+            }
+        }
 
         if (request.images() != null) {
             diaryBuilder.images(request.images());
@@ -76,8 +95,45 @@ public class DiaryService {
         var diary = diaryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Diary", id));
         diary.setPopularity(diary.getPopularity() + 1);
+
+        // Decompress contentHtml if stored compressed
+        decompressDiary(diary);
+
         diaryRepository.save(diary);
         return DiaryResponse.from(diary);
+    }
+
+    /**
+     * Decompress contentCompressed into contentHtml.
+     * If contentCompressed is null but contentHtml exists, lazily compress for next read.
+     */
+    private void decompressDiary(Diary diary) {
+        byte[] compressed = diary.getContentCompressed();
+        if (compressed != null && compressed.length > 0 && diary.getContentHtml() == null) {
+            try {
+                int originalSize = diary.getOriginalSize() != null ? diary.getOriginalSize().intValue() : 0;
+                String html = DiaryCompressor.decompress(compressed, originalSize);
+                diary.setContentHtml(html);
+            } catch (Exception e) {
+                log.error("Failed to decompress diary {}: {}", diary.getId(), e.getMessage());
+            }
+        }
+
+        // Lazy migration: compress existing uncompressed contentHtml for next read
+        if (diary.getContentCompressed() == null
+                && diary.getContentHtml() != null && !diary.getContentHtml().isBlank()) {
+            try {
+                var cr = DiaryCompressor.compress(diary.getContentHtml());
+                diary.setContentCompressed(cr.compressedData());
+                diary.setOriginalSize((long) cr.originalSize());
+                diary.setCompressedSize((long) cr.compressedSize());
+                log.info("Lazy compression of diary {}: {} bytes -> {} bytes (ratio: {}x)",
+                    diary.getId(), cr.originalSize(), cr.compressedSize(),
+                    String.format("%.2f", cr.ratio()));
+            } catch (Exception e) {
+                log.warn("Failed to lazily compress diary {}: {}", diary.getId(), e.getMessage());
+            }
+        }
     }
 
     @Transactional
@@ -92,10 +148,26 @@ public class DiaryService {
 
         diary.setTitle(request.title());
         diary.setContent(request.content());
+        diary.setContentHtml(request.contentHtml());
         diary.setDestination(request.destination());
         diary.setSpotId(request.spotId());
         if (request.images() != null) diary.setImages(request.images());
         if (request.isPublic() != null) diary.setIsPublic(request.isPublic());
+
+        // Re-compress if contentHtml changed
+        if (request.contentHtml() != null && !request.contentHtml().isBlank()) {
+            try {
+                var cr = DiaryCompressor.compress(request.contentHtml());
+                diary.setContentCompressed(cr.compressedData());
+                diary.setOriginalSize((long) cr.originalSize());
+                diary.setCompressedSize((long) cr.compressedSize());
+                log.info("Re-compressed diary {}: {} bytes -> {} bytes (ratio: {}x)",
+                    id, cr.originalSize(), cr.compressedSize(),
+                    String.format("%.2f", cr.ratio()));
+            } catch (Exception e) {
+                log.warn("Failed to re-compress diary {}: {}", id, e.getMessage());
+            }
+        }
 
         if (request.videoMeta() != null) {
             diary.setVideoMeta(Diary.VideoMeta.builder()
@@ -160,9 +232,16 @@ public class DiaryService {
     @Transactional(readOnly = true)
     public PageResponse<DiaryResponse> searchDiaries(String keyword, int page, int size) {
         var pageable = PageRequest.of(page, size);
-        var diaryPage = diaryRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(keyword, pageable);
+        var diaryPage = keyword != null && !keyword.isBlank()
+                ? diaryRepository.searchFulltext(escapeRegex(keyword), pageable)
+                : diaryRepository.findByIsPublicTrue(pageable);
         var content = diaryPage.getContent().stream().map(DiaryResponse::from).toList();
         return PageResponse.of(content, diaryPage.getNumber(), diaryPage.getSize(), diaryPage.getTotalElements());
+    }
+
+    /** Escape regex special characters to prevent injection in MongoDB $regex queries. */
+    private String escapeRegex(String input) {
+        return input.replaceAll("[\\\\\\.\\*\\+\\?\\^\\(\\)\\[\\]\\{\\}\\|\\$]", "\\\\$0");
     }
 
     @Transactional(readOnly = true)

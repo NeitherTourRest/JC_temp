@@ -9,10 +9,16 @@ const router = useRouter();
 const diary = ref(null);
 const loading = ref(true);
 const rating = ref(0);
+const rated = ref(false);
+const rateLoading = ref(false);
 const previewIdx = ref(0);
 const showPreview = ref(false);
 const isOwner = computed(() => diary.value?.userId === 1); // simplified
-const rendered = computed(() => {
+const renderedHtml = computed(() => {
+    // If rich HTML content exists, use it directly
+    if (diary.value?.contentHtml)
+        return diary.value.contentHtml;
+    // Fallback: convert legacy markdown-style content to HTML
     let t = diary.value?.content || '';
     t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     t = t.replace(/\n/g, '<br>');
@@ -32,18 +38,39 @@ async function del() {
             console.error('删除游记失败:', e);
     }
 }
-async function rate(v) { try {
-    await diaryApi.rate(diary.value.id, v);
-    ElMessage.success('Rated!');
+async function rate(v) {
+    if (v < 1 || !diary.value)
+        return;
+    rateLoading.value = true;
+    try {
+        const res = await diaryApi.rate(diary.value.id, v);
+        if (res.data.data) {
+            const d = res.data.data;
+            diary.value.avgRating = d.avgRating;
+            diary.value.ratingCount = d.ratingCount;
+            rated.value = true;
+            localStorage.setItem('diaryRating_' + diary.value.id, String(v));
+            ElMessage.success('评分已提交！');
+        }
+    }
+    catch (e) {
+        console.error('Rate error:', e);
+        ElMessage.error('评分失败');
+    }
+    finally {
+        rateLoading.value = false;
+    }
 }
-catch (e) {
-    console.error('Rate error:', e);
-    ElMessage.error('Failed');
-} }
 onMounted(async () => {
     try {
         const r = await diaryApi.get(route.params.id);
         diary.value = r.data.data;
+        // Restore user's previous rating from localStorage
+        const saved = localStorage.getItem('diaryRating_' + route.params.id);
+        if (saved) {
+            rating.value = Number(saved);
+            rated.value = true;
+        }
     }
     catch (e) {
         console.error('Load diary error:', e);
@@ -60,7 +87,11 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['hero']} */ ;
 /** @type {__VLS_StyleScopedClasses['gallery']} */ ;
 /** @type {__VLS_StyleScopedClasses['gallery']} */ ;
+/** @type {__VLS_StyleScopedClasses['diary-content']} */ ;
+/** @type {__VLS_StyleScopedClasses['diary-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero']} */ ;
+/** @type {__VLS_StyleScopedClasses['rating-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['rate-row']} */ ;
 // CSS variable injection 
 // CSS variable injection end 
 /** @type {[typeof DefaultLayout, typeof DefaultLayout, ]} */ ;
@@ -71,6 +102,15 @@ var __VLS_3 = {};
 __VLS_2.slots.default;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "detail-page" },
+});
+if (__VLS_ctx.diary?.images?.[0]) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+        ...{ class: "detail-bg" },
+        ...{ style: ({ backgroundImage: `url(${__VLS_ctx.diary.images[0]})` }) },
+    });
+}
+__VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
+    ...{ class: "detail-bg-overlay" },
 });
 if (__VLS_ctx.loading) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -84,7 +124,7 @@ else if (!__VLS_ctx.diary) {
 }
 else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "content" },
+        ...{ class: "detail-content" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (...[$event]) => {
@@ -181,37 +221,49 @@ else {
         __VLS_19.slots.default;
         var __VLS_19;
     }
-    if (__VLS_ctx.diary.images?.length) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "gallery glass" },
-        });
-        for (const [img, i] of __VLS_getVForSourceType((__VLS_ctx.diary.images))) {
-            __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
-                ...{ onClick: (...[$event]) => {
-                        if (!!(__VLS_ctx.loading))
-                            return;
-                        if (!!(!__VLS_ctx.diary))
-                            return;
-                        if (!(__VLS_ctx.diary.images?.length))
-                            return;
-                        __VLS_ctx.previewIdx = i;
-                        __VLS_ctx.showPreview = true;
-                    } },
-                key: (i),
-                src: (img),
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "glass" },
+        ...{ style: {} },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "diary-content" },
+    });
+    __VLS_asFunctionalDirective(__VLS_directives.vHtml)(null, { ...__VLS_directiveBindingRestFields, value: (__VLS_ctx.renderedHtml) }, null, null);
+    if (!__VLS_ctx.diary.contentHtml) {
+        if (__VLS_ctx.diary.images?.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "gallery glass" },
+            });
+            for (const [img, i] of __VLS_getVForSourceType((__VLS_ctx.diary.images))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.img)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!!(__VLS_ctx.loading))
+                                return;
+                            if (!!(!__VLS_ctx.diary))
+                                return;
+                            if (!(!__VLS_ctx.diary.contentHtml))
+                                return;
+                            if (!(__VLS_ctx.diary.images?.length))
+                                return;
+                            __VLS_ctx.previewIdx = i;
+                            __VLS_ctx.showPreview = true;
+                        } },
+                    key: (i),
+                    src: (img),
+                });
+            }
+        }
+        if (__VLS_ctx.diary.videoMeta?.url) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "glass" },
+                ...{ style: {} },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.video)({
+                src: (__VLS_ctx.diary.videoMeta.url),
+                controls: true,
+                ...{ class: "detail-video" },
             });
         }
-    }
-    if (__VLS_ctx.diary.videoMeta?.url) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-            ...{ class: "glass" },
-            ...{ style: {} },
-        });
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.video)({
-            src: (__VLS_ctx.diary.videoMeta.url),
-            controls: true,
-            ...{ style: {} },
-        });
     }
     if (__VLS_ctx.diary.musicUrl) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -225,30 +277,32 @@ else {
         });
     }
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "glass" },
-        ...{ style: {} },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "diary-content" },
-    });
-    __VLS_asFunctionalDirective(__VLS_directives.vHtml)(null, { ...__VLS_directiveBindingRestFields, value: (__VLS_ctx.rendered) }, null, null);
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "glass" },
-        ...{ style: {} },
+        ...{ class: "glass rating-card" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "rate-row" },
+    });
     const __VLS_24 = {}.ElRate;
     /** @type {[typeof __VLS_components.ElRate, typeof __VLS_components.elRate, ]} */ ;
     // @ts-ignore
     const __VLS_25 = __VLS_asFunctionalComponent(__VLS_24, new __VLS_24({
         ...{ 'onChange': {} },
         modelValue: (__VLS_ctx.rating),
-        ...{ style: {} },
+        max: (5),
+        size: "large",
+        showScore: true,
+        scoreTemplate: "{value} / 5",
+        disabled: (__VLS_ctx.rateLoading),
     }));
     const __VLS_26 = __VLS_25({
         ...{ 'onChange': {} },
         modelValue: (__VLS_ctx.rating),
-        ...{ style: {} },
+        max: (5),
+        size: "large",
+        showScore: true,
+        scoreTemplate: "{value} / 5",
+        disabled: (__VLS_ctx.rateLoading),
     }, ...__VLS_functionalComponentArgsRest(__VLS_25));
     let __VLS_28;
     let __VLS_29;
@@ -257,6 +311,17 @@ else {
         onChange: (__VLS_ctx.rate)
     };
     var __VLS_27;
+    if (__VLS_ctx.rated) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "rated-badge" },
+        });
+        (__VLS_ctx.rating);
+    }
+    else {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "rate-hint" },
+        });
+    }
     if (__VLS_ctx.showPreview) {
         const __VLS_32 = {}.ElImageViewer;
         /** @type {[typeof __VLS_components.ElImageViewer, typeof __VLS_components.elImageViewer, ]} */ ;
@@ -290,21 +355,28 @@ else {
 }
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['detail-page']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-bg']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-bg-overlay']} */ ;
 /** @type {__VLS_StyleScopedClasses['center']} */ ;
 /** @type {__VLS_StyleScopedClasses['center']} */ ;
-/** @type {__VLS_StyleScopedClasses['content']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['back-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['hero-meta']} */ ;
 /** @type {__VLS_StyleScopedClasses['actions']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
+/** @type {__VLS_StyleScopedClasses['diary-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['gallery']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
+/** @type {__VLS_StyleScopedClasses['detail-video']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass']} */ ;
-/** @type {__VLS_StyleScopedClasses['diary-content']} */ ;
-/** @type {__VLS_StyleScopedClasses['glass']} */ ;
+/** @type {__VLS_StyleScopedClasses['rating-card']} */ ;
+/** @type {__VLS_StyleScopedClasses['rate-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['rated-badge']} */ ;
+/** @type {__VLS_StyleScopedClasses['rate-hint']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -314,10 +386,12 @@ const __VLS_self = (await import('vue')).defineComponent({
             diary: diary,
             loading: loading,
             rating: rating,
+            rated: rated,
+            rateLoading: rateLoading,
             previewIdx: previewIdx,
             showPreview: showPreview,
             isOwner: isOwner,
-            rendered: rendered,
+            renderedHtml: renderedHtml,
             del: del,
             rate: rate,
         };

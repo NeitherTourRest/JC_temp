@@ -9,6 +9,7 @@ public record DiaryResponse(
         Long userId,
         String title,
         String content,
+        String contentHtml,
         String destination,
         Long spotId,
         List<String> images,
@@ -19,7 +20,10 @@ public record DiaryResponse(
         Integer ratingCount,
         Boolean isPublic,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        Long originalSize,
+        Long compressedSize,
+        Double compressionRatio) {
 
     public static DiaryResponse from(Diary diary) {
         DiaryVideoMetaResponse videoMetaResp = null;
@@ -29,11 +33,17 @@ public record DiaryResponse(
                     diary.getVideoMeta().getDuration(),
                     diary.getVideoMeta().getThumbnail());
         }
+        Double ratio = null;
+        if (diary.getOriginalSize() != null && diary.getCompressedSize() != null
+                && diary.getOriginalSize() > 0) {
+            ratio = (double) diary.getCompressedSize() / diary.getOriginalSize();
+        }
         return new DiaryResponse(
                 diary.getId(), diary.getUserId(), diary.getTitle(),
-                diary.getContent(), diary.getDestination(), diary.getSpotId(),
+                diary.getContent(), diary.getContentHtml(), diary.getDestination(), diary.getSpotId(),
                 diary.getImages(), videoMetaResp, diary.getMusicUrl(),
                 diary.getPopularity(), diary.getAvgRating(), diary.getRatingCount(),
-                diary.getIsPublic(), diary.getCreatedAt(), diary.getUpdatedAt());
+                diary.getIsPublic(), diary.getCreatedAt(), diary.getUpdatedAt(),
+                diary.getOriginalSize(), diary.getCompressedSize(), ratio);
     }
 }

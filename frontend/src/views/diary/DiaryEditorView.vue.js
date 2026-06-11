@@ -2,8 +2,9 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { Plus, Delete, Location, Flag, Document, VideoCamera } from '@element-plus/icons-vue';
+import { Location, Flag, Document } from '@element-plus/icons-vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import RichEditor from '@/components/RichEditor.vue';
 import { diaryApi } from '@/api/diaryApi';
 import { spotApi } from '@/api/spotApi';
 import { aiGenApi, fileApi } from '@/api/aiGenApi';
@@ -24,6 +25,7 @@ const loading = ref(false);
 const form = ref({
     title: '',
     content: '',
+    contentHtml: '',
     destination: '',
     images: [],
     spotId: null,
@@ -70,10 +72,10 @@ async function searchSpots(query) {
         }
     }, 300);
 }
-// ── 图片处理 ──
-const imageInput = ref();
-const uploadingImage = ref(false);
-async function onImageFileChange(e) {
+// ── 封面图片上传 ──
+const coverInput = ref();
+const uploadingCover = ref(false);
+async function onCoverSelected(e) {
     const input = e.target;
     if (!input.files?.length)
         return;
@@ -82,55 +84,18 @@ async function onImageFileChange(e) {
         ElMessage.warning('图片大小不能超过 10MB');
         return;
     }
-    uploadingImage.value = true;
+    uploadingCover.value = true;
     try {
         const r = await fileApi.upload(file);
         if (r.data.data?.url)
-            form.value.images.push(r.data.data.url);
-        ElMessage.success('图片上传成功');
+            form.value.images = [r.data.data.url];
+        ElMessage.success('封面上传成功');
     }
     catch {
-        ElMessage.error('图片上传失败');
+        ElMessage.error('封面上传失败');
     }
     finally {
-        uploadingImage.value = false;
-        input.value = '';
-    }
-}
-function removeImage(idx) {
-    form.value.images.splice(idx, 1);
-}
-// ── Video upload ──
-const videoInput = ref();
-const uploadingVideo = ref(false);
-async function onVideoFileChange(e) {
-    const input = e.target;
-    if (!input.files?.length)
-        return;
-    const file = input.files[0];
-    if (file.size > 200 * 1024 * 1024) {
-        ElMessage.warning('视频大小不能超过 200MB');
-        input.value = '';
-        return;
-    }
-    uploadingVideo.value = true;
-    try {
-        const r = await fileApi.upload(file);
-        if (r.data.data?.url) {
-            form.value.videoUrl = r.data.data.url;
-            form.value.videoMeta = { url: r.data.data.url, thumbnail: '' };
-            ElMessage.success('视频上传成功');
-        }
-        else {
-            ElMessage.error('上传返回数据异常');
-        }
-    }
-    catch (e) {
-        const msg = e?.response?.status === 413 ? '视频文件过大，请压缩后上传' : '视频上传失败';
-        ElMessage.error(msg);
-    }
-    finally {
-        uploadingVideo.value = false;
+        uploadingCover.value = false;
         input.value = '';
     }
 }
@@ -148,10 +113,10 @@ async function genImage() {
         if (r.data.data?.imageUrl)
             aiImageResult.value = r.data.data.imageUrl;
         else
-            ElMessage.error('生成失败');
+            ElMessage.error(r.data.message || '图片生成失败');
     }
     catch {
-        ElMessage.error('生成请求失败');
+        ElMessage.error('图片生成请求失败');
     }
     finally {
         aiImageLoading.value = false;
@@ -177,10 +142,10 @@ async function genMusic() {
         if (r.data.data?.audioUrl)
             aiMusicResult.value = r.data.data.audioUrl;
         else
-            ElMessage.error('生成失败');
+            ElMessage.error(r.data.message || '音乐生成失败');
     }
     catch {
-        ElMessage.error('生成请求失败');
+        ElMessage.error('音乐生成请求失败');
     }
     finally {
         aiMusicLoading.value = false;
@@ -213,7 +178,7 @@ async function genVideo() {
             ElMessage.success('视频任务已提交，点击刷新检查状态');
         }
         else
-            ElMessage.error('创建失败');
+            ElMessage.error(r.data.message || '视频创建失败');
     }
     catch {
         ElMessage.error('请求失败');
@@ -251,7 +216,7 @@ function addAiVideo() {
 }
 // ── Preview ──
 const previewMode = ref(false);
-const hasContent = computed(() => form.value.title.trim() || form.value.content.trim() || form.value.images.length > 0);
+const hasContent = computed(() => form.value.title.trim() || form.value.contentHtml.trim() || form.value.images.length > 0);
 const renderedContent = computed(() => {
     let text = form.value.content || '';
     // 基础 Markdown 渲染：粗体、斜体、换行
@@ -271,6 +236,7 @@ async function loadDiary() {
         const d = res.data.data;
         form.value.title = d.title ?? '';
         form.value.content = d.content ?? '';
+        form.value.contentHtml = d.contentHtml || '';
         form.value.destination = d.destination ?? '';
         form.value.images = d.images ?? [];
         form.value.spotId = d.spotId ?? null;
@@ -301,7 +267,8 @@ async function handleSave() {
     try {
         const payload = {
             title: form.value.title,
-            content: form.value.content,
+            content: form.value.content || '',
+            contentHtml: form.value.contentHtml || undefined,
             destination: form.value.destination,
             images: form.value.images,
             spotId: form.value.spotId,
@@ -318,6 +285,8 @@ async function handleSave() {
             await diaryApi.create(payload);
             ElMessage.success('日记发布成功');
         }
+        // Clear form so unsaved-changes guard doesn't fire
+        form.value = { title: '', content: '', contentHtml: '', destination: '', images: [], spotId: null, isPublic: true };
         router.push('/diaries');
     }
     catch {
@@ -329,7 +298,7 @@ async function handleSave() {
 }
 // ── 未保存更改提示 ──
 const hasUnsavedChanges = computed(() => {
-    return !!form.value.title || !!form.value.content || form.value.images.length > 0;
+    return !!form.value.title || !!form.value.contentHtml || form.value.images.length > 0;
 });
 onBeforeRouteLeave((_to, _from, next) => {
     if (hasUnsavedChanges.value) {
@@ -350,14 +319,21 @@ window.addEventListener('beforeunload', (e) => {
 onBeforeUnmount(() => {
     // Remove the beforeunload listener if we navigate away cleanly
 });
-// ── 生命周期 ──
+// Auto-extract plain text from contentHtml for backward compat
+watch(() => form.value.contentHtml, (html) => {
+    if (html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        form.value.content = div.textContent || div.innerText || '';
+    }
+});
 onMounted(() => {
     loadDiary();
 });
 // 同组件路由切换（编辑A → 编辑B）时重新加载
 watch(() => route.params.id, () => {
     if (route.params.id) {
-        form.value = { title: '', content: '', destination: '', images: [], spotId: null, isPublic: true };
+        form.value = { title: '', content: '', contentHtml: '', destination: '', images: [], spotId: null, isPublic: true };
         spotOptions.value = [];
         loadDiary();
     }
@@ -371,6 +347,8 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['image-thumb']} */ ;
 /** @type {__VLS_StyleScopedClasses['upload-placeholder']} */ ;
 /** @type {__VLS_StyleScopedClasses['cover-overlay']} */ ;
+/** @type {__VLS_StyleScopedClasses['preview-content']} */ ;
+/** @type {__VLS_StyleScopedClasses['preview-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['preview-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['preview-content']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tool-header']} */ ;
@@ -583,242 +561,109 @@ const __VLS_48 = __VLS_47({
     prop: "content",
 }, ...__VLS_functionalComponentArgsRest(__VLS_47));
 __VLS_49.slots.default;
-const __VLS_50 = {}.ElInput;
-/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+/** @type {[typeof RichEditor, ]} */ ;
 // @ts-ignore
-const __VLS_51 = __VLS_asFunctionalComponent(__VLS_50, new __VLS_50({
-    modelValue: (__VLS_ctx.form.content),
-    type: "textarea",
-    rows: (10),
-    placeholder: "记录你的旅行故事…",
-    maxlength: "5000",
-    showWordLimit: true,
+const __VLS_50 = __VLS_asFunctionalComponent(RichEditor, new RichEditor({
+    modelValue: (__VLS_ctx.form.contentHtml),
+    key: ('editor-' + __VLS_ctx.diaryId),
 }));
-const __VLS_52 = __VLS_51({
-    modelValue: (__VLS_ctx.form.content),
-    type: "textarea",
-    rows: (10),
-    placeholder: "记录你的旅行故事…",
-    maxlength: "5000",
-    showWordLimit: true,
-}, ...__VLS_functionalComponentArgsRest(__VLS_51));
+const __VLS_51 = __VLS_50({
+    modelValue: (__VLS_ctx.form.contentHtml),
+    key: ('editor-' + __VLS_ctx.diaryId),
+}, ...__VLS_functionalComponentArgsRest(__VLS_50));
 var __VLS_49;
-const __VLS_54 = {}.ElFormItem;
+const __VLS_53 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
-const __VLS_55 = __VLS_asFunctionalComponent(__VLS_54, new __VLS_54({
-    label: "图片",
+const __VLS_54 = __VLS_asFunctionalComponent(__VLS_53, new __VLS_53({
+    label: "封面图片",
 }));
-const __VLS_56 = __VLS_55({
-    label: "图片",
-}, ...__VLS_functionalComponentArgsRest(__VLS_55));
-__VLS_57.slots.default;
+const __VLS_55 = __VLS_54({
+    label: "封面图片",
+}, ...__VLS_functionalComponentArgsRest(__VLS_54));
+__VLS_56.slots.default;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "image-upload-area" },
+    ...{ class: "cover-upload-area" },
 });
-for (const [img, idx] of __VLS_getVForSourceType((__VLS_ctx.form.images))) {
+if (__VLS_ctx.form.images[0]) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        key: (idx),
-        ...{ class: "image-thumb" },
-        ...{ class: ({ 'is-cover': idx === 0 }) },
+        ...{ class: "cover-preview" },
     });
-    const __VLS_58 = {}.ElImage;
+    const __VLS_57 = {}.ElImage;
     /** @type {[typeof __VLS_components.ElImage, typeof __VLS_components.elImage, ]} */ ;
     // @ts-ignore
-    const __VLS_59 = __VLS_asFunctionalComponent(__VLS_58, new __VLS_58({
-        src: (img),
+    const __VLS_58 = __VLS_asFunctionalComponent(__VLS_57, new __VLS_57({
+        src: (__VLS_ctx.form.images[0]),
         fit: "cover",
-        ...{ class: "thumb-img" },
-        previewTeleported: true,
-        previewSrcList: (__VLS_ctx.form.images),
-        initialIndex: (idx),
+        ...{ class: "cover-thumb" },
     }));
-    const __VLS_60 = __VLS_59({
-        src: (img),
+    const __VLS_59 = __VLS_58({
+        src: (__VLS_ctx.form.images[0]),
         fit: "cover",
-        ...{ class: "thumb-img" },
-        previewTeleported: true,
-        previewSrcList: (__VLS_ctx.form.images),
-        initialIndex: (idx),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_59));
-    if (idx === 0) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "cover-badge" },
-        });
-    }
-    const __VLS_62 = {}.ElButton;
-    /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
-    // @ts-ignore
-    const __VLS_63 = __VLS_asFunctionalComponent(__VLS_62, new __VLS_62({
-        ...{ 'onClick': {} },
-        ...{ class: "remove-btn" },
-        circle: true,
-        size: "small",
-        type: "danger",
-        icon: (__VLS_ctx.Delete),
-    }));
-    const __VLS_64 = __VLS_63({
-        ...{ 'onClick': {} },
-        ...{ class: "remove-btn" },
-        circle: true,
-        size: "small",
-        type: "danger",
-        icon: (__VLS_ctx.Delete),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_63));
-    let __VLS_66;
-    let __VLS_67;
-    let __VLS_68;
-    const __VLS_69 = {
-        onClick: (...[$event]) => {
-            __VLS_ctx.removeImage(idx);
-        }
-    };
-    var __VLS_65;
-}
-if (__VLS_ctx.form.images.length < 9) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ onClick: (...[$event]) => {
-                if (!(__VLS_ctx.form.images.length < 9))
-                    return;
-                __VLS_ctx.imageInput?.click();
-            } },
-        ...{ class: "upload-trigger" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "upload-placeholder" },
-    });
-    const __VLS_70 = {}.ElIcon;
-    /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
-    // @ts-ignore
-    const __VLS_71 = __VLS_asFunctionalComponent(__VLS_70, new __VLS_70({
-        size: (28),
-    }));
-    const __VLS_72 = __VLS_71({
-        size: (28),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_71));
-    __VLS_73.slots.default;
-    const __VLS_74 = {}.Plus;
-    /** @type {[typeof __VLS_components.Plus, ]} */ ;
-    // @ts-ignore
-    const __VLS_75 = __VLS_asFunctionalComponent(__VLS_74, new __VLS_74({}));
-    const __VLS_76 = __VLS_75({}, ...__VLS_functionalComponentArgsRest(__VLS_75));
-    var __VLS_73;
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onChange: (__VLS_ctx.onImageFileChange) },
-        ref: "imageInput",
-        type: "file",
-        accept: "image/*",
-        hidden: true,
-    });
-    /** @type {typeof __VLS_ctx.imageInput} */ ;
-}
-var __VLS_57;
-const __VLS_78 = {}.ElFormItem;
-/** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
-// @ts-ignore
-const __VLS_79 = __VLS_asFunctionalComponent(__VLS_78, new __VLS_78({
-    label: "视频",
-}));
-const __VLS_80 = __VLS_79({
-    label: "视频",
-}, ...__VLS_functionalComponentArgsRest(__VLS_79));
-__VLS_81.slots.default;
-if (__VLS_ctx.form.videoUrl) {
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "video-preview" },
-    });
-    __VLS_asFunctionalElement(__VLS_intrinsicElements.video)({
-        src: (__VLS_ctx.form.videoUrl),
-        controls: true,
-        ...{ class: "video-player" },
-    });
-    const __VLS_82 = {}.ElButton;
+        ...{ class: "cover-thumb" },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_58));
+    const __VLS_61 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_83 = __VLS_asFunctionalComponent(__VLS_82, new __VLS_82({
+    const __VLS_62 = __VLS_asFunctionalComponent(__VLS_61, new __VLS_61({
         ...{ 'onClick': {} },
-        ...{ class: "video-remove-btn" },
+        ...{ class: "cover-remove-btn" },
         size: "small",
         type: "danger",
-        icon: (__VLS_ctx.Delete),
+        circle: true,
     }));
-    const __VLS_84 = __VLS_83({
+    const __VLS_63 = __VLS_62({
         ...{ 'onClick': {} },
-        ...{ class: "video-remove-btn" },
+        ...{ class: "cover-remove-btn" },
         size: "small",
         type: "danger",
-        icon: (__VLS_ctx.Delete),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_83));
-    let __VLS_86;
-    let __VLS_87;
-    let __VLS_88;
-    const __VLS_89 = {
+        circle: true,
+    }, ...__VLS_functionalComponentArgsRest(__VLS_62));
+    let __VLS_65;
+    let __VLS_66;
+    let __VLS_67;
+    const __VLS_68 = {
         onClick: (...[$event]) => {
-            if (!(__VLS_ctx.form.videoUrl))
+            if (!(__VLS_ctx.form.images[0]))
                 return;
-            __VLS_ctx.form.videoUrl = '';
-            __VLS_ctx.form.videoMeta = undefined;
+            __VLS_ctx.form.images = [];
         }
     };
-    __VLS_85.slots.default;
-    var __VLS_85;
+    __VLS_64.slots.default;
+    var __VLS_64;
 }
 else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ onClick: (...[$event]) => {
-                if (!!(__VLS_ctx.form.videoUrl))
+                if (!!(__VLS_ctx.form.images[0]))
                     return;
-                __VLS_ctx.videoInput?.click();
+                __VLS_ctx.coverInput?.click();
             } },
-        ...{ class: "upload-trigger upload-trigger--wide" },
-        ...{ class: ({ 'is-uploading': __VLS_ctx.uploadingVideo }) },
+        ...{ class: "cover-upload-trigger" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: "upload-placeholder" },
+        ...{ class: "cover-placeholder" },
     });
-    if (!__VLS_ctx.uploadingVideo) {
-        const __VLS_90 = {}.ElIcon;
-        /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
-        // @ts-ignore
-        const __VLS_91 = __VLS_asFunctionalComponent(__VLS_90, new __VLS_90({
-            size: (28),
-        }));
-        const __VLS_92 = __VLS_91({
-            size: (28),
-        }, ...__VLS_functionalComponentArgsRest(__VLS_91));
-        __VLS_93.slots.default;
-        const __VLS_94 = {}.VideoCamera;
-        /** @type {[typeof __VLS_components.VideoCamera, ]} */ ;
-        // @ts-ignore
-        const __VLS_95 = __VLS_asFunctionalComponent(__VLS_94, new __VLS_94({}));
-        const __VLS_96 = __VLS_95({}, ...__VLS_functionalComponentArgsRest(__VLS_95));
-        var __VLS_93;
-    }
-    if (!__VLS_ctx.uploadingVideo) {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    }
-    else {
-        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-            ...{ class: "uploading-text" },
-        });
-    }
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "cover-label" },
+    });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-        ...{ onChange: (__VLS_ctx.onVideoFileChange) },
-        ref: "videoInput",
+        ...{ onChange: (__VLS_ctx.onCoverSelected) },
+        ref: "coverInput",
         type: "file",
-        accept: "video/*",
+        accept: "image/*",
         hidden: true,
     });
-    /** @type {typeof __VLS_ctx.videoInput} */ ;
+    /** @type {typeof __VLS_ctx.coverInput} */ ;
 }
-var __VLS_81;
-const __VLS_98 = {}.ElFormItem;
+var __VLS_56;
+const __VLS_69 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
-const __VLS_99 = __VLS_asFunctionalComponent(__VLS_98, new __VLS_98({}));
-const __VLS_100 = __VLS_99({}, ...__VLS_functionalComponentArgsRest(__VLS_99));
-__VLS_101.slots.default;
+const __VLS_70 = __VLS_asFunctionalComponent(__VLS_69, new __VLS_69({}));
+const __VLS_71 = __VLS_70({}, ...__VLS_functionalComponentArgsRest(__VLS_70));
+__VLS_72.slots.default;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "ai-tools-section glass-sm" },
 });
@@ -835,78 +680,78 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "ai-tool-header" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-const __VLS_102 = {}.ElButton;
+const __VLS_73 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_103 = __VLS_asFunctionalComponent(__VLS_102, new __VLS_102({
+const __VLS_74 = __VLS_asFunctionalComponent(__VLS_73, new __VLS_73({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiImageLoading),
     disabled: (!__VLS_ctx.aiImagePrompt.trim()),
 }));
-const __VLS_104 = __VLS_103({
+const __VLS_75 = __VLS_74({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiImageLoading),
     disabled: (!__VLS_ctx.aiImagePrompt.trim()),
-}, ...__VLS_functionalComponentArgsRest(__VLS_103));
-let __VLS_106;
-let __VLS_107;
-let __VLS_108;
-const __VLS_109 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_74));
+let __VLS_77;
+let __VLS_78;
+let __VLS_79;
+const __VLS_80 = {
     onClick: (__VLS_ctx.genImage)
 };
-__VLS_105.slots.default;
-var __VLS_105;
-const __VLS_110 = {}.ElInput;
+__VLS_76.slots.default;
+var __VLS_76;
+const __VLS_81 = {}.ElInput;
 /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
 // @ts-ignore
-const __VLS_111 = __VLS_asFunctionalComponent(__VLS_110, new __VLS_110({
+const __VLS_82 = __VLS_asFunctionalComponent(__VLS_81, new __VLS_81({
     modelValue: (__VLS_ctx.aiImagePrompt),
     placeholder: "描述你想要生成的图片，如：夕阳下的海滩",
 }));
-const __VLS_112 = __VLS_111({
+const __VLS_83 = __VLS_82({
     modelValue: (__VLS_ctx.aiImagePrompt),
     placeholder: "描述你想要生成的图片，如：夕阳下的海滩",
-}, ...__VLS_functionalComponentArgsRest(__VLS_111));
+}, ...__VLS_functionalComponentArgsRest(__VLS_82));
 if (__VLS_ctx.aiImageResult) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "ai-preview" },
     });
-    const __VLS_114 = {}.ElImage;
+    const __VLS_85 = {}.ElImage;
     /** @type {[typeof __VLS_components.ElImage, typeof __VLS_components.elImage, ]} */ ;
     // @ts-ignore
-    const __VLS_115 = __VLS_asFunctionalComponent(__VLS_114, new __VLS_114({
+    const __VLS_86 = __VLS_asFunctionalComponent(__VLS_85, new __VLS_85({
         src: (__VLS_ctx.aiImageResult),
         fit: "cover",
         ...{ class: "ai-thumb" },
     }));
-    const __VLS_116 = __VLS_115({
+    const __VLS_87 = __VLS_86({
         src: (__VLS_ctx.aiImageResult),
         fit: "cover",
         ...{ class: "ai-thumb" },
-    }, ...__VLS_functionalComponentArgsRest(__VLS_115));
-    const __VLS_118 = {}.ElButton;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_86));
+    const __VLS_89 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_119 = __VLS_asFunctionalComponent(__VLS_118, new __VLS_118({
+    const __VLS_90 = __VLS_asFunctionalComponent(__VLS_89, new __VLS_89({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_120 = __VLS_119({
+    const __VLS_91 = __VLS_90({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_119));
-    let __VLS_122;
-    let __VLS_123;
-    let __VLS_124;
-    const __VLS_125 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_90));
+    let __VLS_93;
+    let __VLS_94;
+    let __VLS_95;
+    const __VLS_96 = {
         onClick: (__VLS_ctx.addAiImage)
     };
-    __VLS_121.slots.default;
-    var __VLS_121;
+    __VLS_92.slots.default;
+    var __VLS_92;
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "ai-tool" },
@@ -915,42 +760,42 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "ai-tool-header" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-const __VLS_126 = {}.ElButton;
+const __VLS_97 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_127 = __VLS_asFunctionalComponent(__VLS_126, new __VLS_126({
+const __VLS_98 = __VLS_asFunctionalComponent(__VLS_97, new __VLS_97({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiMusicLoading),
     disabled: (!__VLS_ctx.aiMusicPrompt.trim()),
 }));
-const __VLS_128 = __VLS_127({
+const __VLS_99 = __VLS_98({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiMusicLoading),
     disabled: (!__VLS_ctx.aiMusicPrompt.trim()),
-}, ...__VLS_functionalComponentArgsRest(__VLS_127));
-let __VLS_130;
-let __VLS_131;
-let __VLS_132;
-const __VLS_133 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_98));
+let __VLS_101;
+let __VLS_102;
+let __VLS_103;
+const __VLS_104 = {
     onClick: (__VLS_ctx.genMusic)
 };
-__VLS_129.slots.default;
-var __VLS_129;
-const __VLS_134 = {}.ElInput;
+__VLS_100.slots.default;
+var __VLS_100;
+const __VLS_105 = {}.ElInput;
 /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
 // @ts-ignore
-const __VLS_135 = __VLS_asFunctionalComponent(__VLS_134, new __VLS_134({
+const __VLS_106 = __VLS_asFunctionalComponent(__VLS_105, new __VLS_105({
     modelValue: (__VLS_ctx.aiMusicPrompt),
     placeholder: "描述音乐风格，如：轻快的吉他曲",
 }));
-const __VLS_136 = __VLS_135({
+const __VLS_107 = __VLS_106({
     modelValue: (__VLS_ctx.aiMusicPrompt),
     placeholder: "描述音乐风格，如：轻快的吉他曲",
-}, ...__VLS_functionalComponentArgsRest(__VLS_135));
+}, ...__VLS_functionalComponentArgsRest(__VLS_106));
 if (__VLS_ctx.aiMusicResult) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "ai-preview" },
@@ -960,25 +805,25 @@ if (__VLS_ctx.aiMusicResult) {
         controls: true,
         ...{ class: "audio-player" },
     });
-    const __VLS_138 = {}.ElButton;
+    const __VLS_109 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_139 = __VLS_asFunctionalComponent(__VLS_138, new __VLS_138({
+    const __VLS_110 = __VLS_asFunctionalComponent(__VLS_109, new __VLS_109({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_140 = __VLS_139({
+    const __VLS_111 = __VLS_110({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_139));
-    let __VLS_142;
-    let __VLS_143;
-    let __VLS_144;
-    const __VLS_145 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_110));
+    let __VLS_113;
+    let __VLS_114;
+    let __VLS_115;
+    const __VLS_116 = {
         onClick: (__VLS_ctx.addAiMusic)
     };
-    __VLS_141.slots.default;
-    var __VLS_141;
+    __VLS_112.slots.default;
+    var __VLS_112;
 }
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "ai-tool" },
@@ -987,42 +832,42 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "ai-tool-header" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-const __VLS_146 = {}.ElButton;
+const __VLS_117 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_147 = __VLS_asFunctionalComponent(__VLS_146, new __VLS_146({
+const __VLS_118 = __VLS_asFunctionalComponent(__VLS_117, new __VLS_117({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiVideoLoading),
     disabled: (!__VLS_ctx.aiVideoPrompt.trim()),
 }));
-const __VLS_148 = __VLS_147({
+const __VLS_119 = __VLS_118({
     ...{ 'onClick': {} },
     size: "small",
     type: "primary",
     loading: (__VLS_ctx.aiVideoLoading),
     disabled: (!__VLS_ctx.aiVideoPrompt.trim()),
-}, ...__VLS_functionalComponentArgsRest(__VLS_147));
-let __VLS_150;
-let __VLS_151;
-let __VLS_152;
-const __VLS_153 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_118));
+let __VLS_121;
+let __VLS_122;
+let __VLS_123;
+const __VLS_124 = {
     onClick: (__VLS_ctx.genVideo)
 };
-__VLS_149.slots.default;
-var __VLS_149;
-const __VLS_154 = {}.ElInput;
+__VLS_120.slots.default;
+var __VLS_120;
+const __VLS_125 = {}.ElInput;
 /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
 // @ts-ignore
-const __VLS_155 = __VLS_asFunctionalComponent(__VLS_154, new __VLS_154({
+const __VLS_126 = __VLS_asFunctionalComponent(__VLS_125, new __VLS_125({
     modelValue: (__VLS_ctx.aiVideoPrompt),
     placeholder: "描述视频场景",
 }));
-const __VLS_156 = __VLS_155({
+const __VLS_127 = __VLS_126({
     modelValue: (__VLS_ctx.aiVideoPrompt),
     placeholder: "描述视频场景",
-}, ...__VLS_functionalComponentArgsRest(__VLS_155));
+}, ...__VLS_functionalComponentArgsRest(__VLS_126));
 if (__VLS_ctx.aiVideoTaskId) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "ai-preview" },
@@ -1033,25 +878,25 @@ if (__VLS_ctx.aiVideoTaskId) {
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
         (__VLS_ctx.aiVideoStatus);
-        const __VLS_158 = {}.ElButton;
+        const __VLS_129 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_159 = __VLS_asFunctionalComponent(__VLS_158, new __VLS_158({
+        const __VLS_130 = __VLS_asFunctionalComponent(__VLS_129, new __VLS_129({
             ...{ 'onClick': {} },
             size: "small",
         }));
-        const __VLS_160 = __VLS_159({
+        const __VLS_131 = __VLS_130({
             ...{ 'onClick': {} },
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_159));
-        let __VLS_162;
-        let __VLS_163;
-        let __VLS_164;
-        const __VLS_165 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_130));
+        let __VLS_133;
+        let __VLS_134;
+        let __VLS_135;
+        const __VLS_136 = {
             onClick: (__VLS_ctx.checkVideoStatus)
         };
-        __VLS_161.slots.default;
-        var __VLS_161;
+        __VLS_132.slots.default;
+        var __VLS_132;
     }
     else if (__VLS_ctx.aiVideoDownloadUrl) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.video)({
@@ -1059,25 +904,25 @@ if (__VLS_ctx.aiVideoTaskId) {
             controls: true,
             ...{ class: "video-player" },
         });
-        const __VLS_166 = {}.ElButton;
+        const __VLS_137 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_167 = __VLS_asFunctionalComponent(__VLS_166, new __VLS_166({
+        const __VLS_138 = __VLS_asFunctionalComponent(__VLS_137, new __VLS_137({
             ...{ 'onClick': {} },
             size: "small",
         }));
-        const __VLS_168 = __VLS_167({
+        const __VLS_139 = __VLS_138({
             ...{ 'onClick': {} },
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_167));
-        let __VLS_170;
-        let __VLS_171;
-        let __VLS_172;
-        const __VLS_173 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_138));
+        let __VLS_141;
+        let __VLS_142;
+        let __VLS_143;
+        const __VLS_144 = {
             onClick: (__VLS_ctx.addAiVideo)
         };
-        __VLS_169.slots.default;
-        var __VLS_169;
+        __VLS_140.slots.default;
+        var __VLS_140;
     }
     else if (__VLS_ctx.aiVideoStatus === 'Fail') {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -1086,85 +931,85 @@ if (__VLS_ctx.aiVideoTaskId) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     }
 }
-var __VLS_101;
-const __VLS_174 = {}.ElFormItem;
+var __VLS_72;
+const __VLS_145 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
-const __VLS_175 = __VLS_asFunctionalComponent(__VLS_174, new __VLS_174({
+const __VLS_146 = __VLS_asFunctionalComponent(__VLS_145, new __VLS_145({
     label: "公开可见",
 }));
-const __VLS_176 = __VLS_175({
+const __VLS_147 = __VLS_146({
     label: "公开可见",
-}, ...__VLS_functionalComponentArgsRest(__VLS_175));
-__VLS_177.slots.default;
-const __VLS_178 = {}.ElSwitch;
+}, ...__VLS_functionalComponentArgsRest(__VLS_146));
+__VLS_148.slots.default;
+const __VLS_149 = {}.ElSwitch;
 /** @type {[typeof __VLS_components.ElSwitch, typeof __VLS_components.elSwitch, ]} */ ;
 // @ts-ignore
-const __VLS_179 = __VLS_asFunctionalComponent(__VLS_178, new __VLS_178({
+const __VLS_150 = __VLS_asFunctionalComponent(__VLS_149, new __VLS_149({
     modelValue: (__VLS_ctx.form.isPublic),
     activeText: "公开",
     inactiveText: "私密",
 }));
-const __VLS_180 = __VLS_179({
+const __VLS_151 = __VLS_150({
     modelValue: (__VLS_ctx.form.isPublic),
     activeText: "公开",
     inactiveText: "私密",
-}, ...__VLS_functionalComponentArgsRest(__VLS_179));
-var __VLS_177;
-const __VLS_182 = {}.ElFormItem;
+}, ...__VLS_functionalComponentArgsRest(__VLS_150));
+var __VLS_148;
+const __VLS_153 = {}.ElFormItem;
 /** @type {[typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, typeof __VLS_components.ElFormItem, typeof __VLS_components.elFormItem, ]} */ ;
 // @ts-ignore
-const __VLS_183 = __VLS_asFunctionalComponent(__VLS_182, new __VLS_182({}));
-const __VLS_184 = __VLS_183({}, ...__VLS_functionalComponentArgsRest(__VLS_183));
-__VLS_185.slots.default;
-const __VLS_186 = {}.ElButton;
+const __VLS_154 = __VLS_asFunctionalComponent(__VLS_153, new __VLS_153({}));
+const __VLS_155 = __VLS_154({}, ...__VLS_functionalComponentArgsRest(__VLS_154));
+__VLS_156.slots.default;
+const __VLS_157 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_187 = __VLS_asFunctionalComponent(__VLS_186, new __VLS_186({
+const __VLS_158 = __VLS_asFunctionalComponent(__VLS_157, new __VLS_157({
     ...{ 'onClick': {} },
     type: "primary",
     size: "large",
     loading: (__VLS_ctx.saving),
     ...{ class: "save-btn" },
 }));
-const __VLS_188 = __VLS_187({
+const __VLS_159 = __VLS_158({
     ...{ 'onClick': {} },
     type: "primary",
     size: "large",
     loading: (__VLS_ctx.saving),
     ...{ class: "save-btn" },
-}, ...__VLS_functionalComponentArgsRest(__VLS_187));
-let __VLS_190;
-let __VLS_191;
-let __VLS_192;
-const __VLS_193 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_158));
+let __VLS_161;
+let __VLS_162;
+let __VLS_163;
+const __VLS_164 = {
     onClick: (__VLS_ctx.handleSave)
 };
-__VLS_189.slots.default;
+__VLS_160.slots.default;
 (__VLS_ctx.isEditMode ? '保存' : '发布日记');
-var __VLS_189;
-const __VLS_194 = {}.ElButton;
+var __VLS_160;
+const __VLS_165 = {}.ElButton;
 /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
 // @ts-ignore
-const __VLS_195 = __VLS_asFunctionalComponent(__VLS_194, new __VLS_194({
+const __VLS_166 = __VLS_asFunctionalComponent(__VLS_165, new __VLS_165({
     ...{ 'onClick': {} },
     size: "large",
 }));
-const __VLS_196 = __VLS_195({
+const __VLS_167 = __VLS_166({
     ...{ 'onClick': {} },
     size: "large",
-}, ...__VLS_functionalComponentArgsRest(__VLS_195));
-let __VLS_198;
-let __VLS_199;
-let __VLS_200;
-const __VLS_201 = {
+}, ...__VLS_functionalComponentArgsRest(__VLS_166));
+let __VLS_169;
+let __VLS_170;
+let __VLS_171;
+const __VLS_172 = {
     onClick: (...[$event]) => {
         __VLS_ctx.router.back();
     }
 };
-__VLS_197.slots.default;
-var __VLS_197;
-var __VLS_185;
+__VLS_168.slots.default;
+var __VLS_168;
+var __VLS_156;
 var __VLS_11;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "editor-preview-panel" },
@@ -1178,19 +1023,19 @@ if (__VLS_ctx.hasContent) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "preview-cover" },
         });
-        const __VLS_202 = {}.ElImage;
+        const __VLS_173 = {}.ElImage;
         /** @type {[typeof __VLS_components.ElImage, typeof __VLS_components.elImage, ]} */ ;
         // @ts-ignore
-        const __VLS_203 = __VLS_asFunctionalComponent(__VLS_202, new __VLS_202({
+        const __VLS_174 = __VLS_asFunctionalComponent(__VLS_173, new __VLS_173({
             src: (__VLS_ctx.form.images[0]),
             fit: "cover",
             ...{ class: "cover-img" },
         }));
-        const __VLS_204 = __VLS_203({
+        const __VLS_175 = __VLS_174({
             src: (__VLS_ctx.form.images[0]),
             fit: "cover",
             ...{ class: "cover-img" },
-        }, ...__VLS_functionalComponentArgsRest(__VLS_203));
+        }, ...__VLS_functionalComponentArgsRest(__VLS_174));
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "cover-overlay" },
         });
@@ -1214,65 +1059,65 @@ if (__VLS_ctx.hasContent) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "meta-item" },
         });
-        const __VLS_206 = {}.ElIcon;
+        const __VLS_177 = {}.ElIcon;
         /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
         // @ts-ignore
-        const __VLS_207 = __VLS_asFunctionalComponent(__VLS_206, new __VLS_206({}));
-        const __VLS_208 = __VLS_207({}, ...__VLS_functionalComponentArgsRest(__VLS_207));
-        __VLS_209.slots.default;
-        const __VLS_210 = {}.Location;
+        const __VLS_178 = __VLS_asFunctionalComponent(__VLS_177, new __VLS_177({}));
+        const __VLS_179 = __VLS_178({}, ...__VLS_functionalComponentArgsRest(__VLS_178));
+        __VLS_180.slots.default;
+        const __VLS_181 = {}.Location;
         /** @type {[typeof __VLS_components.Location, ]} */ ;
         // @ts-ignore
-        const __VLS_211 = __VLS_asFunctionalComponent(__VLS_210, new __VLS_210({}));
-        const __VLS_212 = __VLS_211({}, ...__VLS_functionalComponentArgsRest(__VLS_211));
-        var __VLS_209;
+        const __VLS_182 = __VLS_asFunctionalComponent(__VLS_181, new __VLS_181({}));
+        const __VLS_183 = __VLS_182({}, ...__VLS_functionalComponentArgsRest(__VLS_182));
+        var __VLS_180;
         (__VLS_ctx.form.destination);
     }
     if (__VLS_ctx.selectedSpotName) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
             ...{ class: "meta-item" },
         });
-        const __VLS_214 = {}.ElIcon;
+        const __VLS_185 = {}.ElIcon;
         /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
         // @ts-ignore
-        const __VLS_215 = __VLS_asFunctionalComponent(__VLS_214, new __VLS_214({}));
-        const __VLS_216 = __VLS_215({}, ...__VLS_functionalComponentArgsRest(__VLS_215));
-        __VLS_217.slots.default;
-        const __VLS_218 = {}.Flag;
+        const __VLS_186 = __VLS_asFunctionalComponent(__VLS_185, new __VLS_185({}));
+        const __VLS_187 = __VLS_186({}, ...__VLS_functionalComponentArgsRest(__VLS_186));
+        __VLS_188.slots.default;
+        const __VLS_189 = {}.Flag;
         /** @type {[typeof __VLS_components.Flag, ]} */ ;
         // @ts-ignore
-        const __VLS_219 = __VLS_asFunctionalComponent(__VLS_218, new __VLS_218({}));
-        const __VLS_220 = __VLS_219({}, ...__VLS_functionalComponentArgsRest(__VLS_219));
-        var __VLS_217;
+        const __VLS_190 = __VLS_asFunctionalComponent(__VLS_189, new __VLS_189({}));
+        const __VLS_191 = __VLS_190({}, ...__VLS_functionalComponentArgsRest(__VLS_190));
+        var __VLS_188;
         (__VLS_ctx.selectedSpotName);
     }
-    const __VLS_222 = {}.ElTag;
+    const __VLS_193 = {}.ElTag;
     /** @type {[typeof __VLS_components.ElTag, typeof __VLS_components.elTag, typeof __VLS_components.ElTag, typeof __VLS_components.elTag, ]} */ ;
     // @ts-ignore
-    const __VLS_223 = __VLS_asFunctionalComponent(__VLS_222, new __VLS_222({
+    const __VLS_194 = __VLS_asFunctionalComponent(__VLS_193, new __VLS_193({
         type: (__VLS_ctx.form.isPublic ? 'success' : 'info'),
         size: "small",
     }));
-    const __VLS_224 = __VLS_223({
+    const __VLS_195 = __VLS_194({
         type: (__VLS_ctx.form.isPublic ? 'success' : 'info'),
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_223));
-    __VLS_225.slots.default;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_194));
+    __VLS_196.slots.default;
     (__VLS_ctx.form.isPublic ? '公开' : '私密');
-    var __VLS_225;
+    var __VLS_196;
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div)({
         ...{ class: "preview-content" },
     });
-    __VLS_asFunctionalDirective(__VLS_directives.vHtml)(null, { ...__VLS_directiveBindingRestFields, value: (__VLS_ctx.renderedContent) }, null, null);
+    __VLS_asFunctionalDirective(__VLS_directives.vHtml)(null, { ...__VLS_directiveBindingRestFields, value: (__VLS_ctx.form.contentHtml || __VLS_ctx.renderedContent) }, null, null);
     if (__VLS_ctx.form.images.length > 1) {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "preview-gallery" },
         });
         for (const [img, idx] of __VLS_getVForSourceType((__VLS_ctx.form.images.slice(1)))) {
-            const __VLS_226 = {}.ElImage;
+            const __VLS_197 = {}.ElImage;
             /** @type {[typeof __VLS_components.ElImage, typeof __VLS_components.elImage, ]} */ ;
             // @ts-ignore
-            const __VLS_227 = __VLS_asFunctionalComponent(__VLS_226, new __VLS_226({
+            const __VLS_198 = __VLS_asFunctionalComponent(__VLS_197, new __VLS_197({
                 key: (idx),
                 src: (img),
                 fit: "cover",
@@ -1281,7 +1126,7 @@ if (__VLS_ctx.hasContent) {
                 previewSrcList: (__VLS_ctx.form.images),
                 initialIndex: (idx + 1),
             }));
-            const __VLS_228 = __VLS_227({
+            const __VLS_199 = __VLS_198({
                 key: (idx),
                 src: (img),
                 fit: "cover",
@@ -1289,7 +1134,7 @@ if (__VLS_ctx.hasContent) {
                 previewTeleported: true,
                 previewSrcList: (__VLS_ctx.form.images),
                 initialIndex: (idx + 1),
-            }, ...__VLS_functionalComponentArgsRest(__VLS_227));
+            }, ...__VLS_functionalComponentArgsRest(__VLS_198));
         }
     }
     if (__VLS_ctx.form.videoUrl) {
@@ -1317,22 +1162,22 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "preview-empty" },
     });
-    const __VLS_230 = {}.ElIcon;
+    const __VLS_201 = {}.ElIcon;
     /** @type {[typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, typeof __VLS_components.ElIcon, typeof __VLS_components.elIcon, ]} */ ;
     // @ts-ignore
-    const __VLS_231 = __VLS_asFunctionalComponent(__VLS_230, new __VLS_230({
+    const __VLS_202 = __VLS_asFunctionalComponent(__VLS_201, new __VLS_201({
         size: (48),
     }));
-    const __VLS_232 = __VLS_231({
+    const __VLS_203 = __VLS_202({
         size: (48),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_231));
-    __VLS_233.slots.default;
-    const __VLS_234 = {}.Document;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_202));
+    __VLS_204.slots.default;
+    const __VLS_205 = {}.Document;
     /** @type {[typeof __VLS_components.Document, ]} */ ;
     // @ts-ignore
-    const __VLS_235 = __VLS_asFunctionalComponent(__VLS_234, new __VLS_234({}));
-    const __VLS_236 = __VLS_235({}, ...__VLS_functionalComponentArgsRest(__VLS_235));
-    var __VLS_233;
+    const __VLS_206 = __VLS_asFunctionalComponent(__VLS_205, new __VLS_205({}));
+    const __VLS_207 = __VLS_206({}, ...__VLS_functionalComponentArgsRest(__VLS_206));
+    var __VLS_204;
     __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
     __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
         ...{ class: "hint" },
@@ -1347,20 +1192,13 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['editor-form-panel']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-select']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-category']} */ ;
-/** @type {__VLS_StyleScopedClasses['image-upload-area']} */ ;
-/** @type {__VLS_StyleScopedClasses['image-thumb']} */ ;
-/** @type {__VLS_StyleScopedClasses['thumb-img']} */ ;
-/** @type {__VLS_StyleScopedClasses['cover-badge']} */ ;
-/** @type {__VLS_StyleScopedClasses['remove-btn']} */ ;
-/** @type {__VLS_StyleScopedClasses['upload-trigger']} */ ;
-/** @type {__VLS_StyleScopedClasses['upload-placeholder']} */ ;
-/** @type {__VLS_StyleScopedClasses['video-preview']} */ ;
-/** @type {__VLS_StyleScopedClasses['video-player']} */ ;
-/** @type {__VLS_StyleScopedClasses['video-remove-btn']} */ ;
-/** @type {__VLS_StyleScopedClasses['upload-trigger']} */ ;
-/** @type {__VLS_StyleScopedClasses['upload-trigger--wide']} */ ;
-/** @type {__VLS_StyleScopedClasses['upload-placeholder']} */ ;
-/** @type {__VLS_StyleScopedClasses['uploading-text']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-upload-area']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-preview']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-thumb']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-remove-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-upload-trigger']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-placeholder']} */ ;
+/** @type {__VLS_StyleScopedClasses['cover-label']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tools-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
 /** @type {__VLS_StyleScopedClasses['ai-tools-header']} */ ;
@@ -1406,15 +1244,14 @@ var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
-            Plus: Plus,
-            Delete: Delete,
             Location: Location,
             Flag: Flag,
             Document: Document,
-            VideoCamera: VideoCamera,
             DefaultLayout: DefaultLayout,
+            RichEditor: RichEditor,
             router: router,
             isEditMode: isEditMode,
+            diaryId: diaryId,
             isMobile: isMobile,
             formRef: formRef,
             saving: saving,
@@ -1425,12 +1262,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             spotLoading: spotLoading,
             selectedSpotName: selectedSpotName,
             searchSpots: searchSpots,
-            imageInput: imageInput,
-            onImageFileChange: onImageFileChange,
-            removeImage: removeImage,
-            videoInput: videoInput,
-            uploadingVideo: uploadingVideo,
-            onVideoFileChange: onVideoFileChange,
+            coverInput: coverInput,
+            onCoverSelected: onCoverSelected,
             aiImagePrompt: aiImagePrompt,
             aiImageLoading: aiImageLoading,
             aiImageResult: aiImageResult,

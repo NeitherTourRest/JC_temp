@@ -12,6 +12,8 @@ public record DiaryRequest(
         @NotBlank(message = "Content is required")
         String content,
 
+        String contentHtml,
+
         String destination,
         Long spotId,
         List<String> images,

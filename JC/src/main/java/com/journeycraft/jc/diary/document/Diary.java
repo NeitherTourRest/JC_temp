@@ -28,6 +28,18 @@ public class Diary {
 
     private String content;
 
+    /** Rich HTML content with inline images/videos and formatting */
+    private String contentHtml;
+
+    /** Compressed contentHtml (raw Deflate, no GZIP header) */
+    private byte[] contentCompressed;
+
+    /** Original size in bytes before compression */
+    private Long originalSize;
+
+    /** Compressed size in bytes */
+    private Long compressedSize;
+
     private String destination;
 
     @Indexed

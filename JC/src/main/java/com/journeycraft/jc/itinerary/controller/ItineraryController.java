@@ -24,8 +24,10 @@ public class ItineraryController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ItineraryResponse>>> list(
-            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(itineraryService.list(page, size)));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(ApiResponse.success(itineraryService.list(page, size, keyword)));
     }
 
     @GetMapping("/{id}")

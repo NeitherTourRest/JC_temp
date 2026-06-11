@@ -2,6 +2,8 @@
   <DefaultLayout>
     <div class="spots-page">
       <div class="toolbar glass-sm">
+        <el-input v-model="keyword" placeholder="搜索景点名称、地址、描述…" prefix-icon="Search" clearable class="search-bar" @keyup.enter="search" @clear="fetch" />
+        <el-button size="small" type="primary" @click="search">搜索</el-button>
         <div class="cat-filters">
           <button v-for="c in cats" :key="c" :class="['cat-btn', { active: activeCat === c }]" @click="filterCat(c)">{{ c }}</button>
         </div>
@@ -97,6 +99,7 @@ onMounted(fetch)
 }
 
 .cat-filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.search-bar { width: 260px; flex-shrink: 0; }
 .cat-btn {
   padding: 3px 12px;
   background: var(--frosted-bg);

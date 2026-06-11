@@ -8,6 +8,7 @@ import com.journeycraft.jc.itinerary.repository.ItineraryRepository;
 import com.journeycraft.jc.user.entity.User;
 import com.journeycraft.jc.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,9 +33,17 @@ public class ItineraryService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ItineraryResponse> list(int page, int size) {
+    public PageResponse<ItineraryResponse> list(int page, int size, String keyword) {
         var user = getCurrentUser();
-        var p = itineraryRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
+        var pageable = PageRequest.of(page, size);
+
+        Page<Itinerary> p;
+        if (keyword != null && !keyword.isBlank()) {
+            p = itineraryRepository.searchByUserIdAndKeyword(user.getId(), keyword, pageable);
+        } else {
+            p = itineraryRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageable);
+        }
+
         return PageResponse.of(p.getContent().stream().map(ItineraryResponse::from).toList(),
                 p.getNumber(), p.getSize(), p.getTotalElements());
     }

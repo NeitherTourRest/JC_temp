@@ -53,6 +53,58 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar glass-sm" },
 });
+const __VLS_4 = {}.ElInput;
+/** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
+// @ts-ignore
+const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
+    ...{ 'onKeyup': {} },
+    ...{ 'onClear': {} },
+    modelValue: (__VLS_ctx.keyword),
+    placeholder: "搜索美食名称、餐厅、描述…",
+    prefixIcon: "Search",
+    clearable: true,
+    ...{ class: "search-bar" },
+}));
+const __VLS_6 = __VLS_5({
+    ...{ 'onKeyup': {} },
+    ...{ 'onClear': {} },
+    modelValue: (__VLS_ctx.keyword),
+    placeholder: "搜索美食名称、餐厅、描述…",
+    prefixIcon: "Search",
+    clearable: true,
+    ...{ class: "search-bar" },
+}, ...__VLS_functionalComponentArgsRest(__VLS_5));
+let __VLS_8;
+let __VLS_9;
+let __VLS_10;
+const __VLS_11 = {
+    onKeyup: (__VLS_ctx.search)
+};
+const __VLS_12 = {
+    onClear: (__VLS_ctx.fetch)
+};
+var __VLS_7;
+const __VLS_13 = {}.ElButton;
+/** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
+// @ts-ignore
+const __VLS_14 = __VLS_asFunctionalComponent(__VLS_13, new __VLS_13({
+    ...{ 'onClick': {} },
+    size: "small",
+    type: "primary",
+}));
+const __VLS_15 = __VLS_14({
+    ...{ 'onClick': {} },
+    size: "small",
+    type: "primary",
+}, ...__VLS_functionalComponentArgsRest(__VLS_14));
+let __VLS_17;
+let __VLS_18;
+let __VLS_19;
+const __VLS_20 = {
+    onClick: (__VLS_ctx.search)
+};
+__VLS_16.slots.default;
+var __VLS_16;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "cats" },
 });
@@ -84,25 +136,25 @@ else if (__VLS_ctx.errorMsg) {
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     (__VLS_ctx.errorMsg);
-    const __VLS_4 = {}.ElButton;
+    const __VLS_21 = {}.ElButton;
     /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
     // @ts-ignore
-    const __VLS_5 = __VLS_asFunctionalComponent(__VLS_4, new __VLS_4({
+    const __VLS_22 = __VLS_asFunctionalComponent(__VLS_21, new __VLS_21({
         ...{ 'onClick': {} },
         size: "small",
     }));
-    const __VLS_6 = __VLS_5({
+    const __VLS_23 = __VLS_22({
         ...{ 'onClick': {} },
         size: "small",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_5));
-    let __VLS_8;
-    let __VLS_9;
-    let __VLS_10;
-    const __VLS_11 = {
+    }, ...__VLS_functionalComponentArgsRest(__VLS_22));
+    let __VLS_25;
+    let __VLS_26;
+    let __VLS_27;
+    const __VLS_28 = {
         onClick: (__VLS_ctx.fetch)
     };
-    __VLS_7.slots.default;
-    var __VLS_7;
+    __VLS_24.slots.default;
+    var __VLS_24;
 }
 else if (!__VLS_ctx.foods.length) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -176,6 +228,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['food-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
+/** @type {__VLS_StyleScopedClasses['search-bar']} */ ;
 /** @type {__VLS_StyleScopedClasses['cats']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
@@ -204,6 +257,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             keyword: keyword,
             activeCat: activeCat,
             cats: cats,
+            search: search,
             filterCat: filterCat,
             fetch: fetch,
         };

@@ -9,6 +9,7 @@ import com.journeycraft.jc.facility.repository.FacilityRepository;
 import com.journeycraft.jc.food.dto.FoodResponse;
 import com.journeycraft.jc.food.entity.Food;
 import com.journeycraft.jc.food.repository.FoodRepository;
+import com.journeycraft.jc.navigation.algorithm.FuzzyMatcher;
 import com.journeycraft.jc.navigation.algorithm.TopKSorter;
 import com.journeycraft.jc.spot.dto.*;
 import com.journeycraft.jc.spot.entity.Spot;
@@ -62,6 +63,22 @@ public class SpotService {
         }
 
         var content = page.getContent().stream().map(SpotResponse::from).toList();
+
+        // FuzzyMatcher catches typos that SQL LIKE misses (e.g., "Grate Wall" → "Great Wall")
+        // Substring check ensures LIKE results are preserved
+        if (request.keyword() != null && !request.keyword().isBlank()) {
+            var kw = request.keyword().toLowerCase();
+            content = content.stream()
+                    .filter(s -> (s.name() != null && s.name().toLowerCase().contains(kw))
+                                || (s.address() != null && s.address().toLowerCase().contains(kw))
+                                || (s.description() != null && s.description().toLowerCase().contains(kw))
+                                || FuzzyMatcher.matches(s.name(), kw, 2)
+                                || FuzzyMatcher.matches(s.category(), kw, 2)
+                                || FuzzyMatcher.matches(s.description(), kw, 2)
+                                || FuzzyMatcher.matches(s.address(), kw, 2))
+                    .toList();
+        }
+
         return PageResponse.of(content, page.getNumber(), page.getSize(), page.getTotalElements());
     }
 

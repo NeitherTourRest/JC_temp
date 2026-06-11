@@ -45,10 +45,12 @@ class FoodServiceTest {
 
         pizza = Food.builder().id(1L).name("Margherita Pizza").cuisine("Italian")
                 .restaurantName("Pizza Palace").popularity(90).avgRating(BigDecimal.valueOf(4.5))
-                .latitude(40.0).longitude(116.0).spotId(1L).build();
+                .latitude(40.0).longitude(116.0).spotId(1L)
+                .description("Classic Italian pizza with fresh mozzarella").build();
         sushi = Food.builder().id(2L).name("Salmon Sushi").cuisine("Japanese")
                 .restaurantName("Sushi Bar").popularity(85).avgRating(BigDecimal.valueOf(4.3))
-                .latitude(40.05).longitude(116.05).spotId(1L).build();
+                .latitude(40.05).longitude(116.05).spotId(1L)
+                .description("Fresh salmon rolls with rice").build();
     }
 
     @Test
@@ -76,12 +78,55 @@ class FoodServiceTest {
     }
 
     @Test
-    @DisplayName("searchGlobalFoods applies fuzzy matching post-filter (matches cuisine)")
+    @DisplayName("searchGlobalFoods matches by description field")
+    void searchGlobalFoodsByDescription() {
+        when(foodRepository.searchByKeyword(eq("mozzarella"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(pizza)));
+
+        var result = foodService.searchGlobalFoods(
+                new FoodSearchRequest("mozzarella", null, null, null, 0, 10, null, null));
+
+        assertEquals(1, result.content().size());
+        assertEquals("Margherita Pizza", result.content().get(0).name());
+    }
+
+    @Test
+    @DisplayName("searchGlobalFoods maintains SQL LIKE results via substring even when FuzzyMatcher misses")
+    void searchGlobalFoodsSubstringRescue() {
+        // SQL LIKE %Palace% matches "Pizza Palace" in restaurantName
+        // but FuzzyMatcher.matches("Pizza Palace", "Palace", 2) fails (distance > 2)
+        // Substring check saves it
+        when(foodRepository.searchByKeyword(eq("Palace"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(pizza)));
+
+        var result = foodService.searchGlobalFoods(
+                new FoodSearchRequest("Palace", null, null, null, 0, 10, null, null));
+
+        assertEquals(1, result.content().size(), "Substring match should survive FuzzyMatcher post-filter");
+        assertEquals("Margherita Pizza", result.content().get(0).name());
+    }
+
+    @Test
+    @DisplayName("searchGlobalFoods matches by restaurant name substring")
+    void searchGlobalFoodsByRestaurantSubstring() {
+        // Search for "Palace" matches "Pizza Palace" (substring)
+        when(foodRepository.searchByKeyword(eq("Palace"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(pizza)));
+
+        var result = foodService.searchGlobalFoods(
+                new FoodSearchRequest("Palace", null, null, null, 0, 10, null, null));
+
+        assertEquals(1, result.content().size());
+    }
+
+    @Test
+    @DisplayName("searchGlobalFoods matches by cuisine via FuzzyMatcher (exact match)")
     void searchGlobalFoodsFuzzy() {
         when(foodRepository.searchByKeyword(eq("Italian"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(pizza, sushi)));
 
-        var result = foodService.searchGlobalFoods(new FoodSearchRequest("Italian", null, null, null, 0, 10, null, null));
+        var result = foodService.searchGlobalFoods(
+                new FoodSearchRequest("Italian", null, null, null, 0, 10, null, null));
 
         // "Italian" matches pizza's cuisine exactly (distance 0), sushi "Japanese" does not (distance 5+)
         assertEquals(1, result.content().size());

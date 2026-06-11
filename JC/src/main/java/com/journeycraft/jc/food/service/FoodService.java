@@ -67,10 +67,15 @@ public class FoodService {
 
         var foods = page.getContent();
         if (request.keyword() != null && !request.keyword().isBlank()) {
+            var kw = request.keyword().toLowerCase();
             foods = foods.stream()
-                    .filter(f -> FuzzyMatcher.matches(f.getName(), request.keyword(), 2) ||
-                                  FuzzyMatcher.matches(f.getCuisine(), request.keyword(), 2) ||
-                                  FuzzyMatcher.matches(f.getRestaurantName(), request.keyword(), 2))
+                    .filter(f -> (f.getName() != null && f.getName().toLowerCase().contains(kw))
+                                || (f.getRestaurantName() != null && f.getRestaurantName().toLowerCase().contains(kw))
+                                || (f.getDescription() != null && f.getDescription().toLowerCase().contains(kw))
+                                || FuzzyMatcher.matches(f.getName(), request.keyword(), 2)
+                                || FuzzyMatcher.matches(f.getCuisine(), request.keyword(), 2)
+                                || FuzzyMatcher.matches(f.getRestaurantName(), request.keyword(), 2)
+                                || FuzzyMatcher.matches(f.getDescription(), request.keyword(), 2))
                     .toList();
         }
 

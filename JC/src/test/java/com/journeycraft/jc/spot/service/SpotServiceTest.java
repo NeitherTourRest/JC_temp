@@ -55,9 +55,11 @@ class SpotServiceTest {
         spotService = new SpotService(spotRepository, spotReviewRepository, foodRepository, facilityRepository, congestionService, userRepository, userPreferenceRepository);
 
         spot1 = Spot.builder().id(1L).name("Great Wall").category("scenic")
-                .popularity(100).avgRating(BigDecimal.valueOf(4.5)).latitude(40.0).longitude(116.0).build();
+                .popularity(100).avgRating(BigDecimal.valueOf(4.5)).latitude(40.0).longitude(116.0)
+                .address("Changping District, Beijing").build();
         spot2 = Spot.builder().id(2L).name("Forbidden City").category("museum")
-                .popularity(80).avgRating(BigDecimal.valueOf(4.3)).latitude(39.9).longitude(116.4).build();
+                .popularity(80).avgRating(BigDecimal.valueOf(4.3)).latitude(39.9).longitude(116.4)
+                .address("Dongcheng District, Beijing").build();
     }
 
     @Test
@@ -117,6 +119,43 @@ class SpotServiceTest {
 
         var result = spotService.searchSpots(new SpotSearchRequest("nothing", null, null, 0, 10));
         assertTrue(result.content().isEmpty());
+    }
+
+    @Test
+    @DisplayName("searchSpots matches by address field")
+    void searchByAddress() {
+        when(spotRepository.searchByKeyword(eq("Changping"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(spot1)));
+
+        var result = spotService.searchSpots(new SpotSearchRequest("Changping", null, null, 0, 10));
+
+        assertEquals(1, result.content().size());
+        assertEquals("Great Wall", result.content().get(0).name());
+    }
+
+    @Test
+    @DisplayName("searchSpots preserves SQL LIKE results even when FuzzyMatcher misses")
+    void searchKeepsLikeResultsDespiteFuzzyMiss() {
+        when(spotRepository.searchByKeyword(eq("Wall"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(spot1)));
+
+        // "Wall" has Levenshtein distance > 2 from "Great Wall", but LIKE %Wall% matches
+        var result = spotService.searchSpots(new SpotSearchRequest("Wall", null, null, 0, 10));
+
+        assertEquals(1, result.content().size(), "LIKE match should survive FuzzyMatcher post-filter");
+    }
+
+    @Test
+    @DisplayName("searchSpots FuzzyMatcher catches typos in name (Levenshtein distance <= 2)")
+    void searchCatchesTypos() {
+        // "Forbiddn City" vs "Forbidden City" — distance 1 (missing 'e'), FuzzyMatcher catches it
+        when(spotRepository.searchByKeyword(eq("Forbiddn City"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(spot2)));
+
+        var result = spotService.searchSpots(new SpotSearchRequest("Forbiddn City", null, null, 0, 10));
+
+        assertEquals(1, result.content().size());
+        assertEquals("Forbidden City", result.content().get(0).name());
     }
 
     @Test

@@ -69,9 +69,34 @@ class ItineraryServiceTest {
                 Itinerary.builder().id(1L).userId(1L).name("Trip 1").build()));
         when(itineraryRepository.findByUserIdOrderByCreatedAtDesc(eq(1L), any(PageRequest.class))).thenReturn(page);
 
-        var result = itineraryService.list(0, 10);
+        var result = itineraryService.list(0, 10, null);
         assertEquals(1, result.content().size());
         assertEquals("Trip 1", result.content().get(0).name());
+    }
+
+    @Test
+    @DisplayName("list with keyword calls searchByUserIdAndKeyword")
+    void listWithKeyword() {
+        var page = new PageImpl<>(List.of(
+                Itinerary.builder().id(1L).userId(1L).name("Beijing Trip").routeData("Great Wall, Forbidden City").build()));
+        when(itineraryRepository.searchByUserIdAndKeyword(eq(1L), eq("Beijing"), any(PageRequest.class))).thenReturn(page);
+
+        var result = itineraryService.list(0, 10, "Beijing");
+        assertEquals(1, result.content().size());
+        assertEquals("Beijing Trip", result.content().get(0).name());
+        verify(itineraryRepository).searchByUserIdAndKeyword(eq(1L), eq("Beijing"), any(PageRequest.class));
+        verify(itineraryRepository, never()).findByUserIdOrderByCreatedAtDesc(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("list with routeData keyword returns matching itinerary")
+    void listWithRouteDataKeyword() {
+        var page = new PageImpl<>(List.of(
+                Itinerary.builder().id(2L).userId(1L).name("Summer Vacation").routeData("visited Great Wall, ate Peking Duck").build()));
+        when(itineraryRepository.searchByUserIdAndKeyword(eq(1L), eq("Peking Duck"), any(PageRequest.class))).thenReturn(page);
+
+        var result = itineraryService.list(0, 10, "Peking Duck");
+        assertEquals(1, result.content().size());
     }
 
     @Test

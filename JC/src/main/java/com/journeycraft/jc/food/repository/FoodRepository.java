@@ -17,10 +17,10 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     Page<Food> findByCuisine(String cuisine, Pageable pageable);
 
-    @Query("SELECT f FROM Food f WHERE (LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.restaurantName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    @Query("SELECT f FROM Food f WHERE (LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.restaurantName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Food> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT f FROM Food f WHERE (LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.restaurantName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND f.cuisine = :cuisine")
+    @Query("SELECT f FROM Food f WHERE (LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.restaurantName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(f.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND f.cuisine = :cuisine")
     Page<Food> searchByKeywordAndCuisine(@Param("keyword") String keyword, @Param("cuisine") String cuisine, Pageable pageable);
 
     Page<Food> findBySpotIdOrderByPopularityDesc(Long spotId, Pageable pageable);

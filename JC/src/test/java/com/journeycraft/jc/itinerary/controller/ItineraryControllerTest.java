@@ -31,9 +31,9 @@ class ItineraryControllerTest {
         var page = new PageResponse<>(List.of(
                 new ItineraryResponse(1L, 1L, "My Trip", null, null, null, null, null)),
                 0, 10, 1, 1, false);
-        when(itineraryService.list(anyInt(), anyInt())).thenReturn(page);
+        when(itineraryService.list(anyInt(), anyInt(), isNull())).thenReturn(page);
 
-        var response = controller.list(0, 10);
+        var response = controller.list(0, 10, null);
         var body = response.getBody();
         assertNotNull(body);
         assertTrue(body.success());

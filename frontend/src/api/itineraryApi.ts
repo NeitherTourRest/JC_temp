@@ -21,9 +21,9 @@ export const itineraryApi = {
     totalTime?: number
   }) => apiClient.post<ApiResponse<ItineraryResponse>>('/itineraries', data),
 
-  list: (page: number = 0, size: number = 10) =>
+  list: (params?: { page?: number; size?: number; keyword?: string }) =>
     apiClient.get<ApiResponse<PageResponse<ItineraryResponse>>>('/itineraries', {
-      params: { page, size }
+      params: params || {}
     }),
 
   get: (id: number) =>

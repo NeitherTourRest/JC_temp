@@ -23,9 +23,49 @@
 
       <!-- Right: Search + Profile -->
       <div class="main-top-right">
-        <div class="top-search-box">
+        <div class="top-search-box" @click.stop>
           <span class="search-icon">🔍</span>
-          <input v-model="q" placeholder="搜索景点、美食..." @keyup.enter="doSearch" />
+          <input v-model="q" placeholder="搜索景点、美食、游记..." @input="onSearchInput" @keydown.escape="showSearchResults=false" @focus="onSearchFocus" />
+          <!-- Search Results Popup -->
+          <div v-if="showSearchResults" class="search-popup glass" @click.stop>
+            <div v-if="searchLoading" class="sp-center"><span class="loading-spinner"></span><span>搜索中...</span></div>
+            <template v-else-if="hasResults">
+              <div v-if="spots.length" class="sr-group">
+                <div class="sr-group-title">🏞️ 景点</div>
+                <div v-for="s in spots" :key="'s'+s.id" class="sr-item" @click="goTo('/spots/'+s.id)">
+                  <div class="sr-item-img" :style="{ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }"></div>
+                  <div class="sr-item-body">
+                    <div class="sr-item-name">{{ s.name }}</div>
+                    <div class="sr-item-meta">{{ s.category }} · ⭐ {{ s.avgRating?.toFixed(1) || '—' }}</div>
+                  </div>
+                </div>
+                <div class="sr-more" @click="goTo('/spots?keyword='+encodeURIComponent(q))">查看全部景点 ›</div>
+              </div>
+              <div v-if="foods.length" class="sr-group">
+                <div class="sr-group-title">🍜 美食</div>
+                <div v-for="f in foods" :key="'f'+f.id" class="sr-item" @click="goTo('/foods/'+f.id)">
+                  <div class="sr-item-img" :style="{ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }"></div>
+                  <div class="sr-item-body">
+                    <div class="sr-item-name">{{ f.name }}</div>
+                    <div class="sr-item-meta">{{ f.cuisine || '美食' }} · ⭐ {{ f.avgRating?.toFixed(1) || '—' }}</div>
+                  </div>
+                </div>
+                <div class="sr-more" @click="goTo('/foods?keyword='+encodeURIComponent(q))">查看全部美食 ›</div>
+              </div>
+              <div v-if="diaries.length" class="sr-group">
+                <div class="sr-group-title">📓 游记</div>
+                <div v-for="d in diaries" :key="'d'+d.id" class="sr-item" @click="goTo('/diaries/'+d.id)">
+                  <div class="sr-item-img" :style="{ backgroundImage: d.images?.[0] ? `url(${d.images[0]})` : 'none' }"></div>
+                  <div class="sr-item-body">
+                    <div class="sr-item-name">{{ d.title }}</div>
+                    <div class="sr-item-meta">⭐ {{ d.avgRating?.toFixed(1) || '—' }} · 👁 {{ d.popularity }}</div>
+                  </div>
+                </div>
+                <div class="sr-more" @click="goTo('/diaries?keyword='+encodeURIComponent(q))">查看全部游记 ›</div>
+              </div>
+            </template>
+            <div v-else-if="q.trim() && !searchLoading" class="sp-center" style="color:var(--text-muted)">未找到相关结果</div>
+          </div>
         </div>
 
         <!-- Profile -->
@@ -57,10 +97,18 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { searchApi } from '@/api/aiGenApi'
+import type { SpotResponse, FoodResponse, DiaryResponse } from '@/types/api'
 
 const route = useRoute(); const router = useRouter()
 const authStore = useAuthStore()
 const q = ref('')
+const showSearchResults = ref(false)
+const searchLoading = ref(false)
+const spots = ref<SpotResponse[]>([])
+const foods = ref<FoodResponse[]>([])
+const diaries = ref<DiaryResponse[]>([])
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 const navRef = ref<HTMLElement | null>(null)
 const btnRefs = ref<HTMLElement[]>([])
 
@@ -93,8 +141,48 @@ const navItems = [
 
 function isActive(path: string) { return route.path.startsWith(path) }
 
-function doSearch() {
-  if (q.value.trim()) router.push('/spots?keyword=' + encodeURIComponent(q.value))
+const hasResults = computed(() => spots.value.length > 0 || foods.value.length > 0 || diaries.value.length > 0)
+
+function onSearchInput() {
+  const kw = q.value.trim()
+  if (!kw) { showSearchResults.value = false; return }
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => fetchSearch(kw), 300)
+}
+
+function onSearchFocus() {
+  if (q.value.trim()) fetchSearch(q.value.trim())
+}
+
+async function fetchSearch(kw: string) {
+  searchLoading.value = true
+  showSearchResults.value = true
+  try {
+    const r = await searchApi.all(kw, 5)
+    const d = r.data.data
+    spots.value = d?.spots || []
+    foods.value = d?.foods || []
+    diaries.value = d?.diaries || []
+  } catch { /* ignore */ }
+  finally { searchLoading.value = false }
+}
+
+function goTo(path: string) {
+  showSearchResults.value = false
+  q.value = ''
+  router.push(path)
+}
+
+// Close popup when clicking outside
+function onDocumentClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.top-search-box')) {
+    showSearchResults.value = false
+  }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', onDocumentClick)
 }
 
 const pageTitle = computed(() => ({
@@ -278,6 +366,7 @@ watch(() => route.path, () => nextTick(updateSlider))
   border-color: rgba(124,215,238,0.4);
   box-shadow: 0 0 0 3px rgba(124,215,238,0.1), var(--search-shadow);
 }
+.top-search-box { position: relative; }
 .search-icon { font-size: 13px; opacity: 0.6; }
 .top-search-box input {
   background: transparent;
@@ -289,6 +378,42 @@ watch(() => route.path, () => nextTick(updateSlider))
   width: 120px;
 }
 .top-search-box input::placeholder { color: rgba(200,200,200,0.4); }
+
+/* ── Search Results Popup ── */
+.search-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 10px 0;
+  z-index: 200;
+  min-width: 360px;
+}
+.sp-center { padding: 20px; text-align: center; font-size: 13px; color: var(--text-regular); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.sr-group { padding: 4px 0; }
+.sr-group + .sr-group { border-top: 1px solid var(--frosted-border); }
+.sr-group-title { padding: 6px 14px 4px; font-size: 12px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.5px; }
+.sr-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px; cursor: pointer;
+  transition: background 0.15s;
+}
+.sr-item:hover { background: rgba(255,255,255,0.06); }
+.sr-item-img {
+  width: 36px; height: 36px; border-radius: 6px; flex-shrink: 0;
+  background-size: cover; background-position: center;
+  background-color: rgba(255,255,255,0.04);
+}
+.sr-item-body { min-width: 0; flex: 1; }
+.sr-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.sr-more {
+  padding: 4px 14px; font-size: 12px; color: #7cd7ee; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sr-more:hover { opacity: 0.7; }
 
 /* Profile */
 .top-profile {

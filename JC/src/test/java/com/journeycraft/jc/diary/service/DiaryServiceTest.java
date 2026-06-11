@@ -70,7 +70,7 @@ class DiaryServiceTest {
         mockAuthUser();
         when(diaryRepository.save(any(Diary.class))).thenReturn(diary);
 
-        var request = new DiaryRequest("My Trip", "Had a great time!", "Beijing", null, null, null, null, true);
+        var request = new DiaryRequest("My Trip", "Had a great time!", null, "Beijing", null, null, null, null, true);
         var result = diaryService.createDiary(request);
 
         assertEquals("My Trip", result.title());
@@ -123,7 +123,7 @@ class DiaryServiceTest {
         when(diaryRepository.findById("d1")).thenReturn(Optional.of(diary));
         when(diaryRepository.save(any(Diary.class))).thenReturn(diary);
 
-        var request = new DiaryRequest("Updated", "Updated content", null, null, null, null, null, true);
+        var request = new DiaryRequest("Updated", "Updated content", null, null, null, null, null, null, true);
         var result = diaryService.updateDiary("d1", request);
 
         assertEquals("Updated", result.title());
@@ -168,12 +168,80 @@ class DiaryServiceTest {
     }
 
     @Test
-    @DisplayName("searchDiaries searches by title")
-    void searchDiaries() {
-        when(diaryRepository.findByTitleContainingIgnoreCaseAndIsPublicTrue(eq("Trip"), any(PageRequest.class)))
+    @DisplayName("createDiary compresses contentHtml when present")
+    void createDiaryCompresses() {
+        mockAuthUser();
+        final String html = "<p>Hello <strong>World</strong></p>" + "x".repeat(100);
+        var expected = Diary.builder().id("d1").userId(1L).title("My Trip").content("Hello World")
+                .contentHtml(html).isPublic(true).build();
+        when(diaryRepository.save(argThat(d -> d.getContentHtml() != null))).thenReturn(expected);
+
+        var request = new DiaryRequest("My Trip", "Hello World", html, null, null, null, null, null, true);
+        var result = diaryService.createDiary(request);
+
+        assertEquals("My Trip", result.title());
+        verify(diaryRepository).save(argThat(d ->
+                d.getContentCompressed() != null && d.getOriginalSize() != null && d.getCompressedSize() != null
+        ));
+    }
+
+    @Test
+    @DisplayName("getDiary decompresses contentCompressed into contentHtml")
+    void getDiaryDecompresses() throws Exception {
+        String html = "<p>Test content</p>";
+        var cr = DiaryCompressor.compress(html);
+        diary.setContentCompressed(cr.compressedData());
+        diary.setOriginalSize((long) cr.originalSize());
+        diary.setCompressedSize((long) cr.compressedSize());
+        diary.setContentHtml(null); // compressed, no plain html
+
+        when(diaryRepository.findById("d1")).thenReturn(Optional.of(diary));
+        when(diaryRepository.save(any(Diary.class))).thenReturn(diary);
+
+        var result = diaryService.getDiary("d1");
+        assertEquals(html, result.contentHtml());
+        assertEquals(cr.originalSize(), result.originalSize());
+        assertEquals(cr.compressedSize(), result.compressedSize());
+    }
+
+    @Test
+    @DisplayName("getDiary lazily compresses uncompressed contentHtml")
+    void getDiaryLazyCompress() {
+        String html = "<p>Legacy content</p>" + "y".repeat(200);
+        diary.setContentHtml(html);
+        diary.setContentCompressed(null);
+        diary.setOriginalSize(null);
+        diary.setCompressedSize(null);
+
+        when(diaryRepository.findById("d1")).thenReturn(Optional.of(diary));
+        when(diaryRepository.save(any(Diary.class))).thenAnswer(i -> i.getArgument(0));
+
+        var result = diaryService.getDiary("d1");
+        assertEquals(html, result.contentHtml());
+        assertNotNull(result.originalSize());
+        assertNotNull(result.compressedSize());
+        assertTrue(result.compressedSize() < result.originalSize());
+    }
+
+    @Test
+    @DisplayName("searchDiaries uses searchFulltext with regex-escaped keyword")
+    void searchDiariesUsesSearchFulltext() {
+        when(diaryRepository.searchFulltext(contains("Trip"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         var result = diaryService.searchDiaries("Trip", 0, 10);
         assertEquals(1, result.content().size());
+        verify(diaryRepository).searchFulltext(anyString(), any(PageRequest.class));
+    }
+
+    @Test
+    @DisplayName("searchDiaries escapes regex special characters in keyword")
+    void searchDiariesEscapesRegex() {
+        when(diaryRepository.searchFulltext(eq("hello\\.world"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        var result = diaryService.searchDiaries("hello.world", 0, 10);
+        assertEquals(0, result.content().size());
+        verify(diaryRepository).searchFulltext(eq("hello\\.world"), any(PageRequest.class));
     }
 }

@@ -2,10 +2,17 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
+import { searchApi } from '@/api/aiGenApi';
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const q = ref('');
+const showSearchResults = ref(false);
+const searchLoading = ref(false);
+const spots = ref([]);
+const foods = ref([]);
+const diaries = ref([]);
+let searchTimer = null;
 const navRef = ref(null);
 const btnRefs = ref([]);
 const isLoggedIn = computed(() => authStore.isAuthenticated);
@@ -37,9 +44,50 @@ const navItems = [
     { path: '/ai/chat', icon: '🤖', label: 'AI' },
 ];
 function isActive(path) { return route.path.startsWith(path); }
-function doSearch() {
+const hasResults = computed(() => spots.value.length > 0 || foods.value.length > 0 || diaries.value.length > 0);
+function onSearchInput() {
+    const kw = q.value.trim();
+    if (!kw) {
+        showSearchResults.value = false;
+        return;
+    }
+    if (searchTimer)
+        clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => fetchSearch(kw), 300);
+}
+function onSearchFocus() {
     if (q.value.trim())
-        router.push('/spots?keyword=' + encodeURIComponent(q.value));
+        fetchSearch(q.value.trim());
+}
+async function fetchSearch(kw) {
+    searchLoading.value = true;
+    showSearchResults.value = true;
+    try {
+        const r = await searchApi.all(kw, 5);
+        const d = r.data.data;
+        spots.value = d?.spots || [];
+        foods.value = d?.foods || [];
+        diaries.value = d?.diaries || [];
+    }
+    catch { /* ignore */ }
+    finally {
+        searchLoading.value = false;
+    }
+}
+function goTo(path) {
+    showSearchResults.value = false;
+    q.value = '';
+    router.push(path);
+}
+// Close popup when clicking outside
+function onDocumentClick(e) {
+    const target = e.target;
+    if (!target.closest('.top-search-box')) {
+        showSearchResults.value = false;
+    }
+}
+if (typeof document !== 'undefined') {
+    document.addEventListener('click', onDocumentClick);
 }
 const pageTitle = computed(() => ({
     '/': '首页', '/spots': '景点', '/foods': '美食',
@@ -89,6 +137,11 @@ let __VLS_directives;
 /** @type {__VLS_StyleScopedClasses['top-search-box']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-search-box']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-search-box']} */ ;
+/** @type {__VLS_StyleScopedClasses['top-search-box']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-more']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-profile']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-login-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['main-top']} */ ;
@@ -152,16 +205,209 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "main-top-right" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+    ...{ onClick: () => { } },
     ...{ class: "top-search-box" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
     ...{ class: "search-icon" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.input)({
-    ...{ onKeyup: (__VLS_ctx.doSearch) },
-    placeholder: "搜索景点、美食...",
+    ...{ onInput: (__VLS_ctx.onSearchInput) },
+    ...{ onKeydown: (...[$event]) => {
+            __VLS_ctx.showSearchResults = false;
+        } },
+    ...{ onFocus: (__VLS_ctx.onSearchFocus) },
+    placeholder: "搜索景点、美食、游记...",
 });
 (__VLS_ctx.q);
+if (__VLS_ctx.showSearchResults) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ onClick: () => { } },
+        ...{ class: "search-popup glass" },
+    });
+    if (__VLS_ctx.searchLoading) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "sp-center" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "loading-spinner" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
+    }
+    else if (__VLS_ctx.hasResults) {
+        if (__VLS_ctx.spots.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group-title" },
+            });
+            for (const [s] of __VLS_getVForSourceType((__VLS_ctx.spots))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!(__VLS_ctx.showSearchResults))
+                                return;
+                            if (!!(__VLS_ctx.searchLoading))
+                                return;
+                            if (!(__VLS_ctx.hasResults))
+                                return;
+                            if (!(__VLS_ctx.spots.length))
+                                return;
+                            __VLS_ctx.goTo('/spots/' + s.id);
+                        } },
+                    key: ('s' + s.id),
+                    ...{ class: "sr-item" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-img" },
+                    ...{ style: ({ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }) },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-body" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-name" },
+                });
+                (s.name);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-meta" },
+                });
+                (s.category);
+                (s.avgRating?.toFixed(1) || '—');
+            }
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ onClick: (...[$event]) => {
+                        if (!(__VLS_ctx.showSearchResults))
+                            return;
+                        if (!!(__VLS_ctx.searchLoading))
+                            return;
+                        if (!(__VLS_ctx.hasResults))
+                            return;
+                        if (!(__VLS_ctx.spots.length))
+                            return;
+                        __VLS_ctx.goTo('/spots?keyword=' + encodeURIComponent(__VLS_ctx.q));
+                    } },
+                ...{ class: "sr-more" },
+            });
+        }
+        if (__VLS_ctx.foods.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group-title" },
+            });
+            for (const [f] of __VLS_getVForSourceType((__VLS_ctx.foods))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!(__VLS_ctx.showSearchResults))
+                                return;
+                            if (!!(__VLS_ctx.searchLoading))
+                                return;
+                            if (!(__VLS_ctx.hasResults))
+                                return;
+                            if (!(__VLS_ctx.foods.length))
+                                return;
+                            __VLS_ctx.goTo('/foods/' + f.id);
+                        } },
+                    key: ('f' + f.id),
+                    ...{ class: "sr-item" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-img" },
+                    ...{ style: ({ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }) },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-body" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-name" },
+                });
+                (f.name);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-meta" },
+                });
+                (f.cuisine || '美食');
+                (f.avgRating?.toFixed(1) || '—');
+            }
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ onClick: (...[$event]) => {
+                        if (!(__VLS_ctx.showSearchResults))
+                            return;
+                        if (!!(__VLS_ctx.searchLoading))
+                            return;
+                        if (!(__VLS_ctx.hasResults))
+                            return;
+                        if (!(__VLS_ctx.foods.length))
+                            return;
+                        __VLS_ctx.goTo('/foods?keyword=' + encodeURIComponent(__VLS_ctx.q));
+                    } },
+                ...{ class: "sr-more" },
+            });
+        }
+        if (__VLS_ctx.diaries.length) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group" },
+            });
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "sr-group-title" },
+            });
+            for (const [d] of __VLS_getVForSourceType((__VLS_ctx.diaries))) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ onClick: (...[$event]) => {
+                            if (!(__VLS_ctx.showSearchResults))
+                                return;
+                            if (!!(__VLS_ctx.searchLoading))
+                                return;
+                            if (!(__VLS_ctx.hasResults))
+                                return;
+                            if (!(__VLS_ctx.diaries.length))
+                                return;
+                            __VLS_ctx.goTo('/diaries/' + d.id);
+                        } },
+                    key: ('d' + d.id),
+                    ...{ class: "sr-item" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-img" },
+                    ...{ style: ({ backgroundImage: d.images?.[0] ? `url(${d.images[0]})` : 'none' }) },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-body" },
+                });
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-name" },
+                });
+                (d.title);
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "sr-item-meta" },
+                });
+                (d.avgRating?.toFixed(1) || '—');
+                (d.popularity);
+            }
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ onClick: (...[$event]) => {
+                        if (!(__VLS_ctx.showSearchResults))
+                            return;
+                        if (!!(__VLS_ctx.searchLoading))
+                            return;
+                        if (!(__VLS_ctx.hasResults))
+                            return;
+                        if (!(__VLS_ctx.diaries.length))
+                            return;
+                        __VLS_ctx.goTo('/diaries?keyword=' + encodeURIComponent(__VLS_ctx.q));
+                    } },
+                ...{ class: "sr-more" },
+            });
+        }
+    }
+    else if (__VLS_ctx.q.trim() && !__VLS_ctx.searchLoading) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            ...{ class: "sp-center" },
+            ...{ style: {} },
+        });
+    }
+}
 if (__VLS_ctx.isLoggedIn) {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ onClick: (...[$event]) => {
@@ -222,6 +468,35 @@ var __VLS_0 = {};
 /** @type {__VLS_StyleScopedClasses['main-top-right']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-search-box']} */ ;
 /** @type {__VLS_StyleScopedClasses['search-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['search-popup']} */ ;
+/** @type {__VLS_StyleScopedClasses['glass']} */ ;
+/** @type {__VLS_StyleScopedClasses['sp-center']} */ ;
+/** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group-title']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-img']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-meta']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-more']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group-title']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-img']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-meta']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-more']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-group-title']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-img']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-item-meta']} */ ;
+/** @type {__VLS_StyleScopedClasses['sr-more']} */ ;
+/** @type {__VLS_StyleScopedClasses['sp-center']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-profile']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-avatar']} */ ;
 /** @type {__VLS_StyleScopedClasses['top-username']} */ ;
@@ -238,6 +513,11 @@ const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
             q: q,
+            showSearchResults: showSearchResults,
+            searchLoading: searchLoading,
+            spots: spots,
+            foods: foods,
+            diaries: diaries,
             navRef: navRef,
             btnRefs: btnRefs,
             isLoggedIn: isLoggedIn,
@@ -246,7 +526,10 @@ const __VLS_self = (await import('vue')).defineComponent({
             avatarStyle: avatarStyle,
             navItems: navItems,
             isActive: isActive,
-            doSearch: doSearch,
+            hasResults: hasResults,
+            onSearchInput: onSearchInput,
+            onSearchFocus: onSearchFocus,
+            goTo: goTo,
             pageTitle: pageTitle,
             pageDesc: pageDesc,
             sliderStyle: sliderStyle,

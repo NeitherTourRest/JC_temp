@@ -15,10 +15,10 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     Page<Spot> findByCategory(String category, Pageable pageable);
 
-    @Query("SELECT s FROM Spot s WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    @Query("SELECT s FROM Spot s WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.address) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Spot> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT s FROM Spot s WHERE (LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND s.category = :category")
+    @Query("SELECT s FROM Spot s WHERE (LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.address) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND s.category = :category")
     Page<Spot> searchByKeywordAndCategory(@Param("keyword") String keyword, @Param("category") String category, Pageable pageable);
 
     List<Spot> findTop10ByOrderByPopularityDesc();

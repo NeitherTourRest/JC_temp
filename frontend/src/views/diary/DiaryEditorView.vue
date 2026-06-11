@@ -65,45 +65,22 @@
             </el-form-item>
 
             <el-form-item label="内容" prop="content">
-              <el-input
-                v-model="form.content"
-                type="textarea"
-                :rows="10"
-                placeholder="记录你的旅行故事…"
-                maxlength="5000"
-                show-word-limit
-              />
+              <RichEditor v-model="form.contentHtml" :key="'editor-' + diaryId" />
             </el-form-item>
 
-            <el-form-item label="图片">
-              <div class="image-upload-area">
-                <div v-for="(img, idx) in form.images" :key="idx" class="image-thumb" :class="{ 'is-cover': idx === 0 }">
-                  <el-image :src="img" fit="cover" class="thumb-img" preview-teleported :preview-src-list="form.images" :initial-index="idx" />
-                  <span v-if="idx === 0" class="cover-badge">封面</span>
-                  <el-button class="remove-btn" circle size="small" type="danger" :icon="Delete" @click="removeImage(idx)" />
+            <el-form-item label="封面图片">
+              <div class="cover-upload-area">
+                <div v-if="form.images[0]" class="cover-preview">
+                  <el-image :src="form.images[0]" fit="cover" class="cover-thumb" />
+                  <el-button class="cover-remove-btn" size="small" type="danger" circle @click="form.images = []">×</el-button>
                 </div>
-                  <div v-if="form.images.length < 9" class="upload-trigger" @click="imageInput?.click()">
-                  <div class="upload-placeholder">
-                    <el-icon :size="28"><Plus /></el-icon>
-                    <span>上传图片</span>
+                <div v-else class="cover-upload-trigger" @click="coverInput?.click()">
+                  <div class="cover-placeholder">
+                    <span>+</span>
+                    <span class="cover-label">上传封面</span>
                   </div>
-                  <input ref="imageInput" type="file" accept="image/*" hidden @change="onImageFileChange" />
+                  <input ref="coverInput" type="file" accept="image/*" hidden @change="onCoverSelected" />
                 </div>
-              </div>
-            </el-form-item>
-
-            <el-form-item label="视频">
-              <div v-if="form.videoUrl" class="video-preview">
-                <video :src="form.videoUrl" controls class="video-player" />
-                <el-button class="video-remove-btn" size="small" type="danger" :icon="Delete" @click="form.videoUrl = ''; form.videoMeta = undefined">删除视频</el-button>
-              </div>
-              <div v-else class="upload-trigger upload-trigger--wide" :class="{ 'is-uploading': uploadingVideo }" @click="videoInput?.click()">
-                <div class="upload-placeholder">
-                  <el-icon :size="28" v-if="!uploadingVideo"><VideoCamera /></el-icon>
-                  <span v-if="!uploadingVideo">上传视频（可选）</span>
-                  <span v-else class="uploading-text">⏳ 上传中...</span>
-                </div>
-                <input ref="videoInput" type="file" accept="video/*" hidden @change="onVideoFileChange" />
               </div>
             </el-form-item>
 
@@ -211,7 +188,7 @@
             </div>
 
             <!-- 内容 -->
-            <div class="preview-content" v-html="renderedContent" />
+            <div class="preview-content" v-html="form.contentHtml || renderedContent" />
 
             <!-- 图片画廊 -->
             <div class="preview-gallery" v-if="form.images.length > 1">
@@ -250,8 +227,9 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Plus, Delete, Location, Flag, Document, VideoCamera } from '@element-plus/icons-vue'
+import { Plus, Delete, Location, Flag, Document } from '@element-plus/icons-vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import RichEditor from '@/components/RichEditor.vue'
 import { diaryApi } from '@/api/diaryApi'
 import { spotApi } from '@/api/spotApi'
 import { aiGenApi, fileApi } from '@/api/aiGenApi'
@@ -278,6 +256,7 @@ const loading = ref(false)
 interface DiaryForm {
   title: string
   content: string
+  contentHtml: string
   destination: string
   images: string[]
   videoUrl?: string
@@ -290,6 +269,7 @@ interface DiaryForm {
 const form = ref<DiaryForm>({
   title: '',
   content: '',
+  contentHtml: '',
   destination: '',
   images: [],
   spotId: null,
@@ -337,11 +317,11 @@ async function searchSpots(query: string) {
   }, 300)
 }
 
-// ── 图片处理 ──
-const imageInput = ref<HTMLInputElement>()
-const uploadingImage = ref(false)
+// ── 封面图片上传 ──
+const coverInput = ref<HTMLInputElement>()
+const uploadingCover = ref(false)
 
-async function onImageFileChange(e: Event) {
+async function onCoverSelected(e: Event) {
   const input = e.target as HTMLInputElement
   if (!input.files?.length) return
   const file = input.files[0]
@@ -349,47 +329,13 @@ async function onImageFileChange(e: Event) {
     ElMessage.warning('图片大小不能超过 10MB')
     return
   }
-  uploadingImage.value = true
+  uploadingCover.value = true
   try {
     const r = await fileApi.upload(file)
-    if (r.data.data?.url) form.value.images.push(r.data.data.url)
-    ElMessage.success('图片上传成功')
-  } catch { ElMessage.error('图片上传失败') }
-  finally { uploadingImage.value = false; input.value = '' }
-}
-
-function removeImage(idx: number) {
-  form.value.images.splice(idx, 1)
-}
-
-// ── Video upload ──
-const videoInput = ref<HTMLInputElement>()
-const uploadingVideo = ref(false)
-
-async function onVideoFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
-  if (!input.files?.length) return
-  const file = input.files[0]
-  if (file.size > 200 * 1024 * 1024) {
-    ElMessage.warning('视频大小不能超过 200MB')
-    input.value = ''
-    return
-  }
-  uploadingVideo.value = true
-  try {
-    const r = await fileApi.upload(file)
-    if (r.data.data?.url) {
-      form.value.videoUrl = r.data.data.url
-      form.value.videoMeta = { url: r.data.data.url, thumbnail: '' }
-      ElMessage.success('视频上传成功')
-    } else {
-      ElMessage.error('上传返回数据异常')
-    }
-  } catch (e: any) {
-    const msg = e?.response?.status === 413 ? '视频文件过大，请压缩后上传' : '视频上传失败'
-    ElMessage.error(msg)
-  }
-  finally { uploadingVideo.value = false; input.value = '' }
+    if (r.data.data?.url) form.value.images = [r.data.data.url]
+    ElMessage.success('封面上传成功')
+  } catch { ElMessage.error('封面上传失败') }
+  finally { uploadingCover.value = false; input.value = '' }
 }
 
 
@@ -405,8 +351,8 @@ async function genImage() {
   try {
     const r = await aiGenApi.generateImage(aiImagePrompt.value)
     if (r.data.data?.imageUrl) aiImageResult.value = r.data.data.imageUrl
-    else ElMessage.error('生成失败')
-  } catch { ElMessage.error('生成请求失败') }
+    else ElMessage.error(r.data.message || '图片生成失败')
+  } catch { ElMessage.error('图片生成请求失败') }
   finally { aiImageLoading.value = false }
 }
 
@@ -429,8 +375,8 @@ async function genMusic() {
   try {
     const r = await aiGenApi.generateMusic(aiMusicPrompt.value, '', true)
     if (r.data.data?.audioUrl) aiMusicResult.value = r.data.data.audioUrl
-    else ElMessage.error('生成失败')
-  } catch { ElMessage.error('生成请求失败') }
+    else ElMessage.error(r.data.message || '音乐生成失败')
+  } catch { ElMessage.error('音乐生成请求失败') }
   finally { aiMusicLoading.value = false }
 }
 
@@ -460,7 +406,7 @@ async function genVideo() {
       aiVideoTaskId.value = r.data.data.taskId
       aiVideoStatus.value = 'Processing'
       ElMessage.success('视频任务已提交，点击刷新检查状态')
-    } else ElMessage.error('创建失败')
+    } else ElMessage.error(r.data.message || '视频创建失败')
   } catch { ElMessage.error('请求失败') }
   finally { aiVideoLoading.value = false }
 }
@@ -492,7 +438,7 @@ function addAiVideo() {
 const previewMode = ref(false)
 
 const hasContent = computed(
-  () => form.value.title.trim() || form.value.content.trim() || form.value.images.length > 0
+  () => form.value.title.trim() || form.value.contentHtml.trim() || form.value.images.length > 0
 )
 
 const renderedContent = computed(() => {
@@ -514,6 +460,7 @@ async function loadDiary() {
     const d = res.data.data
     form.value.title = d.title ?? ''
     form.value.content = d.content ?? ''
+    form.value.contentHtml = d.contentHtml || ''
     form.value.destination = d.destination ?? ''
     form.value.images = d.images ?? []
     form.value.spotId = d.spotId ?? null
@@ -542,7 +489,8 @@ async function handleSave() {
   try {
     const payload: any = {
       title: form.value.title,
-      content: form.value.content,
+      content: form.value.content || '',
+      contentHtml: form.value.contentHtml || undefined,
       destination: form.value.destination,
       images: form.value.images,
       spotId: form.value.spotId,
@@ -558,6 +506,8 @@ async function handleSave() {
       await diaryApi.create(payload)
       ElMessage.success('日记发布成功')
     }
+    // Clear form so unsaved-changes guard doesn't fire
+    form.value = { title: '', content: '', contentHtml: '', destination: '', images: [], spotId: null, isPublic: true }
     router.push('/diaries')
   } catch {
     ElMessage.error('保存失败，请稍后再试')
@@ -568,7 +518,7 @@ async function handleSave() {
 
 // ── 未保存更改提示 ──
 const hasUnsavedChanges = computed(() => {
-  return !!form.value.title || !!form.value.content || form.value.images.length > 0
+  return !!form.value.title || !!form.value.contentHtml || form.value.images.length > 0
 })
 
 onBeforeRouteLeave((_to, _from, next) => {
@@ -590,14 +540,21 @@ onBeforeUnmount(() => {
   // Remove the beforeunload listener if we navigate away cleanly
 })
 
-// ── 生命周期 ──
+// Auto-extract plain text from contentHtml for backward compat
+watch(() => form.value.contentHtml, (html) => {
+  if (html) {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    form.value.content = div.textContent || div.innerText || ''
+  }
+})
 onMounted(() => {
   loadDiary()
 })
 // 同组件路由切换（编辑A → 编辑B）时重新加载
 watch(() => route.params.id, () => {
   if (route.params.id) {
-    form.value = { title: '', content: '', destination: '', images: [], spotId: null, isPublic: true }
+    form.value = { title: '', content: '', contentHtml: '', destination: '', images: [], spotId: null, isPublic: true }
     spotOptions.value = []
     loadDiary()
   }
@@ -813,6 +770,19 @@ watch(() => route.params.id, () => {
 }
 .preview-content :deep(p:last-child) {
   margin-bottom: 0;
+}
+.preview-content :deep(img) {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 12px 0;
+  display: block;
+}
+.preview-content :deep(video) {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  margin: 12px 0;
+  display: block;
 }
 
 .preview-gallery {

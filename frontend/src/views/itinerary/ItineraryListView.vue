@@ -21,6 +21,12 @@
         </div>
       </section>
 
+      <!-- ── Search Bar ─────────────────────────────────── -->
+      <div class="toolbar glass-sm">
+        <el-input v-model="searchKeyword" placeholder="搜索行程名称、地点、事件描述…" prefix-icon="Search" clearable class="search-bar" @keyup.enter="doSearch" @clear="doSearch" />
+        <el-button size="small" type="primary" @click="doSearch">搜索</el-button>
+      </div>
+
       <!-- ── Loading State ─────────────────────────────── -->
       <div v-if="loading" class="loading-state">
         <div class="loading-spinner"></div>
@@ -503,6 +509,7 @@ const submitting = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(12)
 const total = ref(0)
+const searchKeyword = ref('')
 
 const tripColors = [
   '#22d3ee', '#34d399', '#fbbf24', '#e879f9',
@@ -576,7 +583,10 @@ const budgetLoading = ref(false)
 async function fetchItineraries() {
   loading.value = true
   try {
-    const res = await itineraryApi.list(currentPage.value - 1, pageSize.value)
+    const params: Record<string, any> = { page: currentPage.value - 1, size: pageSize.value }
+    const kw = searchKeyword.value.trim()
+    if (kw) params.keyword = kw
+    const res = await itineraryApi.list(params)
     const body = res.data
     if (body.success) {
       itineraries.value = body.data.content
@@ -629,6 +639,11 @@ async function handleDelete(id: number) {
     ElMessage.error('删除行程失败')
     console.error(e)
   }
+}
+
+function doSearch() {
+  currentPage.value = 1
+  fetchItineraries()
 }
 
 /* ───────────────────────────────────────────────────────
@@ -1307,6 +1322,17 @@ onMounted(fetchItineraries)
   justify-content: center;
   flex-wrap: wrap;
 }
+
+/* ── Search Toolbar ── */
+.toolbar {
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.search-bar { width: 360px; flex-shrink: 0; }
 
 /* ── Loading ────────────────────────────────────────── */
 .loading-state {

@@ -2,6 +2,8 @@
   <DefaultLayout>
     <div class="diary-page">
       <div class="toolbar glass-sm">
+        <el-input v-model="keyword" placeholder="搜索游记标题、内容、目的地…" prefix-icon="Search" clearable class="search-bar" @keyup.enter="search" @clear="fetch" />
+        <el-button size="small" type="primary" @click="search">搜索</el-button>
         <div class="tabs">
           <button :class="['tab', { active: tab === 'all' }]" @click="tab='all'; fetch()">🔥 全部</button>
           <button :class="['tab', { active: tab === 'mine' }]" @click="tab='mine'; fetch()">📖 我的</button>
@@ -65,15 +67,31 @@ const diaries = ref<DiaryResponse[]>([])
 const loading = ref(false)
 const errorMsg = ref('')
 const tab = ref('all')
+const keyword = ref('')
+
+function search() {
+  if (keyword.value.trim()) {
+    tab.value = 'all' // search only works for public diaries
+  }
+  errorMsg.value = ''
+  fetch()
+}
 
 async function fetch() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const r = tab.value === 'mine'
-      ? await diaryApi.mine({ size: 30 })
-      : await diaryApi.list({ size: 30 })
-    diaries.value = r.data.data?.content || []
+    const kw = keyword.value.trim()
+    if (kw) {
+      const r = await diaryApi.search(kw)
+      diaries.value = r.data.data?.content || []
+    } else if (tab.value === 'mine') {
+      const r = await diaryApi.mine({ size: 30 })
+      diaries.value = r.data.data?.content || []
+    } else {
+      const r = await diaryApi.list({ size: 30 })
+      diaries.value = r.data.data?.content || []
+    }
   } catch (e: any) {
     errorMsg.value = e?.message || '加载游记失败，请稍后重试。'
     diaries.value = []
@@ -100,6 +118,7 @@ onMounted(fetch)
 .toolbar-right { display: flex; gap: 8px; align-items: center; }
 
 .tabs { display: flex; gap: 4px; }
+.search-bar { width: 260px; flex-shrink: 0; }
 .tab {
   padding: 6px 16px;
   background: var(--frosted-bg);
