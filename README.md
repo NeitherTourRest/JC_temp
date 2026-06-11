@@ -46,22 +46,29 @@ mongod --dbpath /data/db
 
 ### 3. 配置 API Key
 
-创建文件 `JC/src/main/resources/ai-api-key.properties`：
+所有密钥统一放在一个文件 `JC/src/main/resources/ai-api-key.properties`（已在 `.gitignore` 中）：
 
 ```properties
-# DeepSeek - 用于 AI 聊天、行程规划、预算估算
-# 获取地址：https://platform.deepseek.com
+# DeepSeek - 用于 AI 聊天、行程规划
 deepseek.api.key=sk-your_deepseek_api_key_here
 deepseek.api.url=https://api.deepseek.com
 deepseek.model=deepseek-chat
 
 # MiniMax - 用于图片生成、视频生成、音乐生成
-# 获取地址：https://platform.minimax.io
 minimax.api.key=sk-your_minimax_api_key_here
-minimax.api.url=https://api.minimax.io
+minimax.api.url=https://api.minimaxi.com
+
+# 高德地图 - 用于地图显示与导航（获取地址：https://console.amap.com）
+app.amap.key=your_amap_key_here
+app.amap.security-key=your_amap_security_key_here
+
+# JWT 签名密钥 — 生产环境请更换为随机字符串
+app.jwt.secret=your_jwt_secret_here
 ```
 
-> 如果没有 API Key，AI 功能会输出警告但不会影响其他功能。
+参考同目录下的 `ai-api-key.properties.example`。
+
+> 注意：`frontend/index.html` 中也需填入高德地图 Key（前端 JS API 调用，与后端 Key 相同即可）。
 
 ### 4. 初始化数据库
 
@@ -128,7 +135,7 @@ cd frontend && npx vitest run
 
 ### `JC/src/main/resources/application.yml`
 
-所有配置支持环境变量覆盖：
+所有配置项都可在 `application.yml` 中直接修改。密钥已统一移至 `ai-api-key.properties`。
 
 | 配置项 | 环境变量 | 默认值 | 说明 |
 |--------|---------|-------|------|
@@ -137,9 +144,8 @@ cd frontend && npx vitest run
 | `spring.datasource.password` | `MYSQL_PASSWORD` | `root123` | MySQL 密码 |
 | `spring.data.mongodb.uri` | `MONGODB_URI` | `mongodb://localhost:27017/JourneyCraft` | MongoDB 连接地址 |
 | `server.port` | — | `8080` | 后端端口 |
-| `app.jwt.secret` | `JWT_SECRET` | `ThisIsAJourneyCraftSecretKey...` | JWT 签名密钥 |
-| `app.amap.key` | `AMAP_KEY` | `08b8020c975156bbc4db6c064f9450dc` | 高德地图 Key |
-| `app.amap.security-key` | `AMAP_SECURITY_KEY` | `28341ec39de806f9f2f40c4e655bceeb` | 高德安全密钥 |
+
+> 密钥类配置（DeepSeek、MiniMax、高德地图、JWT Secret）统一在 `JC/src/main/resources/ai-api-key.properties` 中填写。
 
 ### `frontend/index.html`
 
@@ -318,7 +324,7 @@ JC/src/main/resources/ai-api-key.properties (在 .gitignore 中)
 | 服务 | 用途 | 获取地址 |
 |---|---|---|
 | **DeepSeek** | AI 行程规划、AI 聊天、AI 预算 | https://platform.deepseek.com |
-| **MiniMax** | AI 图片生成、视频生成、音乐生成 | https://platform.minimax.io |
+| **MiniMax** | AI 图片生成、视频生成、音乐生成 | https://platform.minimaxi.com |
 
 ---
 

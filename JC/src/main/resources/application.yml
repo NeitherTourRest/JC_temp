@@ -2,6 +2,10 @@ spring:
   application:
     name: JourneyCraft
 
+  # Import API keys from ai-api-key.properties (optional — missing file won't crash)
+  config:
+    import: optional:classpath:ai-api-key.properties
+
   # MySQL DataSource
   datasource:
     url: jdbc:mysql://localhost:3306/journeycraft?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
@@ -46,8 +50,8 @@ app:
     access-token-expiration-ms: 900000
     refresh-token-expiration-ms: 604800000
   amap:
-    key: ${AMAP_KEY:08b8020c975156bbc4db6c064f9450dc}
-    security-key: ${AMAP_SECURITY_KEY:28341ec39de806f9f2f40c4e655bceeb}
+    key: ${AMAP_KEY:}
+    security-key: ${AMAP_SECURITY_KEY:}
 
 # Logging
 logging:

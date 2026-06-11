@@ -38,7 +38,7 @@ public class AIConfig {
 
             // MiniMax
             this.minimaxApiKey = props.getProperty("minimax.api.key", "").trim();
-            this.minimaxApiUrl = props.getProperty("minimax.api.url", "https://api.minimax.io").trim();
+            this.minimaxApiUrl = props.getProperty("minimax.api.url", "https://api.minimaxi.com").trim();
 
             if (deepseekApiKey.isEmpty() || deepseekApiKey.equals("YOUR_DEEPSEEK_API_KEY_HERE")) {
                 log.warn("DeepSeek API key not configured. AI features will be disabled.");
