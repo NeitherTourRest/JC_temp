@@ -362,13 +362,20 @@
           <h4 class="plan-title-name">{{ planResult.title }}</h4>
           <div v-for="day in planResult.days" :key="day.day" class="day-block">
             <strong>{{ day.date }} · {{ day.theme }}</strong>
+            <div v-if="day.routeTotalDistance" class="plan-route-summary">
+              🚶 {{ (day.routeTotalDistance / 1000).toFixed(1) }} km · {{ fmtTime(day.routeTotalTime) }}
+            </div>
             <div v-for="act in day.schedule" :key="act.time" class="activity">
               <span class="act-time">{{ act.time }}</span>
               <span class="act-match-icon" v-if="act.matchedType === 'spot'">📍</span>
               <span class="act-match-icon" v-else-if="act.matchedType === 'food'">🍽️</span>
+              <span class="act-match-icon" v-else-if="act.matchedType === 'amap_geocode' || act.matchedType === 'amap_poi'">🏪</span>
               <span class="act-match-icon" v-else>❓</span>
               <span>{{ act.activity }}</span>
               <span class="act-loc">{{ act.location }}</span>
+              <span v-if="act.routePrevDistance" class="act-route">
+                ← {{ (act.routePrevDistance / 1000).toFixed(1) }} km {{ fmtTime(act.routePrevTime) }}
+              </span>
             </div>
           </div>
           <div v-if="planResult.tips?.length" class="plan-tips">
@@ -425,6 +432,33 @@
         </div>
         <div v-if="budgetResult && !budgetLoading" class="budget-apply-row">
           <el-button type="success" @click="applyBudgetResult">✅ Apply to Trip</el-button>
+        </div>
+      </el-dialog>
+
+      <!-- ══════════════════════════════════════════════════════
+           DIALOG 7: Route Result 🗺️
+           ══════════════════════════════════════════════════════ -->
+      <el-dialog v-model="routeDialogVisible" title="🗺️ Route Plan" width="750px" top="3vh" destroy-on-close @opened="onRouteDialogOpened" @closed="destroyRouteMap">
+        <div class="route-result-body">
+          <div class="route-summary-bar">
+            <span class="rs-item">📍 {{ routePoints.length }} stops</span>
+            <span class="rs-item">🚶 {{ formatDistance(routeTotalDist) }}</span>
+            <span class="rs-item">⏱ {{ formatTime(Math.round(routeTotalTime / 60)) }}</span>
+          </div>
+          <div id="route-map-container" class="route-map"></div>
+          <div class="route-stops">
+            <div v-for="(pt, i) in routePoints" :key="i" class="route-stop-row">
+              <span class="rs-num" :class="{ 'rs-start': i === 0, 'rs-end': i === routePoints.length - 1 }">
+                {{ i === 0 ? '起' : i === routePoints.length - 1 ? '终' : i + 1 }}
+              </span>
+              <span class="rs-name">{{ pt.name }}</span>
+              <span class="rs-coord">{{ pt.lat.toFixed(4) }}, {{ pt.lng.toFixed(4) }}</span>
+              <span v-if="i > 0" class="rs-seg">
+                {{ formatDistance(routeSegments[i - 1]?.distance) }}
+                <span class="rs-time">{{ formatTime(Math.round((routeSegments[i - 1]?.time || 0) / 60)) }}</span>
+              </span>
+            </div>
+          </div>
         </div>
       </el-dialog>
 
@@ -568,6 +602,11 @@ const activeDayIndex = ref(0)
 const activeDay = computed(() => tripPlan.days[activeDayIndex.value] ?? null)
 
 const routeLoading = ref(false)
+const routeDialogVisible = ref(false)
+const routeSegments = ref<{ from: string; to: string; distance: number; time: number; path: any[] }[]>([])
+const routeTotalDist = ref(0)
+const routeTotalTime = ref(0)
+const routePoints = ref<{ name: string; lat: number; lng: number }[]>([])
 const appliedBudget = ref<any>(null)
 
 /* ── Dialog 1: Map Picker state ──────────────────────── */
@@ -754,6 +793,15 @@ function formatTime(minutes?: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
+function fmtTime(seconds?: number): string {
+  if (!seconds || seconds <= 0) return ''
+  if (seconds < 60) return Math.round(seconds) + 's'
+  if (seconds < 3600) return Math.round(seconds / 60) + 'min'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.round((seconds % 3600) / 60)
+  return h + 'h' + (m > 0 ? ' ' + m + 'min' : '')
 }
 
 function formatDate(dateStr: string): string {
@@ -1211,7 +1259,6 @@ async function estimateBudget() {
 }
 function applyPlanResult() {
   if (!planResult.value || !planResult.value.days) return
-  // Build tripPlan days from plan result with spot/food matching
   tripPlan.days = planResult.value.days.map((day: PlanDaySchedule, di: number) => ({
     dayIndex: di + 1,
     date: day.date || `Day ${di + 1}`,
@@ -1227,18 +1274,22 @@ function applyPlanResult() {
         text: a.activity || '',
         type: 'text',
       }
-      if (a.matchedType === 'spot' && a.matchedLat != null && a.matchedLng != null) {
-        base.type = 'spot'
-        base.spotId = a.matchedSpotId
-        base.spotName = a.matchedName || a.activity
+      if (a.matchedLat != null && a.matchedLng != null) {
         base.lat = a.matchedLat
         base.lng = a.matchedLng
-      } else if (a.matchedType === 'food' && a.matchedLat != null && a.matchedLng != null) {
-        base.type = 'food'
-        base.foodId = a.matchedFoodId
-        base.foodName = a.matchedName || a.activity
-        base.lat = a.matchedLat
-        base.lng = a.matchedLng
+        base.name = a.matchedName || a.activity
+        if (a.matchedType === 'spot') {
+          base.type = 'spot'
+          base.spotId = a.matchedSpotId
+          base.spotName = base.name
+        } else if (a.matchedType === 'food') {
+          base.type = 'food'
+          base.foodId = a.matchedFoodId
+          base.foodName = base.name
+        } else {
+          base.type = 'text'
+          base.spotName = base.name
+        }
       }
       return base
     }),
@@ -1251,7 +1302,7 @@ function countMatched(days: PlanDaySchedule[]): number {
   let n = 0
   for (const d of days) {
     for (const a of (d.schedule || [])) {
-      if (a.matchedType === 'spot' || a.matchedType === 'food') n++
+      if (a.matchedType && a.matchedType !== 'none') n++
     }
   }
   return n
@@ -1262,7 +1313,6 @@ function countMatched(days: PlanDaySchedule[]): number {
    ─────────────────────────────────────────────────────── */
 async function routeDayPlan() {
   if (!activeDay.value) return
-  // Filter slots with coordinates, sorted by time order
   const withCoords = [...activeDay.value.slots]
     .filter(s => s.lat != null && s.lng != null)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -1272,13 +1322,11 @@ async function routeDayPlan() {
     return
   }
   routeLoading.value = true
+  routeSegments.value = []
+  routeTotalDist.value = 0
+  routeTotalTime.value = 0
+  routePoints.value = withCoords.map(s => ({ name: s.name || s.spotName || s.foodName || 'Point', lat: s.lat!, lng: s.lng! }))
   try {
-    // Clear old route orders
-    activeDay.value.slots.forEach(s => { s.routeOrder = undefined })
-
-    // Sequential routing: Dijkstra between each consecutive pair
-    let totalDistance = 0
-
     for (let i = 0; i < withCoords.length - 1; i++) {
       const from = withCoords[i]
       const to = withCoords[i + 1]
@@ -1294,23 +1342,73 @@ async function routeDayPlan() {
       })
       const rd = res.data.data
       if (rd) {
-        totalDistance += rd.totalDistance
+        routeSegments.value.push({
+          from: from.name || from.spotName || `Point ${i+1}`,
+          to: to.name || to.spotName || `Point ${i+2}`,
+          distance: rd.totalDistance,
+          time: rd.totalTime,
+          path: rd.path || [],
+        })
+        routeTotalDist.value += rd.totalDistance
+        routeTotalTime.value += rd.totalTime
       }
     }
 
-    // Assign route order by time sequence (1 = first, last = final destination)
     withCoords.forEach((s, i) => { s.routeOrder = i + 1 })
+    activeDay.value.routeDistance = routeTotalDist.value
+    activeDay.value.routeTime = Math.round(routeTotalTime.value / 60)
 
-    // Estimate walking time: 80 m/min ≈ 5 km/h
-    const estimatedMinutes = Math.round(totalDistance / 80)
-    activeDay.value.routeDistance = totalDistance
-    activeDay.value.routeTime = estimatedMinutes
-
-    ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(totalDistance)} · ${formatTime(estimatedMinutes)}`)
+    routeDialogVisible.value = true
+    ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(routeTotalDist.value)} · ${formatTime(Math.round(routeTotalTime.value / 60))}`)
   } catch (e) {
     ElMessage.error('路线规划失败')
     console.error(e)
   } finally { routeLoading.value = false }
+}
+
+let routeMapInstance: any = null
+function onRouteDialogOpened() {
+  if (!(window as any).AMap || routePoints.value.length < 2) return
+  setTimeout(() => {
+    const container = document.getElementById('route-map-container')
+    if (!container) return
+    const AMap = (window as any).AMap
+    routeMapInstance = new AMap.Map(container, { zoom: 13, resizeEnable: true })
+    // Add markers for each point
+    routePoints.value.forEach((pt, i) => {
+      const pos: [number, number] = [pt.lng, pt.lat]
+      const color = i === 0 ? '#00e676' : i === routePoints.value.length - 1 ? '#ff3b3b' : '#7cd7ee'
+      new AMap.Marker({
+        position: pos, map: routeMapInstance,
+        content: `<div style="width:24px;height:24px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid rgba(255,255,255,0.8);box-shadow:0 1px 4px rgba(0,0,0,0.3);">${i === 0 ? '起' : i === routePoints.value.length - 1 ? '终' : i + 1}</div>`
+      })
+    })
+    // Draw actual Dijkstra path waypoints as route line
+    const allPathCoords: [number, number][] = []
+    for (const seg of routeSegments.value) {
+      if (seg.path && seg.path.length > 0) {
+        for (const wp of seg.path) {
+          allPathCoords.push([wp.longitude || wp.lng || 0, wp.latitude || wp.lat || 0])
+        }
+      } else {
+        // Fallback: straight line between segment endpoints
+        allPathCoords.push([routePoints.value[routeSegments.value.indexOf(seg)]?.lng || 0, routePoints.value[routeSegments.value.indexOf(seg)]?.lat || 0])
+        allPathCoords.push([routePoints.value[routeSegments.value.indexOf(seg) + 1]?.lng || 0, routePoints.value[routeSegments.value.indexOf(seg) + 1]?.lat || 0])
+      }
+    }
+    if (allPathCoords.length > 1) {
+      new AMap.Polyline({
+        path: allPathCoords, map: routeMapInstance,
+        strokeColor: '#7cd7ee', strokeWeight: 5, strokeOpacity: 0.9,
+        lineJoin: 'round', lineCap: 'round',
+      })
+    }
+    // Fit bounds
+    routeMapInstance.setFitView(null, false, [40, 40, 40, 40])
+  }, 300)
+}
+function destroyRouteMap() {
+  if (routeMapInstance) { routeMapInstance.destroy(); routeMapInstance = null }
 }
 
 function clearDayRoute() {
@@ -1897,6 +1995,21 @@ onMounted(() => {
 
 .budget-apply-row { display: flex; justify-content: center; padding: 8px 0; }
 
+/* ── Route Result Dialog ── */
+.route-result-body { display: flex; flex-direction: column; gap: 16px; }
+.route-summary-bar { display: flex; gap: 16px; justify-content: center; padding: 12px; background: var(--frosted-bg); border: 1px solid var(--frosted-border); border-radius: 8px; }
+.rs-item { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.route-map { height: 280px; border: 1px solid var(--frosted-border); border-radius: 8px; overflow: hidden; }
+.route-stops { display: flex; flex-direction: column; gap: 6px; max-height: 400px; overflow-y: auto; }
+.route-stop-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--frosted-bg); border: 1px solid var(--frosted-border); border-radius: 6px; font-size: 13px; }
+.rs-num { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 11px; font-weight: 700; color: #fff; background: var(--pop-blue); flex-shrink: 0; }
+.rs-start { background: var(--pop-green); }
+.rs-end { background: var(--pop-red); }
+.rs-name { flex: 1; color: var(--text-heading); font-weight: 600; }
+.rs-coord { color: var(--text-muted); font-size: 11px; width: 120px; flex-shrink: 0; text-align: right; }
+.rs-seg { color: var(--pop-green); font-size: 12px; white-space: nowrap; flex-shrink: 0; text-align: right; }
+.rs-time { color: var(--text-muted); margin-left: 4px; font-size: 11px; }
+
 .timeline-track {
   position: relative;
   height: 1440px; /* 24h × 60px */
@@ -2175,6 +2288,8 @@ onMounted(() => {
 /* ── AI Plan & Budget dialog styles ──────────────────── */
 .dialog-result { margin-top: 16px; padding: 16px; border: 1px solid var(--frosted-border); border-radius: 8px; background: var(--frosted-bg); }
 .plan-title-name { font-size: 16px; font-weight: 700; margin-bottom: 12px; text-align: center; color: var(--text-primary); }
+.plan-route-summary { font-size: 12px; color: var(--pop-green); padding: 2px 0 6px; font-weight: 600; }
+.act-route { color: var(--pop-green); font-size: 11px; white-space: nowrap; margin-left: auto; }
 .day-block { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--frosted-border); border-radius: 8px; }
 .activity { display: flex; gap: 8px; padding: 4px 0; font-size: 13px; color: var(--text-regular); }
 .act-time {

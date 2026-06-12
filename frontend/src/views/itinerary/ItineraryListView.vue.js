@@ -49,6 +49,11 @@ const tripPlan = reactive({
 const activeDayIndex = ref(0);
 const activeDay = computed(() => tripPlan.days[activeDayIndex.value] ?? null);
 const routeLoading = ref(false);
+const routeDialogVisible = ref(false);
+const routeSegments = ref([]);
+const routeTotalDist = ref(0);
+const routeTotalTime = ref(0);
+const routePoints = ref([]);
 const appliedBudget = ref(null);
 /* ── Dialog 1: Map Picker state ──────────────────────── */
 const mapDialogVisible = ref(false);
@@ -230,6 +235,17 @@ function formatTime(minutes) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function fmtTime(seconds) {
+    if (!seconds || seconds <= 0)
+        return '';
+    if (seconds < 60)
+        return Math.round(seconds) + 's';
+    if (seconds < 3600)
+        return Math.round(seconds / 60) + 'min';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.round((seconds % 3600) / 60);
+    return h + 'h' + (m > 0 ? ' ' + m + 'min' : '');
 }
 function formatDate(dateStr) {
     if (!dateStr)
@@ -706,7 +722,6 @@ async function estimateBudget() {
 function applyPlanResult() {
     if (!planResult.value || !planResult.value.days)
         return;
-    // Build tripPlan days from plan result with spot/food matching
     tripPlan.days = planResult.value.days.map((day, di) => ({
         dayIndex: di + 1,
         date: day.date || `Day ${di + 1}`,
@@ -722,19 +737,24 @@ function applyPlanResult() {
                 text: a.activity || '',
                 type: 'text',
             };
-            if (a.matchedType === 'spot' && a.matchedLat != null && a.matchedLng != null) {
-                base.type = 'spot';
-                base.spotId = a.matchedSpotId;
-                base.spotName = a.matchedName || a.activity;
+            if (a.matchedLat != null && a.matchedLng != null) {
                 base.lat = a.matchedLat;
                 base.lng = a.matchedLng;
-            }
-            else if (a.matchedType === 'food' && a.matchedLat != null && a.matchedLng != null) {
-                base.type = 'food';
-                base.foodId = a.matchedFoodId;
-                base.foodName = a.matchedName || a.activity;
-                base.lat = a.matchedLat;
-                base.lng = a.matchedLng;
+                base.name = a.matchedName || a.activity;
+                if (a.matchedType === 'spot') {
+                    base.type = 'spot';
+                    base.spotId = a.matchedSpotId;
+                    base.spotName = base.name;
+                }
+                else if (a.matchedType === 'food') {
+                    base.type = 'food';
+                    base.foodId = a.matchedFoodId;
+                    base.foodName = base.name;
+                }
+                else {
+                    base.type = 'text';
+                    base.spotName = base.name;
+                }
             }
             return base;
         }),
@@ -746,7 +766,7 @@ function countMatched(days) {
     let n = 0;
     for (const d of days) {
         for (const a of (d.schedule || [])) {
-            if (a.matchedType === 'spot' || a.matchedType === 'food')
+            if (a.matchedType && a.matchedType !== 'none')
                 n++;
         }
     }
@@ -758,7 +778,6 @@ function countMatched(days) {
 async function routeDayPlan() {
     if (!activeDay.value)
         return;
-    // Filter slots with coordinates, sorted by time order
     const withCoords = [...activeDay.value.slots]
         .filter(s => s.lat != null && s.lng != null)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -767,11 +786,11 @@ async function routeDayPlan() {
         return;
     }
     routeLoading.value = true;
+    routeSegments.value = [];
+    routeTotalDist.value = 0;
+    routeTotalTime.value = 0;
+    routePoints.value = withCoords.map(s => ({ name: s.name || s.spotName || s.foodName || 'Point', lat: s.lat, lng: s.lng }));
     try {
-        // Clear old route orders
-        activeDay.value.slots.forEach(s => { s.routeOrder = undefined; });
-        // Sequential routing: Dijkstra between each consecutive pair
-        let totalDistance = 0;
         for (let i = 0; i < withCoords.length - 1; i++) {
             const from = withCoords[i];
             const to = withCoords[i + 1];
@@ -786,16 +805,22 @@ async function routeDayPlan() {
             });
             const rd = res.data.data;
             if (rd) {
-                totalDistance += rd.totalDistance;
+                routeSegments.value.push({
+                    from: from.name || from.spotName || `Point ${i + 1}`,
+                    to: to.name || to.spotName || `Point ${i + 2}`,
+                    distance: rd.totalDistance,
+                    time: rd.totalTime,
+                    path: rd.path || [],
+                });
+                routeTotalDist.value += rd.totalDistance;
+                routeTotalTime.value += rd.totalTime;
             }
         }
-        // Assign route order by time sequence (1 = first, last = final destination)
         withCoords.forEach((s, i) => { s.routeOrder = i + 1; });
-        // Estimate walking time: 80 m/min ≈ 5 km/h
-        const estimatedMinutes = Math.round(totalDistance / 80);
-        activeDay.value.routeDistance = totalDistance;
-        activeDay.value.routeTime = estimatedMinutes;
-        ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(totalDistance)} · ${formatTime(estimatedMinutes)}`);
+        activeDay.value.routeDistance = routeTotalDist.value;
+        activeDay.value.routeTime = Math.round(routeTotalTime.value / 60);
+        routeDialogVisible.value = true;
+        ElMessage.success(`Route planned: ${withCoords.length} stops · ${formatDistance(routeTotalDist.value)} · ${formatTime(Math.round(routeTotalTime.value / 60))}`);
     }
     catch (e) {
         ElMessage.error('路线规划失败');
@@ -803,6 +828,56 @@ async function routeDayPlan() {
     }
     finally {
         routeLoading.value = false;
+    }
+}
+let routeMapInstance = null;
+function onRouteDialogOpened() {
+    if (!window.AMap || routePoints.value.length < 2)
+        return;
+    setTimeout(() => {
+        const container = document.getElementById('route-map-container');
+        if (!container)
+            return;
+        const AMap = window.AMap;
+        routeMapInstance = new AMap.Map(container, { zoom: 13, resizeEnable: true });
+        // Add markers for each point
+        routePoints.value.forEach((pt, i) => {
+            const pos = [pt.lng, pt.lat];
+            const color = i === 0 ? '#00e676' : i === routePoints.value.length - 1 ? '#ff3b3b' : '#7cd7ee';
+            new AMap.Marker({
+                position: pos, map: routeMapInstance,
+                content: `<div style="width:24px;height:24px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid rgba(255,255,255,0.8);box-shadow:0 1px 4px rgba(0,0,0,0.3);">${i === 0 ? '起' : i === routePoints.value.length - 1 ? '终' : i + 1}</div>`
+            });
+        });
+        // Draw actual Dijkstra path waypoints as route line
+        const allPathCoords = [];
+        for (const seg of routeSegments.value) {
+            if (seg.path && seg.path.length > 0) {
+                for (const wp of seg.path) {
+                    allPathCoords.push([wp.longitude || wp.lng || 0, wp.latitude || wp.lat || 0]);
+                }
+            }
+            else {
+                // Fallback: straight line between segment endpoints
+                allPathCoords.push([routePoints.value[routeSegments.value.indexOf(seg)]?.lng || 0, routePoints.value[routeSegments.value.indexOf(seg)]?.lat || 0]);
+                allPathCoords.push([routePoints.value[routeSegments.value.indexOf(seg) + 1]?.lng || 0, routePoints.value[routeSegments.value.indexOf(seg) + 1]?.lat || 0]);
+            }
+        }
+        if (allPathCoords.length > 1) {
+            new AMap.Polyline({
+                path: allPathCoords, map: routeMapInstance,
+                strokeColor: '#7cd7ee', strokeWeight: 5, strokeOpacity: 0.9,
+                lineJoin: 'round', lineCap: 'round',
+            });
+        }
+        // Fit bounds
+        routeMapInstance.setFitView(null, false, [40, 40, 40, 40]);
+    }, 300);
+}
+function destroyRouteMap() {
+    if (routeMapInstance) {
+        routeMapInstance.destroy();
+        routeMapInstance = null;
     }
 }
 function clearDayRoute() {
@@ -2224,6 +2299,13 @@ else {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({});
             (day.date);
             (day.theme);
+            if (day.routeTotalDistance) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                    ...{ class: "plan-route-summary" },
+                });
+                ((day.routeTotalDistance / 1000).toFixed(1));
+                (__VLS_ctx.fmtTime(day.routeTotalTime));
+            }
             for (const [act] of __VLS_getVForSourceType((day.schedule))) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     key: (act.time),
@@ -2243,6 +2325,11 @@ else {
                         ...{ class: "act-match-icon" },
                     });
                 }
+                else if (act.matchedType === 'amap_geocode' || act.matchedType === 'amap_poi') {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "act-match-icon" },
+                    });
+                }
                 else {
                     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
                         ...{ class: "act-match-icon" },
@@ -2254,6 +2341,13 @@ else {
                     ...{ class: "act-loc" },
                 });
                 (act.location);
+                if (act.routePrevDistance) {
+                    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                        ...{ class: "act-route" },
+                    });
+                    ((act.routePrevDistance / 1000).toFixed(1));
+                    (__VLS_ctx.fmtTime(act.routePrevTime));
+                }
             }
         }
         if (__VLS_ctx.planResult.tips?.length) {
@@ -2742,18 +2836,105 @@ else {
     /** @type {[typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, ]} */ ;
     // @ts-ignore
     const __VLS_430 = __VLS_asFunctionalComponent(__VLS_429, new __VLS_429({
+        ...{ 'onOpened': {} },
+        ...{ 'onClosed': {} },
+        modelValue: (__VLS_ctx.routeDialogVisible),
+        title: "🗺️ Route Plan",
+        width: "750px",
+        top: "3vh",
+        destroyOnClose: true,
+    }));
+    const __VLS_431 = __VLS_430({
+        ...{ 'onOpened': {} },
+        ...{ 'onClosed': {} },
+        modelValue: (__VLS_ctx.routeDialogVisible),
+        title: "🗺️ Route Plan",
+        width: "750px",
+        top: "3vh",
+        destroyOnClose: true,
+    }, ...__VLS_functionalComponentArgsRest(__VLS_430));
+    let __VLS_433;
+    let __VLS_434;
+    let __VLS_435;
+    const __VLS_436 = {
+        onOpened: (__VLS_ctx.onRouteDialogOpened)
+    };
+    const __VLS_437 = {
+        onClosed: (__VLS_ctx.destroyRouteMap)
+    };
+    __VLS_432.slots.default;
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "route-result-body" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "route-summary-bar" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "rs-item" },
+    });
+    (__VLS_ctx.routePoints.length);
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "rs-item" },
+    });
+    (__VLS_ctx.formatDistance(__VLS_ctx.routeTotalDist));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: "rs-item" },
+    });
+    (__VLS_ctx.formatTime(Math.round(__VLS_ctx.routeTotalTime / 60)));
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        id: "route-map-container",
+        ...{ class: "route-map" },
+    });
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "route-stops" },
+    });
+    for (const [pt, i] of __VLS_getVForSourceType((__VLS_ctx.routePoints))) {
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+            key: (i),
+            ...{ class: "route-stop-row" },
+        });
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "rs-num" },
+            ...{ class: ({ 'rs-start': i === 0, 'rs-end': i === __VLS_ctx.routePoints.length - 1 }) },
+        });
+        (i === 0 ? '起' : i === __VLS_ctx.routePoints.length - 1 ? '终' : i + 1);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "rs-name" },
+        });
+        (pt.name);
+        __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: "rs-coord" },
+        });
+        (pt.lat.toFixed(4));
+        (pt.lng.toFixed(4));
+        if (i > 0) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "rs-seg" },
+            });
+            (__VLS_ctx.formatDistance(__VLS_ctx.routeSegments[i - 1]?.distance));
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                ...{ class: "rs-time" },
+            });
+            (__VLS_ctx.formatTime(Math.round((__VLS_ctx.routeSegments[i - 1]?.time || 0) / 60)));
+        }
+    }
+    var __VLS_432;
+    const __VLS_438 = {}.ElDialog;
+    /** @type {[typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, typeof __VLS_components.ElDialog, typeof __VLS_components.elDialog, ]} */ ;
+    // @ts-ignore
+    const __VLS_439 = __VLS_asFunctionalComponent(__VLS_438, new __VLS_438({
         modelValue: (__VLS_ctx.slotEditVisible),
         title: "Edit Activity",
         width: "500px",
         destroyOnClose: true,
     }));
-    const __VLS_431 = __VLS_430({
+    const __VLS_440 = __VLS_439({
         modelValue: (__VLS_ctx.slotEditVisible),
         title: "Edit Activity",
         width: "500px",
         destroyOnClose: true,
-    }, ...__VLS_functionalComponentArgsRest(__VLS_430));
-    __VLS_432.slots.default;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_439));
+    __VLS_441.slots.default;
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "slot-edit-body" },
     });
@@ -2764,118 +2945,118 @@ else {
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "slot-time-pickers" },
     });
-    const __VLS_433 = {}.ElTimePicker;
+    const __VLS_442 = {}.ElTimePicker;
     /** @type {[typeof __VLS_components.ElTimePicker, typeof __VLS_components.elTimePicker, ]} */ ;
     // @ts-ignore
-    const __VLS_434 = __VLS_asFunctionalComponent(__VLS_433, new __VLS_433({
+    const __VLS_443 = __VLS_asFunctionalComponent(__VLS_442, new __VLS_442({
         modelValue: (__VLS_ctx.slotEditStart),
         format: "HH:mm",
         placeholder: "Start",
     }));
-    const __VLS_435 = __VLS_434({
+    const __VLS_444 = __VLS_443({
         modelValue: (__VLS_ctx.slotEditStart),
         format: "HH:mm",
         placeholder: "Start",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_434));
+    }, ...__VLS_functionalComponentArgsRest(__VLS_443));
     __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
-    const __VLS_437 = {}.ElTimePicker;
+    const __VLS_446 = {}.ElTimePicker;
     /** @type {[typeof __VLS_components.ElTimePicker, typeof __VLS_components.elTimePicker, ]} */ ;
     // @ts-ignore
-    const __VLS_438 = __VLS_asFunctionalComponent(__VLS_437, new __VLS_437({
+    const __VLS_447 = __VLS_asFunctionalComponent(__VLS_446, new __VLS_446({
         modelValue: (__VLS_ctx.slotEditEnd),
         format: "HH:mm",
         placeholder: "End",
     }));
-    const __VLS_439 = __VLS_438({
+    const __VLS_448 = __VLS_447({
         modelValue: (__VLS_ctx.slotEditEnd),
         format: "HH:mm",
         placeholder: "End",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_438));
+    }, ...__VLS_functionalComponentArgsRest(__VLS_447));
     __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: "slot-edit-row" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
-    const __VLS_441 = {}.ElRadioGroup;
+    const __VLS_450 = {}.ElRadioGroup;
     /** @type {[typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, typeof __VLS_components.ElRadioGroup, typeof __VLS_components.elRadioGroup, ]} */ ;
     // @ts-ignore
-    const __VLS_442 = __VLS_asFunctionalComponent(__VLS_441, new __VLS_441({
+    const __VLS_451 = __VLS_asFunctionalComponent(__VLS_450, new __VLS_450({
         modelValue: (__VLS_ctx.slotEditType),
     }));
-    const __VLS_443 = __VLS_442({
+    const __VLS_452 = __VLS_451({
         modelValue: (__VLS_ctx.slotEditType),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_442));
-    __VLS_444.slots.default;
-    const __VLS_445 = {}.ElRadio;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_451));
+    __VLS_453.slots.default;
+    const __VLS_454 = {}.ElRadio;
     /** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
     // @ts-ignore
-    const __VLS_446 = __VLS_asFunctionalComponent(__VLS_445, new __VLS_445({
+    const __VLS_455 = __VLS_asFunctionalComponent(__VLS_454, new __VLS_454({
         value: "spot",
     }));
-    const __VLS_447 = __VLS_446({
+    const __VLS_456 = __VLS_455({
         value: "spot",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_446));
-    __VLS_448.slots.default;
-    var __VLS_448;
-    const __VLS_449 = {}.ElRadio;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_455));
+    __VLS_457.slots.default;
+    var __VLS_457;
+    const __VLS_458 = {}.ElRadio;
     /** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
     // @ts-ignore
-    const __VLS_450 = __VLS_asFunctionalComponent(__VLS_449, new __VLS_449({
+    const __VLS_459 = __VLS_asFunctionalComponent(__VLS_458, new __VLS_458({
         value: "food",
     }));
-    const __VLS_451 = __VLS_450({
+    const __VLS_460 = __VLS_459({
         value: "food",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_450));
-    __VLS_452.slots.default;
-    var __VLS_452;
-    const __VLS_453 = {}.ElRadio;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_459));
+    __VLS_461.slots.default;
+    var __VLS_461;
+    const __VLS_462 = {}.ElRadio;
     /** @type {[typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, typeof __VLS_components.ElRadio, typeof __VLS_components.elRadio, ]} */ ;
     // @ts-ignore
-    const __VLS_454 = __VLS_asFunctionalComponent(__VLS_453, new __VLS_453({
+    const __VLS_463 = __VLS_asFunctionalComponent(__VLS_462, new __VLS_462({
         value: "text",
     }));
-    const __VLS_455 = __VLS_454({
+    const __VLS_464 = __VLS_463({
         value: "text",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_454));
-    __VLS_456.slots.default;
-    var __VLS_456;
-    var __VLS_444;
+    }, ...__VLS_functionalComponentArgsRest(__VLS_463));
+    __VLS_465.slots.default;
+    var __VLS_465;
+    var __VLS_453;
     if (__VLS_ctx.slotEditType === 'spot') {
         __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: "slot-edit-row" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
-        const __VLS_457 = {}.ElInput;
+        const __VLS_466 = {}.ElInput;
         /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
         // @ts-ignore
-        const __VLS_458 = __VLS_asFunctionalComponent(__VLS_457, new __VLS_457({
+        const __VLS_467 = __VLS_asFunctionalComponent(__VLS_466, new __VLS_466({
             modelValue: (__VLS_ctx.slotSearchKeyword),
             placeholder: "Search spots...",
             size: "small",
         }));
-        const __VLS_459 = __VLS_458({
+        const __VLS_468 = __VLS_467({
             modelValue: (__VLS_ctx.slotSearchKeyword),
             placeholder: "Search spots...",
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_458));
-        const __VLS_461 = {}.ElButton;
+        }, ...__VLS_functionalComponentArgsRest(__VLS_467));
+        const __VLS_470 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_462 = __VLS_asFunctionalComponent(__VLS_461, new __VLS_461({
+        const __VLS_471 = __VLS_asFunctionalComponent(__VLS_470, new __VLS_470({
             ...{ 'onClick': {} },
             size: "small",
         }));
-        const __VLS_463 = __VLS_462({
+        const __VLS_472 = __VLS_471({
             ...{ 'onClick': {} },
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_462));
-        let __VLS_465;
-        let __VLS_466;
-        let __VLS_467;
-        const __VLS_468 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_471));
+        let __VLS_474;
+        let __VLS_475;
+        let __VLS_476;
+        const __VLS_477 = {
             onClick: (__VLS_ctx.doSlotSpotSearch)
         };
-        __VLS_464.slots.default;
-        var __VLS_464;
+        __VLS_473.slots.default;
+        var __VLS_473;
         if (__VLS_ctx.slotSpotResults.length) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "slot-search-results" },
@@ -2915,38 +3096,38 @@ else {
             ...{ class: "slot-edit-row" },
         });
         __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
-        const __VLS_469 = {}.ElInput;
+        const __VLS_478 = {}.ElInput;
         /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
         // @ts-ignore
-        const __VLS_470 = __VLS_asFunctionalComponent(__VLS_469, new __VLS_469({
+        const __VLS_479 = __VLS_asFunctionalComponent(__VLS_478, new __VLS_478({
             modelValue: (__VLS_ctx.slotSearchKeyword),
             placeholder: "Search food...",
             size: "small",
         }));
-        const __VLS_471 = __VLS_470({
+        const __VLS_480 = __VLS_479({
             modelValue: (__VLS_ctx.slotSearchKeyword),
             placeholder: "Search food...",
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_470));
-        const __VLS_473 = {}.ElButton;
+        }, ...__VLS_functionalComponentArgsRest(__VLS_479));
+        const __VLS_482 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_474 = __VLS_asFunctionalComponent(__VLS_473, new __VLS_473({
+        const __VLS_483 = __VLS_asFunctionalComponent(__VLS_482, new __VLS_482({
             ...{ 'onClick': {} },
             size: "small",
         }));
-        const __VLS_475 = __VLS_474({
+        const __VLS_484 = __VLS_483({
             ...{ 'onClick': {} },
             size: "small",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_474));
-        let __VLS_477;
-        let __VLS_478;
-        let __VLS_479;
-        const __VLS_480 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_483));
+        let __VLS_486;
+        let __VLS_487;
+        let __VLS_488;
+        const __VLS_489 = {
             onClick: (__VLS_ctx.doSlotFoodSearch)
         };
-        __VLS_476.slots.default;
-        var __VLS_476;
+        __VLS_485.slots.default;
+        var __VLS_485;
         if (__VLS_ctx.slotFoodResults.length) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "slot-search-results" },
@@ -2985,65 +3166,65 @@ else {
         ...{ class: "slot-edit-row" },
     });
     __VLS_asFunctionalElement(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
-    const __VLS_481 = {}.ElInput;
+    const __VLS_490 = {}.ElInput;
     /** @type {[typeof __VLS_components.ElInput, typeof __VLS_components.elInput, ]} */ ;
     // @ts-ignore
-    const __VLS_482 = __VLS_asFunctionalComponent(__VLS_481, new __VLS_481({
+    const __VLS_491 = __VLS_asFunctionalComponent(__VLS_490, new __VLS_490({
         modelValue: (__VLS_ctx.slotEditText),
         type: "textarea",
         rows: (3),
         placeholder: "What do you want to do?",
     }));
-    const __VLS_483 = __VLS_482({
+    const __VLS_492 = __VLS_491({
         modelValue: (__VLS_ctx.slotEditText),
         type: "textarea",
         rows: (3),
         placeholder: "What do you want to do?",
-    }, ...__VLS_functionalComponentArgsRest(__VLS_482));
+    }, ...__VLS_functionalComponentArgsRest(__VLS_491));
     {
-        const { footer: __VLS_thisSlot } = __VLS_432.slots;
-        const __VLS_485 = {}.ElButton;
+        const { footer: __VLS_thisSlot } = __VLS_441.slots;
+        const __VLS_494 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_486 = __VLS_asFunctionalComponent(__VLS_485, new __VLS_485({
+        const __VLS_495 = __VLS_asFunctionalComponent(__VLS_494, new __VLS_494({
             ...{ 'onClick': {} },
         }));
-        const __VLS_487 = __VLS_486({
+        const __VLS_496 = __VLS_495({
             ...{ 'onClick': {} },
-        }, ...__VLS_functionalComponentArgsRest(__VLS_486));
-        let __VLS_489;
-        let __VLS_490;
-        let __VLS_491;
-        const __VLS_492 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_495));
+        let __VLS_498;
+        let __VLS_499;
+        let __VLS_500;
+        const __VLS_501 = {
             onClick: (...[$event]) => {
                 if (!!(__VLS_ctx.viewMode === 'list'))
                     return;
                 __VLS_ctx.slotEditVisible = false;
             }
         };
-        __VLS_488.slots.default;
-        var __VLS_488;
-        const __VLS_493 = {}.ElButton;
+        __VLS_497.slots.default;
+        var __VLS_497;
+        const __VLS_502 = {}.ElButton;
         /** @type {[typeof __VLS_components.ElButton, typeof __VLS_components.elButton, typeof __VLS_components.ElButton, typeof __VLS_components.elButton, ]} */ ;
         // @ts-ignore
-        const __VLS_494 = __VLS_asFunctionalComponent(__VLS_493, new __VLS_493({
+        const __VLS_503 = __VLS_asFunctionalComponent(__VLS_502, new __VLS_502({
             ...{ 'onClick': {} },
             type: "primary",
         }));
-        const __VLS_495 = __VLS_494({
+        const __VLS_504 = __VLS_503({
             ...{ 'onClick': {} },
             type: "primary",
-        }, ...__VLS_functionalComponentArgsRest(__VLS_494));
-        let __VLS_497;
-        let __VLS_498;
-        let __VLS_499;
-        const __VLS_500 = {
+        }, ...__VLS_functionalComponentArgsRest(__VLS_503));
+        let __VLS_506;
+        let __VLS_507;
+        let __VLS_508;
+        const __VLS_509 = {
             onClick: (__VLS_ctx.saveSlotEdit)
         };
-        __VLS_496.slots.default;
-        var __VLS_496;
+        __VLS_505.slots.default;
+        var __VLS_505;
     }
-    var __VLS_432;
+    var __VLS_441;
 }
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['itinerary-page']} */ ;
@@ -3143,12 +3324,15 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['dialog-result']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-title-name']} */ ;
 /** @type {__VLS_StyleScopedClasses['day-block']} */ ;
+/** @type {__VLS_StyleScopedClasses['plan-route-summary']} */ ;
 /** @type {__VLS_StyleScopedClasses['activity']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-time']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-match-icon']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-loc']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-route']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-tips']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-cost']} */ ;
 /** @type {__VLS_StyleScopedClasses['dialog-result']} */ ;
@@ -3160,6 +3344,19 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['cat-detail']} */ ;
 /** @type {__VLS_StyleScopedClasses['plan-tips']} */ ;
 /** @type {__VLS_StyleScopedClasses['budget-apply-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-result-body']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-summary-bar']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-item']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-map']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-stops']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-stop-row']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-num']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-name']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-coord']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-seg']} */ ;
+/** @type {__VLS_StyleScopedClasses['rs-time']} */ ;
 /** @type {__VLS_StyleScopedClasses['slot-edit-body']} */ ;
 /** @type {__VLS_StyleScopedClasses['slot-edit-row']} */ ;
 /** @type {__VLS_StyleScopedClasses['slot-time-pickers']} */ ;
@@ -3205,6 +3402,11 @@ const __VLS_self = (await import('vue')).defineComponent({
             activeDayIndex: activeDayIndex,
             activeDay: activeDay,
             routeLoading: routeLoading,
+            routeDialogVisible: routeDialogVisible,
+            routeSegments: routeSegments,
+            routeTotalDist: routeTotalDist,
+            routeTotalTime: routeTotalTime,
+            routePoints: routePoints,
             appliedBudget: appliedBudget,
             mapDialogVisible: mapDialogVisible,
             slotEditVisible: slotEditVisible,
@@ -3242,6 +3444,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             getSpotCount: getSpotCount,
             formatDistance: formatDistance,
             formatTime: formatTime,
+            fmtTime: fmtTime,
             formatDate: formatDate,
             enterPlanning: enterPlanning,
             regenerateDays: regenerateDays,
@@ -3271,6 +3474,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             estimateBudget: estimateBudget,
             applyPlanResult: applyPlanResult,
             routeDayPlan: routeDayPlan,
+            onRouteDialogOpened: onRouteDialogOpened,
+            destroyRouteMap: destroyRouteMap,
             clearDayRoute: clearDayRoute,
             applyBudgetResult: applyBudgetResult,
             handleSave: handleSave,

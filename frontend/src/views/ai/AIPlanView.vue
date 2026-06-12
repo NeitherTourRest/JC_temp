@@ -23,10 +23,19 @@
               <h3 class="plan-title">{{ result.title }}</h3>
               <div v-for="day in result.days" :key="day.day" class="day-block">
                 <h4 class="day-header">📅 {{ day.date }} · {{ day.theme }}</h4>
-                <div v-for="act in day.schedule" :key="act.time" class="activity">
+                <div v-if="day.routeTotalDistance" class="day-route-summary">
+                  🚶 全天步行 {{ (day.routeTotalDistance / 1000).toFixed(1) }} km ·
+                  约 {{ formatTime(day.routeTotalTime) }}
+                </div>
+                <div v-for="(act, ai) in day.schedule" :key="act.time" class="activity">
                   <span class="act-time">{{ act.time }}</span>
                   <span class="act-name">{{ act.activity }}</span>
                   <span class="act-loc">{{ act.location }}</span>
+                  <span v-if="act.routePrevDistance" class="act-route">
+                    ← {{ (act.routePrevDistance / 1000).toFixed(1) }} km
+                    <span class="route-time">{{ formatTime(act.routePrevTime) }}</span>
+                  </span>
+                  <span v-if="act.matchedType" class="act-match-tag" :class="'tag-' + act.matchedType">{{ matchLabel(act.matchedType) }}</span>
                 </div>
               </div>
               <div v-if="result.tips?.length" class="tips-section">
@@ -63,6 +72,20 @@ async function generate() {
   } catch { result.value = { title: '生成计划失败', days: [], tips: ['请检查AI配置。'], estimatedCost: '' } }
   finally { loading.value = false }
 }
+
+function formatTime(seconds: number): string {
+  if (!seconds || seconds <= 0) return ''
+  if (seconds < 60) return Math.round(seconds) + '秒'
+  if (seconds < 3600) return Math.round(seconds / 60) + '分钟'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.round((seconds % 3600) / 60)
+  return h + '小时' + (m > 0 ? m + '分钟' : '')
+}
+
+function matchLabel(type: string): string {
+  const map: Record<string, string> = { spot: '景点', food: '美食', amap_geocode: '高德', amap_poi: 'POI', none: '未匹配' }
+  return map[type] || type
+}
 </script>
 
 <style scoped>
@@ -73,10 +96,19 @@ async function generate() {
 .plan-title { font-size: 20px; margin-bottom: 20px; text-align: center; color: var(--text-primary); }
 .day-block { margin-bottom: 20px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--frosted-border); border-radius: 8px; }
 .day-header { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
-.activity { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--frosted-border); font-size: 14px; }
+.day-route-summary { font-size: 12px; color: var(--pop-green); padding: 4px 0 8px; font-weight: 600; }
+.activity { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--frosted-border); font-size: 14px; align-items: center; }
 .act-time { color: var(--pop-pink); font-weight: 600; width: 60px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .act-name { flex: 1; color: var(--text-regular); }
-.act-loc { color: var(--text-secondary); width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-loc { color: var(--text-secondary); width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.act-route { color: var(--pop-green); font-size: 11px; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+.route-time { color: var(--text-muted); }
+.act-match-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; flex-shrink: 0; font-weight: 600; }
+.tag-spot { background: rgba(124,215,238,0.2); color: #7cd7ee; }
+.tag-food { background: rgba(255,145,0,0.2); color: #ffb347; }
+.tag-amap_geocode { background: rgba(167,111,215,0.2); color: #c9a0e8; }
+.tag-amap_poi { background: rgba(58,210,159,0.2); color: #6fcf97; }
+.tag-none { background: rgba(255,59,59,0.15); color: #ff6b6b; }
 .tips-section { margin-top: 20px; padding: 12px; background: rgba(255,193,7,0.08); border: 1px solid rgba(255,193,7,0.2); border-radius: 8px; }
 .cost-tag { margin-top: 16px; padding: 8px 16px; background: rgba(58,210,159,0.1); border: 1px solid rgba(58,210,159,0.3); border-radius: 8px; display: inline-block; font-size: 16px; font-weight: 600; color: var(--pop-green); }
 .raw-fallback { margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; }

@@ -73,6 +73,7 @@ public class GraphDataLoader implements CommandLineRunner {
         // Compute connected components for disconnected graph detection
         start = System.currentTimeMillis();
         navigationGraph.computeComponents();
+        navigationGraph.buildGridIndex();
         duration = System.currentTimeMillis() - start;
         log.info("Connected components: {} ({} singletons) in {}ms",
                 navigationGraph.getComponentCount(),

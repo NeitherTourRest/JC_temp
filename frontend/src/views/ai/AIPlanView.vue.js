@@ -19,6 +19,21 @@ async function generate() {
         loading.value = false;
     }
 }
+function formatTime(seconds) {
+    if (!seconds || seconds <= 0)
+        return '';
+    if (seconds < 60)
+        return Math.round(seconds) + '秒';
+    if (seconds < 3600)
+        return Math.round(seconds / 60) + '分钟';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.round((seconds % 3600) / 60);
+    return h + '小时' + (m > 0 ? m + '分钟' : '');
+}
+function matchLabel(type) {
+    const map = { spot: '景点', food: '美食', amap_geocode: '高德', amap_poi: 'POI', none: '未匹配' };
+    return map[type] || type;
+}
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
@@ -335,7 +350,14 @@ if (__VLS_ctx.result) {
         });
         (day.date);
         (day.theme);
-        for (const [act] of __VLS_getVForSourceType((day.schedule))) {
+        if (day.routeTotalDistance) {
+            __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+                ...{ class: "day-route-summary" },
+            });
+            ((day.routeTotalDistance / 1000).toFixed(1));
+            (__VLS_ctx.formatTime(day.routeTotalTime));
+        }
+        for (const [act, ai] of __VLS_getVForSourceType((day.schedule))) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 key: (act.time),
                 ...{ class: "activity" },
@@ -352,6 +374,23 @@ if (__VLS_ctx.result) {
                 ...{ class: "act-loc" },
             });
             (act.location);
+            if (act.routePrevDistance) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "act-route" },
+                });
+                ((act.routePrevDistance / 1000).toFixed(1));
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "route-time" },
+                });
+                (__VLS_ctx.formatTime(act.routePrevTime));
+            }
+            if (act.matchedType) {
+                __VLS_asFunctionalElement(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+                    ...{ class: "act-match-tag" },
+                    ...{ class: ('tag-' + act.matchedType) },
+                });
+                (__VLS_ctx.matchLabel(act.matchedType));
+            }
         }
     }
     if (__VLS_ctx.result.tips?.length) {
@@ -395,10 +434,14 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['plan-title']} */ ;
 /** @type {__VLS_StyleScopedClasses['day-block']} */ ;
 /** @type {__VLS_StyleScopedClasses['day-header']} */ ;
+/** @type {__VLS_StyleScopedClasses['day-route-summary']} */ ;
 /** @type {__VLS_StyleScopedClasses['activity']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-time']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-name']} */ ;
 /** @type {__VLS_StyleScopedClasses['act-loc']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-route']} */ ;
+/** @type {__VLS_StyleScopedClasses['route-time']} */ ;
+/** @type {__VLS_StyleScopedClasses['act-match-tag']} */ ;
 /** @type {__VLS_StyleScopedClasses['tips-section']} */ ;
 /** @type {__VLS_StyleScopedClasses['cost-tag']} */ ;
 /** @type {__VLS_StyleScopedClasses['raw-fallback']} */ ;
@@ -411,6 +454,8 @@ const __VLS_self = (await import('vue')).defineComponent({
             result: result,
             form: form,
             generate: generate,
+            formatTime: formatTime,
+            matchLabel: matchLabel,
         };
     },
 });

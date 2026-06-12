@@ -72,7 +72,9 @@ export interface PlanActivityItem {
   matchedLat?: number
   matchedLng?: number
   matchedName?: string
-  matchedType?: 'spot' | 'food' | 'none'
+  matchedType?: 'spot' | 'food' | 'amap_geocode' | 'amap_poi' | 'none'
+  routePrevDistance?: number
+  routePrevTime?: number
 }
 
 export interface PlanDaySchedule {
@@ -80,6 +82,8 @@ export interface PlanDaySchedule {
   date: string
   theme: string
   schedule: PlanActivityItem[]
+  routeTotalDistance?: number
+  routeTotalTime?: number
 }
 
 export interface PlanResult {

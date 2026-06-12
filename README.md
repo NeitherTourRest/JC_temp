@@ -73,7 +73,7 @@ app.jwt.secret=your_jwt_secret_here
 ### 4. 初始化数据库
 
 ```bash
-# 导入表结构 + 种子数据（206 个景点、57 道美食、50+ 设施、路网）
+# 导入表结构 + 种子数据（210 个景点、337 家餐馆、337+ 设施、路网）
 mysql -u root -p journeycraft < sql/init.sql
 mysql -u root -p journeycraft < sql/seed_extended.sql
 mysql -u root -p journeycraft < sql/osm_tables.sql
@@ -169,34 +169,45 @@ cd frontend && npx vitest run
 
 ### MySQL `journeycraft`
 
-**核心表**（JPA 自动创建）：
+**核心表**（JPA 自动创建，含 JPA 实体类映射）：
 
 | 表 | 行数 | 说明 |
 |---|---|---|
-| `spots` | 206 | 景点（景区、校园、场馆等） |
-| `foods` | 57 | 美食 |
-| `itineraries` | — | 行程（route_data 存 JSON） |
-| `facilities` | 50+ | 服务设施（卫生间、停车场等） |
+| `spots` | 210 | 景点（景区、公园、商场、校园等，从高德 API 导入） |
+| `shops` | 337 | 餐馆（从高德 API 导入的昌平区真实餐馆 POI） |
+| `foods` | 0 | 美食（已由 shops 表替代，保留表结构兼容） |
+| `facilities` | 337+ | 服务设施（12 个分类，高德 API 导入真实 POI） |
+| `itineraries` | — | 行程（route_data 存 JSON 时间线） |
+| `itinerary_collaborators` | — | 行程协作者（用户+行程关联） |
+| `itinerary_invitations` | — | 行程邀请（待接受/已拒绝） |
 | `users` | — | 用户 |
-| `spot_reviews` | — | 景点评分（每人每景点一条） |
-| `food_reviews` | — | 美食评分 |
-| `congestion_reports` | — | 拥挤度（UNIQUE target_type+target_id+user_id） |
-| `diary_ratings` | — | 游记评分（关联 MongoDB diary._id） |
+| `user_preferences` | — | 用户偏好设置 |
+| `spot_reviews` | — | 景点评分（每人每景点唯一） |
+| `food_reviews` | — | 美食评分（同时被 shops 的评分复用） |
+| `shop_reviews` | — | 餐馆评分（独立 shop_reviews 表） |
+| `congestion_reports` | — | 拥挤度上报（UNIQUE target_type+target_id+user_id） |
+| `favorites` | — | 收藏（景点/美食/游记） |
+| `browse_histories` | — | 浏览历史 |
+| `search_histories` | — | 搜索历史 |
+| `route_histories` | — | 路线规划历史 |
+| `facility_query_histories` | — | 设施查询历史 |
+| `travel_service_links` | — | 旅游服务链接 |
 
-**路网表**（手动创建）：
+**路网表**（手动创建，OSM 昌平区数据）：
 
 | 表 | 行数 | 说明 |
 |---|---|---|
-| `road_nodes` | 267,094 | OSM 路网节点 |
-| `road_edges` | 540,956 | OSM 路网边 |
+| `road_nodes` | 267,094 | OSM 路网节点（WGS-84 → GCJ-02 加载时转换） |
+| `road_edges` | 540,956 | OSM 路网边（含道路类型、限速、拥挤度） |
 
 ### MongoDB `JourneyCraft`
 
 | 集合 | 用途 |
 |---|---|
-| `diaries` | 游记（含 contentHtml 富文本） |
-| `chat_sessions` | AI 对话会话 |
-| `indoor_buildings` | 室内导航图 |
+| `diaries` | 游记（含 contentHtml 富文本，Deflate 压缩） |
+| `diary_ratings` | 游记评分 |
+| `chat_sessions` | AI 对话会话（DeepSeek 聊天历史） |
+| `indoor_navigation` | 室内导航建筑图 |
 
 ### 文件系统
 
@@ -204,7 +215,7 @@ cd frontend && npx vitest run
 ~/journeycraft-uploads/
 ├── spots/      # 景点封面（184 张）
 ├── foods/      # 美食封面（57 张）
-└── yyyy/MM/dd/ # 用户上传文件
+└── yyyy/MM/dd/ # 用户上传文件（日记图片/视频等，≤200MB）
 ```
 
 文件通过 `GET /uploads/**` 访问，Nginx 或 Spring Boot 均可直出。
@@ -228,21 +239,33 @@ cd frontend && npx vitest run
 | GET | `/spots/{id}` | 景点详情 | — |
 | POST | `/spots/{id}/rate` | 评分 | ✅ |
 | POST | `/spots/{id}/congestion` | 拥挤度上报 | ✅ |
+| GET | `/shops/search` | 搜索餐馆（keyword/cuisine） | — |
+| GET | `/shops/top` | 热门餐馆 | — |
+| GET | `/shops/by-spot/{spotId}` | 景点附近餐馆 | — |
+| GET | `/shops/{id}` | 餐馆详情 | — |
+| POST | `/shops/{id}/rate` | 餐馆评分 | ✅ |
+| POST | `/shops/{id}/congestion` | 餐馆拥挤度上报 | ✅ |
 | GET | `/foods/search` | 搜索美食（keyword/cuisine） | — |
 | GET | `/foods/{id}` | 美食详情 | — |
 | POST | `/foods/{id}/rate` | 评分 | ✅ |
 | POST | `/foods/{id}/congestion` | 拥挤度上报 | ✅ |
 | GET/POST/PUT/DELETE | `/itineraries` | 行程 CRUD | ✅ |
+| GET/POST/PUT/DELETE | `/itineraries/collaborations` | 协作行程 | ✅ |
 | GET | `/diaries` | 游记列表 | — |
 | GET | `/diaries/search` | 搜索游记（标题+内容+目的地） | — |
 | GET/POST/PUT/DELETE | `/diaries/{id}` | 游记 CRUD | — |
 | POST | `/diaries/{id}/rate` | 游记评分 | ✅ |
-| POST | `/ai/plan` | AI 行程规划 | — |
+| POST | `/ai/plan` | AI 行程规划（DeepSeek + Amap 匹配 + Dijkstra 路径） | — |
 | POST | `/ai/chat` | AI 对话 | — |
+| POST | `/ai/budget` | AI 预算估算 | — |
 | GET/POST/DELETE | `/ai/sessions` | AI 会话管理 | — |
 | POST | `/navigation/route` | Dijkstra 路线规划 | — |
 | POST | `/indoor/navigate` | 室内导航 | — |
-| GET | `/search` | 统一搜索（景点+美食+游记） | — |
+| GET | `/search` | 统一搜索（景点+餐馆+美食+游记） | — |
+| POST | `/admin/spots/refresh` | 刷新景点数据（高德 API） | ✅ |
+| POST | `/admin/shops/refresh` | 刷新餐馆数据（高德 API） | ✅ |
+| POST | `/admin/facilities/refresh` | 刷新设施数据 | ✅ |
+| POST | `/admin/refresh-all` | 全量刷新 | ✅ |
 | POST | `/files/upload` | 文件上传（≤200MB） | ✅ |
 | GET/PUT | `/users/me` | 用户资料 | ✅ |
 

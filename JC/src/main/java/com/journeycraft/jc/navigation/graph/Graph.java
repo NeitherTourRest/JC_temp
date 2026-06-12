@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Two maps: nodeMap (id -> node) and adjacencyMap (nodeId -> edges)
  * - Supports dynamic edge addition/removal
  * - Thread-safe for reads; writes should be synchronized externally
+ * - Grid spatial index for O(1) nearest-node lookup (lazy-built on first query)
  */
 public class Graph {
 
@@ -34,6 +35,17 @@ public class Graph {
     private final Map<Integer, Integer> componentSizes = new HashMap<>();
     private int componentCount = 0;
 
+    // ─── Grid Spatial Index ───
+
+    /** Grid cell size in degrees (~500m at 40°N) */
+    private static final double CELL_SIZE = 0.005;
+
+    /** Grid index: cellKey -> nodes in that cell. Lazy-built on first findNearestNode call. */
+    private Map<String, List<GraphNode>> gridIndex;
+
+    /** Whether the grid index has been built */
+    private boolean gridBuilt = false;
+
     public Graph() {
         this.nodeMap = new ConcurrentHashMap<>();
         this.adjacencyMap = new ConcurrentHashMap<>();
@@ -50,6 +62,11 @@ public class Graph {
         nodeMap.put(node.getNodeId(), node);
         adjacencyMap.putIfAbsent(node.getNodeId(), new ArrayList<>());
         updateBounds(node.getLatitude(), node.getLongitude());
+        // Update grid index if already built
+        if (gridBuilt) {
+            String key = cellKey(node.getLatitude(), node.getLongitude());
+            gridIndex.computeIfAbsent(key, k -> Collections.synchronizedList(new ArrayList<>())).add(node);
+        }
     }
 
     public GraphNode getNode(String nodeId) {
@@ -100,8 +117,79 @@ public class Graph {
 
     // ─── Graph Utilities ───
 
-    /** Find the nearest node to given coordinates using brute-force search */
+    /**
+     * Build the grid spatial index for fast nearest-node lookup.
+     * Partitions the graph into ~500m cells. Thread-safe; should be called once
+     * after all nodes are loaded. Safe to call multiple times (rebuilds).
+     */
+    public void buildGridIndex() {
+        Map<String, List<GraphNode>> idx = new HashMap<>();
+        for (GraphNode node : nodeMap.values()) {
+            String key = cellKey(node.getLatitude(), node.getLongitude());
+            idx.computeIfAbsent(key, k -> new ArrayList<>()).add(node);
+        }
+        // Convert to synchronized lists for thread safety
+        this.gridIndex = new ConcurrentHashMap<>();
+        for (var entry : idx.entrySet()) {
+            gridIndex.put(entry.getKey(), Collections.synchronizedList(entry.getValue()));
+        }
+        this.gridBuilt = true;
+    }
+
+    /** Compute grid cell key for a coordinate. */
+    private static String cellKey(double lat, double lng) {
+        int latBin = (int) Math.floor(lat / CELL_SIZE);
+        int lngBin = (int) Math.floor(lng / CELL_SIZE);
+        return latBin + "_" + lngBin;
+    }
+
+    /**
+     * Find the nearest node to given coordinates.
+     * Uses the grid spatial index for O(k) search where k ≈ nodes in 9 neighboring cells.
+     * Falls back to brute-force O(n) scan if grid is not built or local cells are empty.
+     */
     public GraphNode findNearestNode(double lat, double lng) {
+        // Build grid lazily on first call if not already built
+        if (!gridBuilt) {
+            buildGridIndex();
+        }
+
+        // Collect candidate nodes from 9-cell neighborhood
+        Set<GraphNode> candidates = new HashSet<>();
+        String centerKey = cellKey(lat, lng);
+        int centerLatBin = (int) Math.floor(lat / CELL_SIZE);
+        int centerLngBin = (int) Math.floor(lng / CELL_SIZE);
+
+        for (int dlat = -1; dlat <= 1; dlat++) {
+            for (int dlng = -1; dlng <= 1; dlng++) {
+                String key = (centerLatBin + dlat) + "_" + (centerLngBin + dlng);
+                List<GraphNode> cell = gridIndex.get(key);
+                if (cell != null) {
+                    candidates.addAll(cell);
+                }
+            }
+        }
+
+        // Fallback to brute-force if 9-cell window is empty (sparse region / edge of map)
+        if (candidates.isEmpty()) {
+            return bruteForceNearestNode(lat, lng);
+        }
+
+        // Scan candidates for nearest
+        GraphNode nearest = null;
+        double minDist = Double.MAX_VALUE;
+        for (GraphNode node : candidates) {
+            double dist = haversineDistance(lat, lng, node.getLatitude(), node.getLongitude());
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = node;
+            }
+        }
+        return nearest;
+    }
+
+    /** Fallback brute-force nearest node search (used when grid index is empty). */
+    private GraphNode bruteForceNearestNode(double lat, double lng) {
         GraphNode nearest = null;
         double minDist = Double.MAX_VALUE;
         for (GraphNode node : nodeMap.values()) {
