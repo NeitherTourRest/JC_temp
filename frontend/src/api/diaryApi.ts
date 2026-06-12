@@ -8,6 +8,7 @@ export const diaryApi = {
   update: (id: string, data: any) => apiClient.put<ApiResponse<DiaryResponse>>(`/diaries/${id}`, data),
   del: (id: string) => apiClient.delete<ApiResponse<void>>(`/diaries/${id}`),
   rate: (id: string, rating: number) => apiClient.post<ApiResponse<DiaryResponse>>(`/diaries/${id}/rate`, null, { params: { rating } }),
-  search: (keyword: string) => apiClient.get<ApiResponse<PageResponse<DiaryResponse>>>('/diaries/search', { params: { keyword } }),
+  search: (keyword: string, page?: number, size?: number) =>
+    apiClient.get<ApiResponse<PageResponse<DiaryResponse>>>('/diaries/search', { params: { keyword, page, size } }),
   mine: (params?: any) => apiClient.get<ApiResponse<PageResponse<DiaryResponse>>>('/diaries/mine', { params })
 }

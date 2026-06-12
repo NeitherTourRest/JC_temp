@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -96,6 +98,13 @@ public class UserService {
         }
 
         return UserPreferenceResponse.from(userPreferenceRepository.save(pref));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsers(String keyword) {
+        return userRepository.searchByKeyword(keyword).stream()
+                .map(UserResponse::from)
+                .toList();
     }
 
     private User getCurrentUserEntity() {

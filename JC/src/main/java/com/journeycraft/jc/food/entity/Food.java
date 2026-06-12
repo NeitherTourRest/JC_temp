@@ -58,6 +58,9 @@ public class Food {
     @Builder.Default
     private Integer ratingCount = 0;
 
+    @Column(name = "shop_id")
+    private Long shopId;
+
     @Column(name = "congestion_level", length = 20)
     private String congestionLevel;
 

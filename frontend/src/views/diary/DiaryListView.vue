@@ -4,9 +4,9 @@
       <div class="toolbar glass-sm">
         <el-input v-model="keyword" placeholder="搜索游记标题、内容、目的地…" prefix-icon="Search" clearable class="search-bar" @keyup.enter="search" @clear="fetch" />
         <el-button size="small" type="primary" @click="search">搜索</el-button>
-        <div class="tabs">
-          <button :class="['tab', { active: tab === 'all' }]" @click="tab='all'; fetch()">🔥 全部</button>
-          <button :class="['tab', { active: tab === 'mine' }]" @click="tab='mine'; fetch()">📖 我的</button>
+        <div class="cat-filters">
+          <button :class="['cat-btn', { active: tab === 'all' }]" @click="tab='all'; currentPage=1; fetch()">🔥 全部</button>
+          <button :class="['cat-btn', { active: tab === 'mine' }]" @click="tab='mine'; currentPage=1; fetch()">📖 我的</button>
         </div>
         <div class="toolbar-right">
           <el-button type="primary" size="small" @click="$router.push('/diaries/new')">+ 写游记</el-button>
@@ -53,6 +53,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="total > pageSize" class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          @current-change="fetch"
+        />
+      </div>
     </div>
   </DefaultLayout>
 </template>
@@ -68,11 +79,15 @@ const loading = ref(false)
 const errorMsg = ref('')
 const tab = ref('all')
 const keyword = ref('')
+const currentPage = ref(1)
+const pageSize = ref(12)
+const total = ref(0)
 
 function search() {
   if (keyword.value.trim()) {
-    tab.value = 'all' // search only works for public diaries
+    tab.value = 'all'
   }
+  currentPage.value = 1
   errorMsg.value = ''
   fetch()
 }
@@ -83,14 +98,17 @@ async function fetch() {
   try {
     const kw = keyword.value.trim()
     if (kw) {
-      const r = await diaryApi.search(kw)
+      const r = await diaryApi.search(kw, currentPage.value - 1, pageSize.value)
       diaries.value = r.data.data?.content || []
+      total.value = r.data.data?.totalElements || 0
     } else if (tab.value === 'mine') {
-      const r = await diaryApi.mine({ size: 30 })
+      const r = await diaryApi.mine({ page: currentPage.value - 1, size: pageSize.value })
       diaries.value = r.data.data?.content || []
+      total.value = r.data.data?.totalElements || 0
     } else {
-      const r = await diaryApi.list({ size: 30 })
+      const r = await diaryApi.list({ page: currentPage.value - 1, size: pageSize.value })
       diaries.value = r.data.data?.content || []
+      total.value = r.data.data?.totalElements || 0
     }
   } catch (e: any) {
     errorMsg.value = e?.message || '加载游记失败，请稍后重试。'
@@ -107,34 +125,35 @@ onMounted(fetch)
 .diary-page { padding: 0; }
 
 .toolbar {
-  padding: 14px 18px;
-  margin-bottom: 20px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  justify-content: space-between;
 }
 .toolbar-right { display: flex; gap: 8px; align-items: center; }
 
 .tabs { display: flex; gap: 4px; }
 .search-bar { width: 260px; flex-shrink: 0; }
-.tab {
-  padding: 6px 16px;
+.cat-filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.cat-btn {
+  padding: 3px 12px;
   background: var(--frosted-bg);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--frosted-border);
   color: var(--text-regular);
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
   cursor: pointer;
-  font-size: 13px;
   font-family: inherit;
   font-weight: 500;
   transition: all 0.2s ease;
   box-shadow: var(--neu-shadow-sm);
 }
-.tab:hover { transform: translateY(-1px); box-shadow: var(--neu-shadow); }
-.tab.active { background: rgba(124,215,238,0.12); color: var(--pop-pink); border-color: rgba(124,215,238,0.3); }
+.cat-btn:hover { transform: translateY(-1px); color: var(--text-primary); }
+.cat-btn.active { background: rgba(167,111,215,0.2); color: #fff; border-color: rgba(167,111,215,0.35); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .card { overflow: hidden; cursor: pointer; }

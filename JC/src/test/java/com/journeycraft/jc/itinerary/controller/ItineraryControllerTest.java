@@ -29,7 +29,7 @@ class ItineraryControllerTest {
     @DisplayName("list returns paginated itineraries")
     void list() {
         var page = new PageResponse<>(List.of(
-                new ItineraryResponse(1L, 1L, "My Trip", null, null, null, null, null)),
+                new ItineraryResponse(1L, 1L, "My Trip", null, null, null, null, null, 1, null, List.of())),
                 0, 10, 1, 1, false);
         when(itineraryService.list(anyInt(), anyInt(), isNull())).thenReturn(page);
 
@@ -44,9 +44,9 @@ class ItineraryControllerTest {
     @DisplayName("create returns 201 with new itinerary")
     void create() {
         when(itineraryService.create(any(ItineraryRequest.class)))
-                .thenReturn(new ItineraryResponse(1L, 1L, "New Trip", "{}", null, null, null, null));
+                .thenReturn(new ItineraryResponse(1L, 1L, "New Trip", "{}", null, null, null, null, 1, null, List.of()));
 
-        var response = controller.create(new ItineraryRequest("New Trip", "{}", null, null, null));
+        var response = controller.create(new ItineraryRequest("New Trip", "{}", null, null, null, null));
         var body = response.getBody();
         assertEquals(201, response.getStatusCode().value());
         assertNotNull(body);
@@ -57,7 +57,7 @@ class ItineraryControllerTest {
     @DisplayName("get returns itinerary by id")
     void get() {
         when(itineraryService.get(1L))
-                .thenReturn(new ItineraryResponse(1L, 1L, "My Trip", null, null, null, null, null));
+                .thenReturn(new ItineraryResponse(1L, 1L, "My Trip", null, null, null, null, null, 1, null, List.of()));
 
         var response = controller.get(1L);
         assertEquals("My Trip", response.getBody().data().name());
@@ -67,9 +67,9 @@ class ItineraryControllerTest {
     @DisplayName("update modifies existing itinerary")
     void update() {
         when(itineraryService.update(eq(1L), any(ItineraryRequest.class)))
-                .thenReturn(new ItineraryResponse(1L, 1L, "Updated", "{\"days\":[]}", null, null, null, null));
+                .thenReturn(new ItineraryResponse(1L, 1L, "Updated", "{\"days\":[]}", null, null, null, null, 2, null, List.of()));
 
-        var response = controller.update(1L, new ItineraryRequest("Updated", "{\"days\":[]}", null, null, null));
+        var response = controller.update(1L, new ItineraryRequest("Updated", "{\"days\":[]}", null, null, null, null));
         assertTrue(response.getBody().success());
         assertEquals("Updated", response.getBody().data().name());
     }

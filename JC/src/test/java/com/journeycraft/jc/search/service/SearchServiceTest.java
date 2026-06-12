@@ -4,6 +4,8 @@ import com.journeycraft.jc.diary.document.Diary;
 import com.journeycraft.jc.diary.repository.DiaryRepository;
 import com.journeycraft.jc.food.entity.Food;
 import com.journeycraft.jc.food.repository.FoodRepository;
+import com.journeycraft.jc.shop.entity.Shop;
+import com.journeycraft.jc.shop.repository.ShopRepository;
 import com.journeycraft.jc.spot.entity.Spot;
 import com.journeycraft.jc.spot.repository.SpotRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,22 +29,27 @@ import static org.mockito.Mockito.*;
 class SearchServiceTest {
 
     @Mock private SpotRepository spotRepository;
+    @Mock private ShopRepository shopRepository;
     @Mock private FoodRepository foodRepository;
     @Mock private DiaryRepository diaryRepository;
 
     private SearchService searchService;
 
     private Spot spot;
+    private Shop shop;
     private Food food;
     private Diary diary;
 
     @BeforeEach
     void setUp() {
-        searchService = new SearchService(spotRepository, foodRepository, diaryRepository);
+        searchService = new SearchService(spotRepository, shopRepository, foodRepository, diaryRepository);
 
         spot = Spot.builder().id(1L).name("Great Wall").category("scenic")
                 .popularity(100).avgRating(BigDecimal.valueOf(4.5)).latitude(40.0).longitude(116.0)
                 .address("Changping, Beijing").build();
+        shop = Shop.builder().id(1L).name("Quanjude Restaurant").cuisine("Chinese")
+                .address("Changping, Beijing").popularity(90).avgRating(BigDecimal.valueOf(4.5))
+                .latitude(40.0).longitude(116.0).build();
         food = Food.builder().id(1L).name("Peking Duck").cuisine("Chinese")
                 .restaurantName("Quanjude").popularity(90).avgRating(BigDecimal.valueOf(4.5))
                 .latitude(40.0).longitude(116.0).description("Famous Beijing roast duck").build();
@@ -52,10 +59,12 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("searchAll returns results from all three modules")
+    @DisplayName("searchAll returns results from all four modules")
     void searchAll() {
         when(spotRepository.searchByKeyword(eq("Beijing"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(spot)));
+        when(shopRepository.searchByKeyword(eq("Beijing"), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(eq("Beijing"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
         when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
@@ -64,9 +73,11 @@ class SearchServiceTest {
         var result = searchService.searchAll("Beijing", 5);
 
         assertEquals(1, result.spots().size());
+        assertEquals(1, result.shops().size());
         assertEquals(1, result.foods().size());
         assertEquals(1, result.diaries().size());
         assertEquals("Great Wall", result.spots().get(0).name());
+        assertEquals("Quanjude Restaurant", result.shops().get(0).name());
         assertEquals("Peking Duck", result.foods().get(0).name());
         assertEquals("Beijing Adventure", result.diaries().get(0).title());
     }
@@ -76,6 +87,8 @@ class SearchServiceTest {
     void searchAllNoResults() {
         when(spotRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
+        when(shopRepository.searchByKeyword(anyString(), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of()));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
         when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
@@ -84,6 +97,7 @@ class SearchServiceTest {
         var result = searchService.searchAll("nothing", 5);
 
         assertTrue(result.spots().isEmpty());
+        assertTrue(result.shops().isEmpty());
         assertTrue(result.foods().isEmpty());
         assertTrue(result.diaries().isEmpty());
     }
@@ -92,6 +106,8 @@ class SearchServiceTest {
     @DisplayName("searchAll diary uses searchFulltext (not just title)")
     void searchAllDiaryUsesFulltext() {
         when(spotRepository.searchByKeyword(anyString(), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+        when(shopRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
@@ -109,6 +125,8 @@ class SearchServiceTest {
     void searchAllRespectsLimit() {
         when(spotRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(spot)));
+        when(shopRepository.searchByKeyword(anyString(), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
         when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
@@ -118,6 +136,7 @@ class SearchServiceTest {
 
         // Verify each repository was called with limit=5
         verify(spotRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
+        verify(shopRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
         verify(foodRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
         verify(diaryRepository).searchFulltext(anyString(), eq(PageRequest.of(0, 5)));
     }
@@ -127,6 +146,8 @@ class SearchServiceTest {
     void searchAllToleratesErrors() {
         when(spotRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenThrow(new RuntimeException("DB error"));
+        when(shopRepository.searchByKeyword(anyString(), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
         when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
@@ -136,6 +157,7 @@ class SearchServiceTest {
         var result = searchService.searchAll("test", 5);
 
         assertTrue(result.spots().isEmpty()); // failed module
+        assertEquals(1, result.shops().size()); // successful
         assertEquals(1, result.foods().size()); // successful
         assertEquals(1, result.diaries().size()); // successful
     }

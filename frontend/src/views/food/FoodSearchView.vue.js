@@ -8,19 +8,23 @@ const errorMsg = ref('');
 const keyword = ref('');
 const activeCat = ref('All');
 const cats = ['All', 'Chinese', 'Western', 'Japanese', 'Korean', 'Fast Food'];
-function search() { errorMsg.value = ''; fetch(); }
-function filterCat(c) { activeCat.value = c; errorMsg.value = ''; fetch(); }
+const currentPage = ref(1);
+const pageSize = ref(20);
+const total = ref(0);
+function search() { currentPage.value = 1; errorMsg.value = ''; fetch(); }
+function filterCat(c) { activeCat.value = c; currentPage.value = 1; errorMsg.value = ''; fetch(); }
 async function fetch() {
     loading.value = true;
     errorMsg.value = '';
     try {
-        const params = { size: 20 };
+        const params = { page: currentPage.value - 1, size: pageSize.value };
         if (keyword.value.trim())
             params.keyword = keyword.value.trim();
         if (activeCat.value !== 'All')
             params.cuisine = activeCat.value;
         const r = await foodApi.search(params);
         foods.value = r.data.data?.content || [];
+        total.value = r.data.data?.totalElements || 0;
     }
     catch (e) {
         errorMsg.value = e?.message || '加载美食失败，请重试。';
@@ -224,6 +228,35 @@ else {
         }
     }
 }
+if (__VLS_ctx.total > __VLS_ctx.pageSize) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "pagination-wrap" },
+    });
+    const __VLS_29 = {}.ElPagination;
+    /** @type {[typeof __VLS_components.ElPagination, typeof __VLS_components.elPagination, ]} */ ;
+    // @ts-ignore
+    const __VLS_30 = __VLS_asFunctionalComponent(__VLS_29, new __VLS_29({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }));
+    const __VLS_31 = __VLS_30({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_30));
+    let __VLS_33;
+    let __VLS_34;
+    let __VLS_35;
+    const __VLS_36 = {
+        onCurrentChange: (__VLS_ctx.fetch)
+    };
+    var __VLS_32;
+}
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['food-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
@@ -246,6 +279,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['rest']} */ ;
 /** @type {__VLS_StyleScopedClasses['foot']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-rating']} */ ;
+/** @type {__VLS_StyleScopedClasses['pagination-wrap']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -257,6 +291,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             keyword: keyword,
             activeCat: activeCat,
             cats: cats,
+            currentPage: currentPage,
+            pageSize: pageSize,
+            total: total,
             search: search,
             filterCat: filterCat,
             fetch: fetch,

@@ -48,6 +48,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="total > pageSize" class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          @current-change="fetch"
+        />
+      </div>
     </div>
   </DefaultLayout>
 </template>
@@ -64,16 +75,20 @@ const errorMsg = ref('')
 const keyword = ref('')
 const activeCat = ref('All')
 const cats = ['All', '景点', '校园', '餐厅', '商场', '公园', '博物馆', '酒店', '体育场馆']
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 async function fetch() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const p: Record<string, any> = { size: 20 }
+    const p: Record<string, any> = { page: currentPage.value - 1, size: pageSize.value }
     if (keyword.value.trim()) p.keyword = keyword.value.trim()
     if (activeCat.value !== 'All') p.category = activeCat.value
     const r = await spotApi.search(p)
     spots.value = r.data.data?.content || []
+    total.value = r.data.data?.totalElements || 0
   } catch (e: any) {
     errorMsg.value = e?.message || '加载景点失败，请重试。'
     spots.value = []
@@ -81,8 +96,8 @@ async function fetch() {
     loading.value = false
   }
 }
-function search() { errorMsg.value = ''; fetch() }
-function filterCat(c: string) { activeCat.value = c; errorMsg.value = ''; fetch() }
+function search() { currentPage.value = 1; errorMsg.value = ''; fetch() }
+function filterCat(c: string) { activeCat.value = c; currentPage.value = 1; errorMsg.value = ''; fetch() }
 onMounted(fetch)
 </script>
 
@@ -162,6 +177,12 @@ onMounted(fetch)
 .spot-foot { display: flex; gap: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
 .spot-rating { font-size: 13px; font-weight: 600; color: #ffc107; }
 .spot-addr { font-size: 11px; }
+
+.pagination-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 12px;
+}
 
 @media (max-width: 768px) {
   .spots-grid { grid-template-columns: 1fr; }

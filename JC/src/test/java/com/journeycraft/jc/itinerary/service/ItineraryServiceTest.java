@@ -4,6 +4,7 @@ import com.journeycraft.jc.common.exception.ResourceNotFoundException;
 import com.journeycraft.jc.itinerary.dto.ItineraryRequest;
 import com.journeycraft.jc.itinerary.entity.Itinerary;
 import com.journeycraft.jc.itinerary.repository.ItineraryRepository;
+import com.journeycraft.jc.itinerary.repository.ItineraryCollaboratorRepository;
 import com.journeycraft.jc.user.entity.User;
 import com.journeycraft.jc.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 class ItineraryServiceTest {
 
     @Mock private ItineraryRepository itineraryRepository;
+    @Mock private ItineraryCollaboratorRepository collaboratorRepository;
     @Mock private UserRepository userRepository;
     @Mock private SecurityContext securityContext;
     @Mock private Authentication authentication;
@@ -42,7 +44,7 @@ class ItineraryServiceTest {
 
     @BeforeEach
     void setUp() {
-        itineraryService = new ItineraryService(itineraryRepository, userRepository);
+        itineraryService = new ItineraryService(itineraryRepository, collaboratorRepository, userRepository);
         user = User.builder().id(1L).username("testuser").build();
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -57,7 +59,7 @@ class ItineraryServiceTest {
         var saved = Itinerary.builder().id(1L).userId(1L).name("My Trip").routeData("{}").build();
         when(itineraryRepository.save(any(Itinerary.class))).thenReturn(saved);
 
-        var result = itineraryService.create(new ItineraryRequest("My Trip", "{}", null, null, null));
+        var result = itineraryService.create(new ItineraryRequest("My Trip", "{}", null, null, null, null));
         assertEquals("My Trip", result.name());
         verify(itineraryRepository).save(any(Itinerary.class));
     }
@@ -123,7 +125,7 @@ class ItineraryServiceTest {
         when(itineraryRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(itineraryRepository.save(any(Itinerary.class))).thenAnswer(i -> i.getArgument(0));
 
-        var result = itineraryService.update(1L, new ItineraryRequest("Updated Name", "{\"days\":[]}", "1,2,3", 100.0, 3600));
+        var result = itineraryService.update(1L, new ItineraryRequest("Updated Name", "{\"days\":[]}", "1,2,3", 100.0, 3600, 1));
 
         assertEquals("Updated Name", result.name());
         assertEquals("{\"days\":[]}", result.routeData());
@@ -138,13 +140,14 @@ class ItineraryServiceTest {
     void updateNotFound() {
         when(itineraryRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class,
-                () -> itineraryService.update(99L, new ItineraryRequest("Name", null, null, null, null)));
+                () -> itineraryService.update(99L, new ItineraryRequest("Name", null, null, null, null, null)));
     }
 
     @Test
     @DisplayName("delete removes itinerary")
     void delete() {
-        doNothing().when(itineraryRepository).deleteById(1L);
+        var existing = Itinerary.builder().id(1L).userId(1L).name("Trip").build();
+        when(itineraryRepository.findById(1L)).thenReturn(Optional.of(existing));
         itineraryService.delete(1L);
         verify(itineraryRepository).deleteById(1L);
     }

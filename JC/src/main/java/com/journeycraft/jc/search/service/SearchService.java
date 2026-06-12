@@ -4,8 +4,9 @@ import com.journeycraft.jc.diary.dto.DiaryResponse;
 import com.journeycraft.jc.diary.repository.DiaryRepository;
 import com.journeycraft.jc.food.dto.FoodResponse;
 import com.journeycraft.jc.food.repository.FoodRepository;
-import com.journeycraft.jc.navigation.algorithm.FuzzyMatcher;
 import com.journeycraft.jc.search.dto.SearchResult;
+import com.journeycraft.jc.shop.dto.ShopResponse;
+import com.journeycraft.jc.shop.repository.ShopRepository;
 import com.journeycraft.jc.spot.dto.SpotResponse;
 import com.journeycraft.jc.spot.repository.SpotRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class SearchService {
 
     private final SpotRepository spotRepository;
+    private final ShopRepository shopRepository;
     private final FoodRepository foodRepository;
     private final DiaryRepository diaryRepository;
 
@@ -30,6 +32,13 @@ public class SearchService {
         try {
             spots = spotRepository.searchByKeyword(keyword, pageable)
                     .stream().map(SpotResponse::from).toList();
+        } catch (Exception ignored) {}
+
+        // Search shops/restaurants by keyword (SQL LIKE on name/address/description)
+        List<ShopResponse> shops = List.of();
+        try {
+            shops = shopRepository.searchByKeyword(keyword, pageable)
+                    .stream().map(ShopResponse::from).toList();
         } catch (Exception ignored) {}
 
         // Search foods by keyword (SQL LIKE on name/restaurantName/description)
@@ -47,6 +56,6 @@ public class SearchService {
                     .stream().map(DiaryResponse::from).toList();
         } catch (Exception ignored) {}
 
-        return new SearchResult(spots, foods, diaries);
+        return new SearchResult(spots, shops, foods, diaries);
     }
 }

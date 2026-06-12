@@ -8,17 +8,21 @@ const errorMsg = ref('');
 const keyword = ref('');
 const activeCat = ref('All');
 const cats = ['All', '景点', '校园', '餐厅', '商场', '公园', '博物馆', '酒店', '体育场馆'];
+const currentPage = ref(1);
+const pageSize = ref(20);
+const total = ref(0);
 async function fetch() {
     loading.value = true;
     errorMsg.value = '';
     try {
-        const p = { size: 20 };
+        const p = { page: currentPage.value - 1, size: pageSize.value };
         if (keyword.value.trim())
             p.keyword = keyword.value.trim();
         if (activeCat.value !== 'All')
             p.category = activeCat.value;
         const r = await spotApi.search(p);
         spots.value = r.data.data?.content || [];
+        total.value = r.data.data?.totalElements || 0;
     }
     catch (e) {
         errorMsg.value = e?.message || '加载景点失败，请重试。';
@@ -28,8 +32,8 @@ async function fetch() {
         loading.value = false;
     }
 }
-function search() { errorMsg.value = ''; fetch(); }
-function filterCat(c) { activeCat.value = c; errorMsg.value = ''; fetch(); }
+function search() { currentPage.value = 1; errorMsg.value = ''; fetch(); }
+function filterCat(c) { activeCat.value = c; currentPage.value = 1; errorMsg.value = ''; fetch(); }
 onMounted(fetch);
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
@@ -226,6 +230,35 @@ else {
         }
     }
 }
+if (__VLS_ctx.total > __VLS_ctx.pageSize) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "pagination-wrap" },
+    });
+    const __VLS_29 = {}.ElPagination;
+    /** @type {[typeof __VLS_components.ElPagination, typeof __VLS_components.elPagination, ]} */ ;
+    // @ts-ignore
+    const __VLS_30 = __VLS_asFunctionalComponent(__VLS_29, new __VLS_29({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }));
+    const __VLS_31 = __VLS_30({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_30));
+    let __VLS_33;
+    let __VLS_34;
+    let __VLS_35;
+    const __VLS_36 = {
+        onCurrentChange: (__VLS_ctx.fetch)
+    };
+    var __VLS_32;
+}
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spots-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
@@ -249,6 +282,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['spot-foot']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-rating']} */ ;
 /** @type {__VLS_StyleScopedClasses['spot-addr']} */ ;
+/** @type {__VLS_StyleScopedClasses['pagination-wrap']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -260,6 +294,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             keyword: keyword,
             activeCat: activeCat,
             cats: cats,
+            currentPage: currentPage,
+            pageSize: pageSize,
+            total: total,
             fetch: fetch,
             search: search,
             filterCat: filterCat,

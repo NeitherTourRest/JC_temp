@@ -21,3 +21,7 @@ minimax.api.url=https://api.minimaxi.com
 app.amap.key=your_amap_key_here
 app.amap.security-key=your_amap_security_key_here
 
+# 高德 Web Service API Key - 用于后端 POI 搜索、地理编码
+# 在控制台「应用管理」-「添加新 Key」-「Web 服务」类型获取
+app.amap.ws-key=your_amap_webservice_key_here
+

@@ -7,10 +7,14 @@ const loading = ref(false);
 const errorMsg = ref('');
 const tab = ref('all');
 const keyword = ref('');
+const currentPage = ref(1);
+const pageSize = ref(12);
+const total = ref(0);
 function search() {
     if (keyword.value.trim()) {
-        tab.value = 'all'; // search only works for public diaries
+        tab.value = 'all';
     }
+    currentPage.value = 1;
     errorMsg.value = '';
     fetch();
 }
@@ -20,16 +24,19 @@ async function fetch() {
     try {
         const kw = keyword.value.trim();
         if (kw) {
-            const r = await diaryApi.search(kw);
+            const r = await diaryApi.search(kw, currentPage.value - 1, pageSize.value);
             diaries.value = r.data.data?.content || [];
+            total.value = r.data.data?.totalElements || 0;
         }
         else if (tab.value === 'mine') {
-            const r = await diaryApi.mine({ size: 30 });
+            const r = await diaryApi.mine({ page: currentPage.value - 1, size: pageSize.value });
             diaries.value = r.data.data?.content || [];
+            total.value = r.data.data?.totalElements || 0;
         }
         else {
-            const r = await diaryApi.list({ size: 30 });
+            const r = await diaryApi.list({ page: currentPage.value - 1, size: pageSize.value });
             diaries.value = r.data.data?.content || [];
+            total.value = r.data.data?.totalElements || 0;
         }
     }
     catch (e) {
@@ -45,8 +52,8 @@ debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
 let __VLS_directives;
-/** @type {__VLS_StyleScopedClasses['tab']} */ ;
-/** @type {__VLS_StyleScopedClasses['tab']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-btn']} */ ;
 /** @type {__VLS_StyleScopedClasses['card']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-img']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-body']} */ ;
@@ -121,21 +128,23 @@ const __VLS_20 = {
 __VLS_16.slots.default;
 var __VLS_16;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-    ...{ class: "tabs" },
+    ...{ class: "cat-filters" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
     ...{ onClick: (...[$event]) => {
             __VLS_ctx.tab = 'all';
+            __VLS_ctx.currentPage = 1;
             __VLS_ctx.fetch();
         } },
-    ...{ class: (['tab', { active: __VLS_ctx.tab === 'all' }]) },
+    ...{ class: (['cat-btn', { active: __VLS_ctx.tab === 'all' }]) },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
     ...{ onClick: (...[$event]) => {
             __VLS_ctx.tab = 'mine';
+            __VLS_ctx.currentPage = 1;
             __VLS_ctx.fetch();
         } },
-    ...{ class: (['tab', { active: __VLS_ctx.tab === 'mine' }]) },
+    ...{ class: (['cat-btn', { active: __VLS_ctx.tab === 'mine' }]) },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "toolbar-right" },
@@ -282,12 +291,41 @@ else {
         (d.createdAt?.substring(0, 10) || '');
     }
 }
+if (__VLS_ctx.total > __VLS_ctx.pageSize) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: "pagination-wrap" },
+    });
+    const __VLS_37 = {}.ElPagination;
+    /** @type {[typeof __VLS_components.ElPagination, typeof __VLS_components.elPagination, ]} */ ;
+    // @ts-ignore
+    const __VLS_38 = __VLS_asFunctionalComponent(__VLS_37, new __VLS_37({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }));
+    const __VLS_39 = __VLS_38({
+        ...{ 'onCurrentChange': {} },
+        currentPage: (__VLS_ctx.currentPage),
+        pageSize: (__VLS_ctx.pageSize),
+        total: (__VLS_ctx.total),
+        layout: "prev, pager, next",
+    }, ...__VLS_functionalComponentArgsRest(__VLS_38));
+    let __VLS_41;
+    let __VLS_42;
+    let __VLS_43;
+    const __VLS_44 = {
+        onCurrentChange: (__VLS_ctx.fetch)
+    };
+    var __VLS_40;
+}
 var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['diary-page']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar']} */ ;
 /** @type {__VLS_StyleScopedClasses['glass-sm']} */ ;
 /** @type {__VLS_StyleScopedClasses['search-bar']} */ ;
-/** @type {__VLS_StyleScopedClasses['tabs']} */ ;
+/** @type {__VLS_StyleScopedClasses['cat-filters']} */ ;
 /** @type {__VLS_StyleScopedClasses['toolbar-right']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-msg']} */ ;
 /** @type {__VLS_StyleScopedClasses['loading-spinner']} */ ;
@@ -309,6 +347,7 @@ var __VLS_2;
 /** @type {__VLS_StyleScopedClasses['badge-green']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-desc']} */ ;
 /** @type {__VLS_StyleScopedClasses['card-foot']} */ ;
+/** @type {__VLS_StyleScopedClasses['pagination-wrap']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
@@ -319,6 +358,9 @@ const __VLS_self = (await import('vue')).defineComponent({
             errorMsg: errorMsg,
             tab: tab,
             keyword: keyword,
+            currentPage: currentPage,
+            pageSize: pageSize,
+            total: total,
             search: search,
             fetch: fetch,
         };

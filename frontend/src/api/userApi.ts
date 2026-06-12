@@ -22,5 +22,7 @@ export const userApi = {
     apiClient.put<ApiResponse<UserPreferenceResponse>>(
       '/users/me/preferences',
       data
-    )
+    ),
+  search: (keyword: string) =>
+    apiClient.get<ApiResponse<UserResponse[]>>('/users/search', { params: { keyword } })
 }

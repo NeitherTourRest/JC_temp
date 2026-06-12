@@ -48,6 +48,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="total > pageSize" class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          layout="prev, pager, next"
+          @current-change="fetch"
+        />
+      </div>
     </div>
   </DefaultLayout>
 </template>
@@ -64,19 +75,23 @@ const errorMsg = ref('')
 const keyword = ref('')
 const activeCat = ref('All')
 const cats = ['All', 'Chinese', 'Western', 'Japanese', 'Korean', 'Fast Food']
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
-function search() { errorMsg.value = ''; fetch() }
-function filterCat(c: string) { activeCat.value = c; errorMsg.value = ''; fetch() }
+function search() { currentPage.value = 1; errorMsg.value = ''; fetch() }
+function filterCat(c: string) { activeCat.value = c; currentPage.value = 1; errorMsg.value = ''; fetch() }
 
 async function fetch() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const params: Record<string, any> = { size: 20 }
+    const params: Record<string, any> = { page: currentPage.value - 1, size: pageSize.value }
     if (keyword.value.trim()) params.keyword = keyword.value.trim()
     if (activeCat.value !== 'All') params.cuisine = activeCat.value
     const r = await foodApi.search(params)
     foods.value = r.data.data?.content || []
+    total.value = r.data.data?.totalElements || 0
   } catch (e: any) {
     errorMsg.value = e?.message || '加载美食失败，请重试。'
     foods.value = []

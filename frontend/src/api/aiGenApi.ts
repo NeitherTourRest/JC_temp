@@ -25,5 +25,5 @@ export const fileApi = {
 
 export const searchApi = {
   all: (keyword: string, limit: number = 5) =>
-    apiClient.get<ApiResponse<{ spots: any[]; foods: any[]; diaries: any[] }>>('/search', { params: { keyword, limit } })
+    apiClient.get<ApiResponse<{ spots: any[]; shops: any[]; foods: any[]; diaries: any[] }>>('/search', { params: { keyword, limit } })
 }

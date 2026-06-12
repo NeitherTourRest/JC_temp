@@ -942,3 +942,75 @@ body::after {
 .notify-badge-active {
   animation: blink 1s infinite alternate, badgePulse 1.5s infinite;
 }
+
+/* ── Pagination (unified frosted style) ── */
+.pagination-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0 16px;
+}
+.el-pagination {
+  --el-pagination-bg-color: transparent !important;
+  --el-pagination-button-bg-color: transparent !important;
+  --el-pagination-button-color: var(--text-regular) !important;
+  --el-pagination-hover-color: #7cd7ee !important;
+  --el-pagination-button-disabled-bg-color: transparent !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+}
+.el-pagination button {
+  background: var(--frosted-bg) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  border: 1px solid var(--frosted-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-regular) !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  margin: 0 2px !important;
+  transition: all 0.15s ease !important;
+}
+.el-pagination button:hover {
+  border-color: rgba(124,215,238,0.3) !important;
+  color: #7cd7ee !important;
+}
+.el-pagination button:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+.el-pagination .el-pager li {
+  background: var(--frosted-bg) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  border: 1px solid var(--frosted-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-regular) !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  margin: 0 2px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease !important;
+}
+.el-pagination .el-pager li:hover {
+  color: #7cd7ee !important;
+  border-color: rgba(124,215,238,0.3) !important;
+}
+.el-pagination .el-pager li.active {
+  background: linear-gradient(135deg, rgba(167,111,215,0.3), rgba(124,215,238,0.2)) !important;
+  border-color: rgba(167,111,215,0.3) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+.el-pagination .el-pagination__total,
+.el-pagination .el-pagination__jump {
+  color: var(--text-muted) !important;
+  font-size: 13px !important;
+}
+.el-pagination .el-select .el-input__wrapper {
+  background: var(--frosted-bg) !important;
+  box-shadow: inset 0 0 0 1px var(--frosted-border) !important;
+}
+.el-pagination .el-select .el-input__inner {
+  color: var(--text-regular) !important;
+}

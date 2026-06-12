@@ -41,16 +41,16 @@
                 </div>
                 <div class="sr-more" @click="goTo('/spots?keyword='+encodeURIComponent(q))">查看全部景点 ›</div>
               </div>
-              <div v-if="foods.length" class="sr-group">
-                <div class="sr-group-title">🍜 美食</div>
-                <div v-for="f in foods" :key="'f'+f.id" class="sr-item" @click="goTo('/foods/'+f.id)">
-                  <div class="sr-item-img" :style="{ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }"></div>
+              <div v-if="shops.length" class="sr-group">
+                <div class="sr-group-title">🏪 餐馆</div>
+                <div v-for="s in shops" :key="'sh'+s.id" class="sr-item" @click="goTo('/shops/'+s.id)">
+                  <div class="sr-item-img" :style="{ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }"></div>
                   <div class="sr-item-body">
-                    <div class="sr-item-name">{{ f.name }}</div>
-                    <div class="sr-item-meta">{{ f.cuisine || '美食' }} · ⭐ {{ f.avgRating?.toFixed(1) || '—' }}</div>
+                    <div class="sr-item-name">{{ s.name }}</div>
+                    <div class="sr-item-meta">{{ s.cuisine || '餐馆' }} · ⭐ {{ s.avgRating?.toFixed(1) || '—' }}</div>
                   </div>
                 </div>
-                <div class="sr-more" @click="goTo('/foods?keyword='+encodeURIComponent(q))">查看全部美食 ›</div>
+                <div class="sr-more" @click="goTo('/shops?keyword='+encodeURIComponent(q))">查看全部餐馆 ›</div>
               </div>
               <div v-if="diaries.length" class="sr-group">
                 <div class="sr-group-title">📓 游记</div>
@@ -98,7 +98,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { searchApi } from '@/api/aiGenApi'
-import type { SpotResponse, FoodResponse, DiaryResponse } from '@/types/api'
+import type { SpotResponse, ShopResponse, DiaryResponse } from '@/types/api'
 
 const route = useRoute(); const router = useRouter()
 const authStore = useAuthStore()
@@ -106,7 +106,7 @@ const q = ref('')
 const showSearchResults = ref(false)
 const searchLoading = ref(false)
 const spots = ref<SpotResponse[]>([])
-const foods = ref<FoodResponse[]>([])
+const shops = ref<ShopResponse[]>([])
 const diaries = ref<DiaryResponse[]>([])
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 const navRef = ref<HTMLElement | null>(null)
@@ -132,7 +132,7 @@ const avatarStyle = computed(() => avatarUrl.value ? {
 
 const navItems = [
   { path: '/spots', icon: '🏞️', label: '景点' },
-  { path: '/foods', icon: '🍜', label: '美食' },
+  { path: '/shops', icon: '🏪', label: '餐馆' },
   { path: '/diaries', icon: '📓', label: '游记' },
   { path: '/navigation', icon: '🗺️', label: '地图' },
   { path: '/itineraries', icon: '📋', label: '行程' },
@@ -141,7 +141,7 @@ const navItems = [
 
 function isActive(path: string) { return route.path.startsWith(path) }
 
-const hasResults = computed(() => spots.value.length > 0 || foods.value.length > 0 || diaries.value.length > 0)
+const hasResults = computed(() => spots.value.length > 0 || shops.value.length > 0 || diaries.value.length > 0)
 
 function onSearchInput() {
   const kw = q.value.trim()
@@ -161,7 +161,7 @@ async function fetchSearch(kw: string) {
     const r = await searchApi.all(kw, 5)
     const d = r.data.data
     spots.value = d?.spots || []
-    foods.value = d?.foods || []
+    shops.value = d?.shops || []
     diaries.value = d?.diaries || []
   } catch { /* ignore */ }
   finally { searchLoading.value = false }
@@ -186,7 +186,7 @@ if (typeof document !== 'undefined') {
 }
 
 const pageTitle = computed(() => ({
-  '/': '首页', '/spots': '景点', '/foods': '美食',
+  '/': '首页', '/spots': '景点', '/shops': '餐馆',
   '/diaries': '游记', '/navigation': '地图', '/ai/chat': 'AI 助手',
   '/itineraries': '行程规划', '/profile': '个人中心'
 }[route.path] || 'JourneyCraft'))

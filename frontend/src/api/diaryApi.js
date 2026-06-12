@@ -6,6 +6,6 @@ export const diaryApi = {
     update: (id, data) => apiClient.put(`/diaries/${id}`, data),
     del: (id) => apiClient.delete(`/diaries/${id}`),
     rate: (id, rating) => apiClient.post(`/diaries/${id}/rate`, null, { params: { rating } }),
-    search: (keyword) => apiClient.get('/diaries/search', { params: { keyword } }),
+    search: (keyword, page, size) => apiClient.get('/diaries/search', { params: { keyword, page, size } }),
     mine: (params) => apiClient.get('/diaries/mine', { params })
 };

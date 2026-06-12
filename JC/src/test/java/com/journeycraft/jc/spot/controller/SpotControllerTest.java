@@ -31,6 +31,7 @@ class SpotControllerTest {
     void searchSpots() {
         var page = new PageResponse<>(List.of(
                 new SpotResponse(1L, "Great Wall", "scenic", null, null, 40.0, 116.0,
+                        40.0, 116.0,
                         100, BigDecimal.valueOf(4.5), null, null, null, null, null)),
                 0, 10, 1, 1, false);
         when(spotService.searchSpots(any())).thenReturn(page);
@@ -49,6 +50,7 @@ class SpotControllerTest {
     void recommend() {
         var spots = List.of(
                 new SpotResponse(1L, "Great Wall", "scenic", null, null, 40.0, 116.0,
+                        40.0, 116.0,
                         100, BigDecimal.valueOf(4.5), null, null, null, null, null));
         when(spotService.recommendTopK(anyInt(), any())).thenReturn(spots);
 
@@ -65,7 +67,7 @@ class SpotControllerTest {
     @DisplayName("getSpotDetail returns detail via ApiResponse")
     void getSpotDetail() {
         var detail = new SpotDetailResponse(1L, "Great Wall", "scenic", null, null,
-                40.0, 116.0, 100, BigDecimal.valueOf(4.5), 10, null, null, null,
+                40.0, 116.0, 40.0, 116.0, 100, BigDecimal.valueOf(4.5), 10, null, null, null,
                 List.of(), List.of(), List.of(), "EMPTY");
         when(spotService.getSpotDetail(1L)).thenReturn(detail);
 

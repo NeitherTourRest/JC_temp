@@ -10,7 +10,7 @@ const q = ref('');
 const showSearchResults = ref(false);
 const searchLoading = ref(false);
 const spots = ref([]);
-const foods = ref([]);
+const shops = ref([]);
 const diaries = ref([]);
 let searchTimer = null;
 const navRef = ref(null);
@@ -37,14 +37,14 @@ const avatarStyle = computed(() => avatarUrl.value ? {
 } : {});
 const navItems = [
     { path: '/spots', icon: '🏞️', label: '景点' },
-    { path: '/foods', icon: '🍜', label: '美食' },
+    { path: '/shops', icon: '🏪', label: '餐馆' },
     { path: '/diaries', icon: '📓', label: '游记' },
     { path: '/navigation', icon: '🗺️', label: '地图' },
     { path: '/itineraries', icon: '📋', label: '行程' },
     { path: '/ai/chat', icon: '🤖', label: 'AI' },
 ];
 function isActive(path) { return route.path.startsWith(path); }
-const hasResults = computed(() => spots.value.length > 0 || foods.value.length > 0 || diaries.value.length > 0);
+const hasResults = computed(() => spots.value.length > 0 || shops.value.length > 0 || diaries.value.length > 0);
 function onSearchInput() {
     const kw = q.value.trim();
     if (!kw) {
@@ -66,7 +66,7 @@ async function fetchSearch(kw) {
         const r = await searchApi.all(kw, 5);
         const d = r.data.data;
         spots.value = d?.spots || [];
-        foods.value = d?.foods || [];
+        shops.value = d?.shops || [];
         diaries.value = d?.diaries || [];
     }
     catch { /* ignore */ }
@@ -90,7 +90,7 @@ if (typeof document !== 'undefined') {
     document.addEventListener('click', onDocumentClick);
 }
 const pageTitle = computed(() => ({
-    '/': '首页', '/spots': '景点', '/foods': '美食',
+    '/': '首页', '/spots': '景点', '/shops': '餐馆',
     '/diaries': '游记', '/navigation': '地图', '/ai/chat': 'AI 助手',
     '/itineraries': '行程规划', '/profile': '个人中心'
 }[route.path] || 'JourneyCraft'));
@@ -290,14 +290,14 @@ if (__VLS_ctx.showSearchResults) {
                 ...{ class: "sr-more" },
             });
         }
-        if (__VLS_ctx.foods.length) {
+        if (__VLS_ctx.shops.length) {
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "sr-group" },
             });
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ class: "sr-group-title" },
             });
-            for (const [f] of __VLS_getVForSourceType((__VLS_ctx.foods))) {
+            for (const [s] of __VLS_getVForSourceType((__VLS_ctx.shops))) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ onClick: (...[$event]) => {
                             if (!(__VLS_ctx.showSearchResults))
@@ -306,16 +306,16 @@ if (__VLS_ctx.showSearchResults) {
                                 return;
                             if (!(__VLS_ctx.hasResults))
                                 return;
-                            if (!(__VLS_ctx.foods.length))
+                            if (!(__VLS_ctx.shops.length))
                                 return;
-                            __VLS_ctx.goTo('/foods/' + f.id);
+                            __VLS_ctx.goTo('/shops/' + s.id);
                         } },
-                    key: ('f' + f.id),
+                    key: ('sh' + s.id),
                     ...{ class: "sr-item" },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sr-item-img" },
-                    ...{ style: ({ backgroundImage: f.imageUrl ? `url(${f.imageUrl})` : 'none' }) },
+                    ...{ style: ({ backgroundImage: s.imageUrl ? `url(${s.imageUrl})` : 'none' }) },
                 });
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sr-item-body" },
@@ -323,12 +323,12 @@ if (__VLS_ctx.showSearchResults) {
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sr-item-name" },
                 });
-                (f.name);
+                (s.name);
                 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                     ...{ class: "sr-item-meta" },
                 });
-                (f.cuisine || '美食');
-                (f.avgRating?.toFixed(1) || '—');
+                (s.cuisine || '餐馆');
+                (s.avgRating?.toFixed(1) || '—');
             }
             __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
                 ...{ onClick: (...[$event]) => {
@@ -338,9 +338,9 @@ if (__VLS_ctx.showSearchResults) {
                             return;
                         if (!(__VLS_ctx.hasResults))
                             return;
-                        if (!(__VLS_ctx.foods.length))
+                        if (!(__VLS_ctx.shops.length))
                             return;
-                        __VLS_ctx.goTo('/foods?keyword=' + encodeURIComponent(__VLS_ctx.q));
+                        __VLS_ctx.goTo('/shops?keyword=' + encodeURIComponent(__VLS_ctx.q));
                     } },
                 ...{ class: "sr-more" },
             });
@@ -516,7 +516,7 @@ const __VLS_self = (await import('vue')).defineComponent({
             showSearchResults: showSearchResults,
             searchLoading: searchLoading,
             spots: spots,
-            foods: foods,
+            shops: shops,
             diaries: diaries,
             navRef: navRef,
             btnRefs: btnRefs,

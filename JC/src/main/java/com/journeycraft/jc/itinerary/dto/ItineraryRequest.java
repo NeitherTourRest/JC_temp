@@ -7,4 +7,5 @@ public record ItineraryRequest(
         String routeData,
         String spotIds,
         Double totalDistance,
-        Integer totalTime) {}
+        Integer totalTime,
+        Integer version) {}

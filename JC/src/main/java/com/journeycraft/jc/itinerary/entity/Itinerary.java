@@ -35,6 +35,10 @@ public class Itinerary {
     @Column(name = "total_time")
     private Integer totalTime;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer version = 1;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

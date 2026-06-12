@@ -27,6 +27,16 @@
         <el-button size="small" type="primary" @click="doSearch">搜索</el-button>
       </div>
 
+      <!-- ── Pending Invitations Banner ────────────────── -->
+      <div v-if="pendingInvites.length" class="invite-banner glass-sm">
+        <div class="invite-banner-title">📩 你有 {{ pendingInvites.length }} 个待处理的行程邀请</div>
+        <div v-for="inv in pendingInvites" :key="inv.id" class="invite-banner-item">
+          <span class="invite-banner-name">{{ inv.inviterName }} 邀请你协作「{{ inv.itineraryName }}」</span>
+          <el-button size="small" type="success" @click="acceptInvite(inv.id)">接受</el-button>
+          <el-button size="small" @click="rejectInvite(inv.id)">拒绝</el-button>
+        </div>
+      </div>
+
       <!-- ── Loading State ─────────────────────────────── -->
       <div v-if="loading" class="loading-state">
         <div class="loading-spinner"></div>
@@ -141,8 +151,20 @@
           maxlength="50"
         />
         <button class="map-btn" @click="openMapDialog" title="Map Picker">🗺️</button>
+        <button class="invite-btn" @click="showInviteDialog = true" title="邀请协作者">👥</button>
         <button class="save-btn" @click="handleSave">💾 Save</button>
       </div>
+
+      <!-- Invite Dialog -->
+      <InviteDialog
+        v-model="showInviteDialog"
+        :itinerary-id="editingId || 0"
+        :collaborators="collaborators"
+        :pending-invites="pendingInvites"
+        :is-owner="isOwner"
+        @invited="onInvited"
+        @remove="removeCollab"
+      />
 
       <!-- ── Date Row ──────────────────────────────────── -->
       <div class="planning-dates glass-sm">
@@ -182,6 +204,7 @@
           >
             Day {{ day.dayIndex }}
             <span class="tab-date">{{ day.date }}</span>
+            <span class="day-tab-close" @click.stop="removeDay(di)">×</span>
           </button>
         </div>
         <button class="add-day-btn" @click="addDay" title="Add day">+</button>
@@ -483,6 +506,8 @@ import { ElMessage } from 'element-plus'
 import { spotApi } from '@/api/spotApi'
 import { aiApi } from '@/api/aiApi'
 import { navigationApi } from '@/api/navigationApi'
+import InviteDialog from '@/components/InviteDialog.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 // Legacy types for migration detection (old section-based format)
 interface LegacyPlanItem {
@@ -510,6 +535,10 @@ const currentPage = ref(1)
 const pageSize = ref(12)
 const total = ref(0)
 const searchKeyword = ref('')
+const showInviteDialog = ref(false)
+const pendingInvites = ref<{ id: number; itineraryId: number; itineraryName: string; inviterId: number; inviterName: string; status: string; createdAt: string }[]>([])
+const collaborators = ref<{ userId: number; role: string; nickname: string }[]>([])
+const isOwner = computed(() => collaborators.value.some(c => c.role === 'owner'))
 
 const tripColors = [
   '#22d3ee', '#34d399', '#fbbf24', '#e879f9',
@@ -644,6 +673,52 @@ async function handleDelete(id: number) {
 function doSearch() {
   currentPage.value = 1
   fetchItineraries()
+}
+
+// ── Collaboration functions ──
+async function loadPendingInvites() {
+  try {
+    const authStore = useAuthStore()
+    if (!authStore.user?.id) return
+    const r = await itineraryApi.getPendingInvites(authStore.user.id)
+    pendingInvites.value = (r.data.data || []).filter(inv => inv.status === 'PENDING')
+  } catch { /* ignore */ }
+}
+
+async function acceptInvite(invitationId: number) {
+  try {
+    await itineraryApi.acceptInvite(invitationId)
+    ElMessage.success('已接受邀请')
+    pendingInvites.value = pendingInvites.value.filter(i => i.id !== invitationId)
+    fetchItineraries()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+async function rejectInvite(invitationId: number) {
+  try {
+    await itineraryApi.rejectInvite(invitationId)
+    ElMessage.success('已拒绝邀请')
+    pendingInvites.value = pendingInvites.value.filter(i => i.id !== invitationId)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+function onInvited() {
+  loadPendingInvites()
+}
+
+async function removeCollab(userId: number) {
+  if (!editingId.value) return
+  try {
+    await itineraryApi.removeCollaborator(editingId.value, userId)
+    ElMessage.success('已移除协作者')
+    collaborators.value = collaborators.value.filter(c => c.userId !== userId)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '移除失败')
+  }
 }
 
 /* ───────────────────────────────────────────────────────
@@ -817,21 +892,48 @@ function regenerateDays() {
 
 function addDay() {
   const lastDayIdx = tripPlan.days.length
-  const lastDate = tripPlan.days.length
-    ? new Date(tripPlan.days[tripPlan.days.length - 1].date)
-    : tripPlan.startDate
+  const isFirstDay = tripPlan.days.length === 0
+  // Compute base date
+  let baseDate: Date
+  if (isFirstDay) {
+    baseDate = tripPlan.startDate
       ? new Date(tripPlan.startDate)
       : new Date()
-  lastDate.setDate(lastDate.getDate() + 1)
-  const y = lastDate.getFullYear()
-  const m = String(lastDate.getMonth() + 1).padStart(2, '0')
-  const d = String(lastDate.getDate()).padStart(2, '0')
+  } else {
+    baseDate = new Date(tripPlan.days[tripPlan.days.length - 1].date)
+    baseDate.setDate(baseDate.getDate() + 1)
+  }
+  const y = baseDate.getFullYear()
+  const m = String(baseDate.getMonth() + 1).padStart(2, '0')
+  const d = String(baseDate.getDate()).padStart(2, '0')
+  const dateStr = `${y}-${m}-${d}`
+
+  if (isFirstDay) {
+    // First day: set startDate to match
+    tripPlan.startDate = dateStr
+  }
   tripPlan.days.push({
     dayIndex: lastDayIdx + 1,
-    date: `${y}-${m}-${d}`,
+    date: dateStr,
     slots: []
   })
+  // Update endDate to match new last day
+  tripPlan.endDate = dateStr
   activeDayIndex.value = tripPlan.days.length - 1
+}
+
+function removeDay(index: number) {
+  if (tripPlan.days.length <= 1) return
+  tripPlan.days.splice(index, 1)
+  // Re-number dayIndex sequentially
+  tripPlan.days.forEach((day, i) => { day.dayIndex = i + 1 })
+  // Update endDate to match new last day
+  if (tripPlan.days.length > 0) {
+    tripPlan.endDate = tripPlan.days[tripPlan.days.length - 1].date
+  }
+  if (activeDayIndex.value >= tripPlan.days.length) {
+    activeDayIndex.value = tripPlan.days.length - 1
+  }
 }
 
 /* ───────────────────────────────────────────────────────
@@ -1259,7 +1361,10 @@ function goBackToList() {
 /* ───────────────────────────────────────────────────────
    Init
    ─────────────────────────────────────────────────────── */
-onMounted(fetchItineraries)
+onMounted(() => {
+  fetchItineraries()
+  loadPendingInvites()
+})
 </script>
 
 <style scoped>
@@ -1672,12 +1777,31 @@ onMounted(fetchItineraries)
   border-radius: 20px;
   padding: 6px 14px;
   cursor: pointer;
+  position: relative;
   white-space: nowrap;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.12s;
+  transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
 }
+.day-tab-close {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255,59,59,0.8);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  display: none;
+  z-index: 2;
+}
+.day-tab:hover .day-tab-close { display: block; }
+.day-tab-close:hover { background: #ff3b3b; transform: scale(1.2); }
 
 .day-tab:hover {
   background: rgba(255,255,255,0.06);
@@ -1920,6 +2044,24 @@ onMounted(fetchItineraries)
   transform: translate(-1px, -1px);
   box-shadow: 0 0 12px var(--glow-success), var(--neu-shadow);
 }
+.invite-btn {
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  background: linear-gradient(135deg, rgba(124,215,238,0.3), rgba(167,111,215,0.15));
+  border: 1px solid rgba(124,215,238,0.3); border-radius: 8px;
+  color: var(--text-regular); width: 38px; height: 36px;
+  cursor: pointer; transition: all 0.15s; display: flex;
+  align-items: center; justify-content: center;
+}
+.invite-btn:hover { transform: translate(-1px, -1px); box-shadow: var(--neu-shadow); }
+
+/* ── Invite Banner ── */
+.invite-banner {
+  padding: 14px 18px; margin-bottom: 16px;
+  border: 1px solid rgba(124,215,238,0.25);
+}
+.invite-banner-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.invite-banner-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; color: var(--text-regular); flex-wrap: wrap; }
+.invite-banner-name { flex: 1; min-width: 0; }
 
 /* ── Map Picker Dialog ──────────────────────────────── */
 .map-picker-body {
