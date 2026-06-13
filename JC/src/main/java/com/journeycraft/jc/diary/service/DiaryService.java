@@ -233,15 +233,10 @@ public class DiaryService {
     public PageResponse<DiaryResponse> searchDiaries(String keyword, int page, int size) {
         var pageable = PageRequest.of(page, size);
         var diaryPage = keyword != null && !keyword.isBlank()
-                ? diaryRepository.searchFulltext(escapeRegex(keyword), pageable)
+                ? diaryRepository.searchByFullText(keyword, pageable)
                 : diaryRepository.findByIsPublicTrue(pageable);
         var content = diaryPage.getContent().stream().map(DiaryResponse::from).toList();
         return PageResponse.of(content, diaryPage.getNumber(), diaryPage.getSize(), diaryPage.getTotalElements());
-    }
-
-    /** Escape regex special characters to prevent injection in MongoDB $regex queries. */
-    private String escapeRegex(String input) {
-        return input.replaceAll("[\\\\\\.\\*\\+\\?\\^\\(\\)\\[\\]\\{\\}\\|\\$]", "\\\\$0");
     }
 
     @Transactional(readOnly = true)

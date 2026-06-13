@@ -27,10 +27,11 @@ public interface DiaryRepository extends MongoRepository<Diary, String> {
 
     Page<Diary> findByDestinationContainingIgnoreCaseAndIsPublicTrue(String destination, Pageable pageable);
 
-    // Fulltext search across title, content, and destination
-    @org.springframework.data.mongodb.repository.Query("{ 'isPublic': true, $or: [ { 'title': { $regex: ?0, $options: 'i' } }, { 'content': { $regex: ?0, $options: 'i' } }, { 'destination': { $regex: ?0, $options: 'i' } } ] }")
+    // Fulltext search across title, content, contentHtml, and destination
+    @org.springframework.data.mongodb.repository.Query("{ 'isPublic': true, $or: [ { 'title': { $regex: ?0, $options: 'i' } }, { 'content': { $regex: ?0, $options: 'i' } }, { 'contentHtml': { $regex: ?0, $options: 'i' } }, { 'destination': { $regex: ?0, $options: 'i' } } ] }")
     Page<Diary> searchFulltext(String keyword, Pageable pageable);
 
-    @org.springframework.data.mongodb.repository.Query("{ $text: { $search: ?0 } }")
+    // MongoDB native $text search (word/stemmed, with ranking). Must keep text index in sync.
+    @org.springframework.data.mongodb.repository.Query("{ 'isPublic': true, $text: { $search: ?0 } }")
     Page<Diary> searchByFullText(String keyword, Pageable pageable);
 }

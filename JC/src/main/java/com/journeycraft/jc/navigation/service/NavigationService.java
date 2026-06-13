@@ -60,10 +60,11 @@ public class NavigationService {
         var targetNode = navigationGraph.findNearestNode(target.lat(), target.lng());
         if (targetNode == null) return emptyResponse();
 
-        // For DISTANCE strategy, transport doesn't matter
+        // For DISTANCE strategy, transport doesn't matter; for single transport, use it directly
         if (!"TIME".equalsIgnoreCase(strategy) || transports.size() == 1) {
-            double speed = transportSpeed(transports.get(0));
-            return buildSingleResponse(startNode, targetNode, strategy, speed);
+            String transport = transports.get(0);
+            double speed = transportSpeed(transport);
+            return buildSingleResponse(startNode, targetNode, strategy, speed, transport);
         }
 
         // For TIME strategy with multiple transports: try each, pick fastest
@@ -71,7 +72,7 @@ public class NavigationService {
         double bestTime = Double.MAX_VALUE;
         for (String t : transports) {
             double speed = transportSpeed(t);
-            var resp = buildSingleResponse(startNode, targetNode, strategy, speed);
+            var resp = buildSingleResponse(startNode, targetNode, strategy, speed, t);
             if (resp.totalTime() > 0 && resp.totalTime() < bestTime) {
                 bestTime = resp.totalTime();
                 best = resp;
@@ -81,15 +82,17 @@ public class NavigationService {
     }
 
     private RouteResponse buildSingleResponse(GraphNode startNode, GraphNode targetNode,
-                                               String strategy, double transportSpeed) {
+                                               String strategy, double transportSpeed,
+                                               String transport) {
         // Check if in same connected component (OSM graph has many disconnected sub-graphs)
         if (!navigationGraph.isSameComponent(startNode.getNodeId(), targetNode.getNodeId())) {
             log.warn("Start and target are in different connected components. Using route + walking bridge.");
-            return buildBridgedResponse(startNode, targetNode, strategy, transportSpeed);
+            return buildBridgedResponse(startNode, targetNode, strategy, transportSpeed, transport);
         }
 
         var result = DijkstraAlgorithm.findShortestPath(
-                navigationGraph, startNode.getNodeId(), targetNode.getNodeId(), strategy, transportSpeed);
+                navigationGraph, startNode.getNodeId(), targetNode.getNodeId(),
+                strategy, transportSpeed, transport);
         if (!result.isReachable()) return emptyResponse();
 
         return buildWaypointResponse(result, startNode, targetNode, strategy);
@@ -99,7 +102,8 @@ public class NavigationService {
      * Build a route between two disconnected components by finding a walking bridge.
      */
     private RouteResponse buildBridgedResponse(GraphNode startNode, GraphNode targetNode,
-                                                String strategy, double transportSpeed) {
+                                                String strategy, double transportSpeed,
+                                                String transport) {
         int startComp = startNode.getComponentId();
         int targetComp = targetNode.getComponentId();
 
@@ -132,10 +136,12 @@ public class NavigationService {
 
         // Route: start → bridgeFrom (within component)
         var leg1 = DijkstraAlgorithm.findShortestPath(
-                navigationGraph, startNode.getNodeId(), bestBridgeFrom.getNodeId(), strategy, transportSpeed);
+                navigationGraph, startNode.getNodeId(), bestBridgeFrom.getNodeId(),
+                strategy, transportSpeed, transport);
         // Route: bridgeTo → target (within target component)
         var leg2 = DijkstraAlgorithm.findShortestPath(
-                navigationGraph, bestBridgeTo.getNodeId(), targetNode.getNodeId(), strategy, transportSpeed);
+                navigationGraph, bestBridgeTo.getNodeId(), targetNode.getNodeId(),
+                strategy, transportSpeed, transport);
 
         List<RouteResponse.Waypoint> allWaypoints = new ArrayList<>();
         List<String> allNodeIds = new ArrayList<>();
@@ -170,8 +176,23 @@ public class NavigationService {
         }
 
         double totalDist = (leg1.isReachable() ? leg1.totalDistance() : 0) + bridgeDist + (leg2.isReachable() ? leg2.totalDistance() : 0);
+        List<RouteResponse.RouteSegment> allSegments = new ArrayList<>();
+        if (leg1.isReachable()) {
+            leg1.segments().forEach(ps -> allSegments.add(new RouteResponse.RouteSegment(
+                    ps.fromNodeId(), ps.toNodeId(), ps.distance(), ps.time(),
+                    ps.roadName(), ps.roadType(), ps.transport())));
+        }
+        allSegments.add(new RouteResponse.RouteSegment(
+                "bridge_" + startComp + "_" + targetComp, "bridge_end",
+                bridgeDist, bridgeDist / (transportSpeed * 1000 / 3600),
+                "步行过渡段", "walking_bridge", transport));
+        if (leg2.isReachable()) {
+            leg2.segments().forEach(ps -> allSegments.add(new RouteResponse.RouteSegment(
+                    ps.fromNodeId(), ps.toNodeId(), ps.distance(), ps.time(),
+                    ps.roadName(), ps.roadType(), ps.transport())));
+        }
         return new RouteResponse(allWaypoints, totalDist, totalDist / (transportSpeed * 1000 / 3600),
-                strategy, allNodeIds);
+                strategy, allNodeIds, allSegments);
     }
 
     private RouteResponse buildWaypointResponse(DijkstraAlgorithm.PathResult result,
@@ -184,8 +205,14 @@ public class NavigationService {
                     node.getNodeId(), node.getLatitude(), node.getLongitude(),
                     node.getName(), isTarget));
         }
+        var segments = result.segments().stream()
+                .map(ps -> new RouteResponse.RouteSegment(
+                        ps.fromNodeId(), ps.toNodeId(),
+                        ps.distance(), ps.time(),
+                        ps.roadName(), ps.roadType(), ps.transport()))
+                .toList();
         return new RouteResponse(waypoints, result.totalDistance(), result.totalTime(),
-                strategy, result.nodeIds());
+                strategy, result.nodeIds(), segments);
     }
 
     private RouteResponse planMultiTarget(GraphNode startNode, List<RouteRequest.TargetPoint> targets,
@@ -196,10 +223,11 @@ public class NavigationService {
             if (node != null) targetNodeIds.add(node.getNodeId());
         }
 
-        double speed = transportSpeed(transports.get(0));
+        String transport = transports.get(0);
+        double speed = transportSpeed(transport);
         var tspResult = TSPAlgorithm.solve(
                 navigationGraph, startNode.getNodeId(), targetNodeIds, strategy, speed,
-                finalDestinationIdx != null ? finalDestinationIdx : -1);
+                finalDestinationIdx != null ? finalDestinationIdx : -1, transport);
 
         // 将每段的完整OSM路网路径拼接到一起，形成连续的path
         List<RouteResponse.Waypoint> waypoints = new ArrayList<>();
@@ -244,12 +272,28 @@ public class NavigationService {
             }
         }
 
+        // Collect segments from the TSP segment paths
+        List<RouteResponse.RouteSegment> allSegments = new ArrayList<>();
+        for (int i = 0; i < orderedIds.size() - 1; i++) {
+            String fromId = orderedIds.get(i);
+            String toId = orderedIds.get(i + 1);
+            String key = fromId + "->" + toId;
+            var pathResult = segmentPaths.get(key);
+            if (pathResult != null && pathResult.isReachable()) {
+                for (var ps : pathResult.segments()) {
+                    allSegments.add(new RouteResponse.RouteSegment(
+                            ps.fromNodeId(), ps.toNodeId(), ps.distance(), ps.time(),
+                            ps.roadName(), ps.roadType(), ps.transport()));
+                }
+            }
+        }
+
         return new RouteResponse(waypoints, tspResult.totalDistance(),
                 tspResult.totalDistance() / (speed * 1000 / 3600),
-                strategy, allNodeIds);
+                strategy, allNodeIds, allSegments);
     }
 
     private RouteResponse emptyResponse() {
-        return new RouteResponse(List.of(), 0, 0, "DISTANCE", List.of());
+        return new RouteResponse(List.of(), 0, 0, "DISTANCE", List.of(), List.of());
     }
 }

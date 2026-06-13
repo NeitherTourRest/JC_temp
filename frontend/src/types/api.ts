@@ -9,8 +9,8 @@ export interface ShopResponse { id: number; name: string; address?: string; desc
 export interface FoodResponse { id: number; name: string; cuisine?: string; restaurantName?: string; spotId?: number; description?: string; priceRange?: string; latitude?: number; longitude?: number; popularity: number; avgRating: number; ratingCount?: number; imageUrl?: string; createdAt?: string; congestionLevel?: string }
 export interface DiaryResponse { id: string; userId: number; title: string; content: string; contentHtml?: string; destination?: string; spotId?: number; images?: string[]; videoMeta?: { url: string; duration?: number; thumbnail?: string }; musicUrl?: string; popularity: number; avgRating: number; ratingCount?: number; isPublic?: boolean; createdAt: string; updatedAt?: string }
 export interface RouteRequest { startLat: number; startLng: number; targets: { lat: number; lng: number; name?: string }[]; strategy?: string; transports?: string[]; finalDestinationIdx?: number }
-export interface RouteResponse { path: { nodeId: string; latitude: number; longitude: number; name?: string; isTarget: boolean }[]; totalDistance: number; totalTime: number; visitOrder: string[] }
-export interface SegmentInfo { fromNodeId: string; toNodeId: string; distance: number; time: number; roadName?: string; roadType?: string; transport?: string }
+export interface RouteResponse { path: { nodeId: string; latitude: number; longitude: number; name?: string; isTarget: boolean }[]; totalDistance: number; totalTime: number; visitOrder: string[]; segments?: RouteSegment[] }
+export interface RouteSegment { fromNodeId: string; toNodeId: string; distance: number; time: number; roadName?: string; roadType?: string; transport?: string }
 
 /* ── AI Chat ── */
 export interface ChatMessage { role: string; content: string; timestamp?: string }

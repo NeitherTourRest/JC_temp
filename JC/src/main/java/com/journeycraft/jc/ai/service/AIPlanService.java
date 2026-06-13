@@ -122,7 +122,7 @@ public class AIPlanService {
         StringBuilder userPrompt = new StringBuilder();
         userPrompt.append("请为我规划一个").append(request.days()).append("天的昌平区旅行计划。");
         userPrompt.append("\n我的兴趣偏好：").append(request.interests() != null ? request.interests() : "无特别偏好");
-        userPrompt.append("\n预算水平：").append(request.budget() != null ? request.budget() : "中等");
+        userPrompt.append("\n预算：").append(request.budget() != null && !request.budget().isBlank() ? request.budget() + "元" : "不限");
         userPrompt.append("\n出行方式：").append(request.transport() != null ? request.transport() : "未指定");
         if (request.additionalInfo() != null && !request.additionalInfo().isBlank()) {
             userPrompt.append("\n额外要求：").append(request.additionalInfo());

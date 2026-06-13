@@ -35,20 +35,23 @@ public class DijkstraAlgorithm {
      */
     public record PathSegment(
             String fromNodeId, String toNodeId,
-            double distance, double time, String roadName, String roadType
+            double distance, double time, String roadName, String roadType,
+            String transport
     ) {}
 
     /**
-     * Compute shortest path from start to end using the specified strategy.
+     * Compute shortest path from start to end using the specified strategy and transport mode.
      * @param graph The navigation graph
      * @param startId Start node ID
      * @param endId End node ID
      * @param strategy "DISTANCE" or "TIME"
      * @param transportSpeedKmh max speed in km/h for the transport (for TIME strategy)
+     * @param transport transport mode string ("WALK", "BIKE", "SHUTTLE") or null for no filtering
      * @return PathResult with path details
      */
     public static PathResult findShortestPath(Graph graph, String startId, String endId, 
-                                               String strategy, double transportSpeedKmh) {
+                                               String strategy, double transportSpeedKmh,
+                                               String transport) {
         GraphNode startNode = graph.getNode(startId);
         GraphNode endNode = graph.getNode(endId);
 
@@ -71,8 +74,9 @@ public class DijkstraAlgorithm {
             // Early termination: found the target
             if (current.equals(endNode)) break;
 
-            // Relax all outgoing edges
+            // Relax outgoing edges, filtering by transport mode
             for (GraphEdge edge : graph.getEdges(current.getNodeId())) {
+                if (transport != null && !edge.isAllowedForTransport(transport)) continue;
                 GraphNode neighbor = graph.getNode(edge.getToNodeId());
                 if (neighbor == null) continue;
 
@@ -87,12 +91,18 @@ public class DijkstraAlgorithm {
             }
         }
 
-        return buildPathResult(endNode, startNode, endNode, strategy, graph);
+        return buildPathResult(endNode, startNode, endNode, strategy, graph, transport);
     }
 
-    /** Backward-compatible overload without transport speed (uses default 40 km/h) */
+    /** Overload with transport mode but default null (no filtering). */
+    public static PathResult findShortestPath(Graph graph, String startId, String endId, 
+                                               String strategy, double transportSpeedKmh) {
+        return findShortestPath(graph, startId, endId, strategy, transportSpeedKmh, null);
+    }
+
+    /** Backward-compatible overload without transport speed (uses default 40 km/h). */
     public static PathResult findShortestPath(Graph graph, String startId, String endId, String strategy) {
-        return findShortestPath(graph, startId, endId, strategy, 40.0);
+        return findShortestPath(graph, startId, endId, strategy, 40.0, null);
     }
 
     /**
@@ -138,7 +148,13 @@ public class DijkstraAlgorithm {
         return distances;
     }
 
-    private static PathResult buildPathResult(GraphNode endNode, GraphNode startNode, GraphNode endNodeOrig, String strategy, Graph graph) {
+    private static PathResult buildPathResult(GraphNode endNode, GraphNode startNode, GraphNode endNodeOrig,
+                                               String strategy, Graph graph) {
+        return buildPathResult(endNode, startNode, endNodeOrig, strategy, graph, null);
+    }
+
+    private static PathResult buildPathResult(GraphNode endNode, GraphNode startNode, GraphNode endNodeOrig,
+                                               String strategy, Graph graph, String transport) {
         if (endNode.getPrevious() == null && !endNode.equals(startNode)) {
             return new PathResult(Collections.emptyList(), 0, 0, Collections.emptyList(), Collections.emptyList());
         }
@@ -155,7 +171,7 @@ public class DijkstraAlgorithm {
         Collections.reverse(path);
         Collections.reverse(nodeIds);
 
-        // Build segments with real road info
+        // Build segments with real road info and transport mode
         List<PathSegment> segments = new ArrayList<>();
         double totalDistance = 0;
         double totalTime = 0;
@@ -173,7 +189,8 @@ public class DijkstraAlgorithm {
                     roadType = edge.getRoadType() != null ? edge.getRoadType() : "";
                     double edgeDist = edge.getDistance();
                     totalDistance += edgeDist;
-                    segments.add(new PathSegment(from.getNodeId(), to.getNodeId(), edgeDist, 0, roadName, roadType));
+                    segments.add(new PathSegment(from.getNodeId(), to.getNodeId(), edgeDist, 0,
+                            roadName, roadType, transport));
                     break;
                 }
             }

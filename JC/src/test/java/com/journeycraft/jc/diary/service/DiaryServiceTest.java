@@ -224,24 +224,24 @@ class DiaryServiceTest {
     }
 
     @Test
-    @DisplayName("searchDiaries uses searchFulltext with regex-escaped keyword")
-    void searchDiariesUsesSearchFulltext() {
-        when(diaryRepository.searchFulltext(contains("Trip"), any(PageRequest.class)))
+    @DisplayName("searchDiaries uses searchByFullText with $text operator")
+    void searchDiariesUsesSearchByFullText() {
+        when(diaryRepository.searchByFullText(contains("Trip"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         var result = diaryService.searchDiaries("Trip", 0, 10);
         assertEquals(1, result.content().size());
-        verify(diaryRepository).searchFulltext(anyString(), any(PageRequest.class));
+        verify(diaryRepository).searchByFullText(anyString(), any(PageRequest.class));
     }
 
     @Test
-    @DisplayName("searchDiaries escapes regex special characters in keyword")
-    void searchDiariesEscapesRegex() {
-        when(diaryRepository.searchFulltext(eq("hello\\.world"), any(PageRequest.class)))
+    @DisplayName("searchDiaries passes keyword directly to $text (no regex escaping)")
+    void searchDiariesPassesKeyword() {
+        when(diaryRepository.searchByFullText(eq("hello.world"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         var result = diaryService.searchDiaries("hello.world", 0, 10);
         assertEquals(0, result.content().size());
-        verify(diaryRepository).searchFulltext(eq("hello\\.world"), any(PageRequest.class));
+        verify(diaryRepository).searchByFullText(eq("hello.world"), any(PageRequest.class));
     }
 }

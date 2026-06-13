@@ -67,7 +67,7 @@ class SearchServiceTest {
                 .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(eq("Beijing"), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
-        when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
+        when(diaryRepository.searchByFullText(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         var result = searchService.searchAll("Beijing", 5);
@@ -91,7 +91,7 @@ class SearchServiceTest {
                 .thenReturn(new PageImpl<>(List.of()));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
-        when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
+        when(diaryRepository.searchByFullText(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         var result = searchService.searchAll("nothing", 5);
@@ -103,7 +103,7 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("searchAll diary uses searchFulltext (not just title)")
+    @DisplayName("searchAll diary uses searchByFullText (not just title)")
     void searchAllDiaryUsesFulltext() {
         when(spotRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
@@ -111,13 +111,13 @@ class SearchServiceTest {
                 .thenReturn(new PageImpl<>(List.of()));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of()));
-        when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
+        when(diaryRepository.searchByFullText(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         var result = searchService.searchAll("Great Wall", 5);
 
         assertEquals(1, result.diaries().size());
-        verify(diaryRepository).searchFulltext(anyString(), any(PageRequest.class));
+        verify(diaryRepository).searchByFullText(anyString(), any(PageRequest.class));
     }
 
     @Test
@@ -129,7 +129,7 @@ class SearchServiceTest {
                 .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
-        when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
+        when(diaryRepository.searchByFullText(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         var result = searchService.searchAll("test", 5);
@@ -138,7 +138,7 @@ class SearchServiceTest {
         verify(spotRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
         verify(shopRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
         verify(foodRepository).searchByKeyword(anyString(), eq(PageRequest.of(0, 5)));
-        verify(diaryRepository).searchFulltext(anyString(), eq(PageRequest.of(0, 5)));
+        verify(diaryRepository).searchByFullText(anyString(), eq(PageRequest.of(0, 5)));
     }
 
     @Test
@@ -150,7 +150,7 @@ class SearchServiceTest {
                 .thenReturn(new PageImpl<>(List.of(shop)));
         when(foodRepository.searchByKeyword(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(food)));
-        when(diaryRepository.searchFulltext(anyString(), any(PageRequest.class)))
+        when(diaryRepository.searchByFullText(anyString(), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(diary)));
 
         // Should return partial results even when one module fails

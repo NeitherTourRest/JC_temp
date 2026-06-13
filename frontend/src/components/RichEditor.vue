@@ -68,6 +68,32 @@ import { fileApi } from '@/api/aiGenApi'
 const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
+/** Insert HTML at cursor position in the editor. Called by parent component. */
+function insertHTML(html: string) {
+  saveSelection()
+  restoreSelection()
+  const sel = window.getSelection()
+  if (sel && sel.rangeCount) {
+    const range = sel.getRangeAt(0)
+    range.deleteContents()
+    const el = document.createElement('div')
+    el.innerHTML = html
+    const fragment = document.createDocumentFragment()
+    let child: Node | null
+    while ((child = el.firstChild)) {
+      fragment.appendChild(child)
+    }
+    range.insertNode(fragment)
+    range.collapse(false)
+    sel.removeAllRanges()
+    sel.addRange(range)
+  }
+  editorRef.value?.focus()
+  emitContent()
+}
+
+defineExpose({ insertHTML })
+
 const editorRef = ref<HTMLDivElement>()
 const imageInputRef = ref<HTMLInputElement>()
 const videoInputRef = ref<HTMLInputElement>()

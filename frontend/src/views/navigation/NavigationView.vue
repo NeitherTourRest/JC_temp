@@ -124,13 +124,28 @@
           </div>
 
 
-          <!-- 路径总览 -->
-          <div class="segments" v-if="routeResult">
-            <span class="section-label">路径总览</span>
-            <div class="route-summary">
-              <span>{{ startPoint?.name || '起点' }}</span>
-              <span v-for="(wp,i) in waypoints" :key="i"> → {{ wp.name || '点'+(i+1) }}</span>
+          <!-- 路径分段展示（带交通方式） -->
+          <div class="segments" v-if="routeResult?.segments && routeResult.segments.length > 0">
+            <span class="section-label">路线详情</span>
+            <div class="segment-list">
+              <div v-for="(seg, i) in routeResult.segments" :key="i"
+                   :class="['segment-item', 'seg-' + (seg.transport || 'WALK').toLowerCase()]">
+                <div class="seg-header">
+                  <span class="seg-transport-icon">{{ transportIcon(seg.transport) }}</span>
+                  <span class="seg-road-name">{{ seg.roadName || seg.roadType || '道路' }}</span>
+                  <span class="seg-distance">{{ (seg.distance >= 1000 ? (seg.distance/1000).toFixed(1)+'km' : seg.distance.toFixed(0)+'m') }}</span>
+                </div>
+                <div class="seg-meta">
+                  <span class="seg-transport-label">{{ formatTransport(seg.transport) }}</span>
+                  <span class="seg-road-type" v-if="seg.roadType">{{ seg.roadType }}</span>
+                </div>
+              </div>
             </div>
+          </div>
+          <!-- 兼容旧版无分段的后端响应 -->
+          <div class="route-summary" v-else-if="routeResult">
+            <span>{{ startPoint?.name || '起点' }}</span>
+            <span v-for="(wp,i) in waypoints" :key="i"> → {{ wp.name || '点'+(i+1) }}</span>
           </div>
 
           <el-button class="save-btn" @click="saveItinerary" :loading="saving">保存行程</el-button>
@@ -225,7 +240,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { poiApi } from '@/api/poiApi'
 import type { POIResponse } from '@/api/poiApi'
-import type { RouteResponse } from '@/types/api'
+import type { RouteResponse, RouteSegment } from '@/types/api'
 
 declare global { interface Window { AMap: any } }
 
@@ -236,19 +251,8 @@ interface Waypoint {
   name: string
 }
 
-// ── 分段信息类型 ────────────────────────────────────────
-interface SegmentInfo {
-  fromNodeId: string
-  toNodeId: string
-  transport: string
-  distance: number
-  time: number
-}
-
-// ── 扩展 RouteResponse（兼容后端可能返回的分段数据）─────
-interface RouteResponseExt extends RouteResponse {
-  segments?: SegmentInfo[]
-}
+// ── 扩展 RouteResponse（保留兼容旧版可能无分段的后端）───
+interface RouteResponseExt extends RouteResponse {}
 
 // AMap 实例
 let map: any = null
@@ -557,7 +561,8 @@ function resolveNodeName(nodeId: string): string {
 
 function formatTime(seconds: number) { if (seconds < 60) return seconds + '秒'; const m = Math.floor(seconds / 60); const s = Math.round(seconds % 60); return m + '分' + s + '秒' }
 
-function formatTransport(t: string): string { const m: Record<string, string> = { WALK: '步行', BIKE: '骑行', SHUTTLE: '穿梭巴士' }; return m[t] || t }
+function formatTransport(t?: string): string { const m: Record<string, string> = { WALK: '步行', BIKE: '骑行', SHUTTLE: '穿梭巴士' }; return m[t || 'WALK'] || t || '步行' }
+function transportIcon(t?: string): string { const m: Record<string, string> = { WALK: '🚶', BIKE: '🚲', SHUTTLE: '🚌' }; return m[t || 'WALK'] || '🚶' }
 
 async function searchPOI() { if (!poiKeyword.value.trim()) { poiResults.value = []; return }; try { const r = await poiApi.search(poiKeyword.value.trim(), 15); poiResults.value = r.data.data } catch (e) { console.error('POI search error:', e); poiResults.value = [] } }
 
@@ -766,6 +771,7 @@ onBeforeUnmount(() => { if (map) map.destroy() })
 .order-item { display: flex; align-items: center; gap: 4px; }
 
 .segments { margin: 8px 0; }
+.segment-list { max-height: 240px; overflow-y: auto; }
 .segment-item {
   display: flex;
   flex-direction: column;
@@ -774,7 +780,35 @@ onBeforeUnmount(() => { if (map) map.destroy() })
   border-left: 3px solid #3ad29f;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 4px;
+  border-radius: 0 8px 8px 0;
+  transition: background 0.2s;
 }
+.segment-item:hover { background: rgba(255, 255, 255, 0.03); }
+.segment-item.seg-walk { border-left-color: #3ad29f; }
+.segment-item.seg-bike { border-left-color: #409eff; }
+.segment-item.seg-shuttle { border-left-color: #e6a23c; }
+.seg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.seg-transport-icon { font-size: 16px; }
+.seg-road-name {
+  flex: 1;
+  font-size: 13px;
+  color: #e8e8e8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.seg-distance { font-size: 12px; color: #3ad29f; font-weight: bold; white-space: nowrap; }
+.seg-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #999;
+}
+.seg-transport-label { text-transform: uppercase; letter-spacing: 0.5px; }
 .quick-links { display: flex; gap: 6px; margin-bottom: 12px; }
 .route-summary { font-size: 13px; color: #c8c8c8; padding: 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

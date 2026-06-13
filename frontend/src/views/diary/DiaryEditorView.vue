@@ -65,7 +65,7 @@
             </el-form-item>
 
             <el-form-item label="内容" prop="content">
-              <RichEditor v-model="form.contentHtml" :key="'editor-' + diaryId" />
+              <RichEditor ref="richEditorRef" v-model="form.contentHtml" :key="'editor-' + diaryId" />
             </el-form-item>
 
             <el-form-item label="封面图片">
@@ -97,7 +97,10 @@
                     <el-input v-model="aiImagePrompt" placeholder="描述你想要生成的图片，如：夕阳下的海滩" />
                     <div v-if="aiImageResult" class="ai-preview">
                       <el-image :src="aiImageResult" fit="cover" class="ai-thumb" />
-                      <el-button size="small" @click="addAiImage">添加到日记图片</el-button>
+                      <div class="ai-preview-actions">
+                        <el-button size="small" type="warning" @click="setAiImageAsCover">🖼 作为封面</el-button>
+                        <el-button size="small" @click="insertAiImageIntoContent">📝 插入到内容中</el-button>
+                      </div>
                     </div>
                   </div>
                   <div class="ai-tool">
@@ -107,8 +110,23 @@
                     </div>
                     <el-input v-model="aiMusicPrompt" placeholder="描述音乐风格，如：轻快的吉他曲" />
                     <div v-if="aiMusicResult" class="ai-preview">
-                      <audio :src="aiMusicResult" controls class="audio-player" />
-                      <el-button size="small" @click="addAiMusic">使用此音乐</el-button>
+                      <div class="music-player-card">
+                        <div class="music-player-left">
+                          <span class="music-eq">
+                            <span class="eq-bar" style="animation-delay:0s"></span>
+                            <span class="eq-bar" style="animation-delay:0.15s"></span>
+                            <span class="eq-bar" style="animation-delay:0.3s"></span>
+                            <span class="eq-bar" style="animation-delay:0.45s"></span>
+                          </span>
+                          <span class="music-label">AI 生成</span>
+                        </div>
+                        <div class="music-player-center">
+                          <audio :src="aiMusicResult" controls class="music-audio-el" />
+                        </div>
+                        <div class="music-player-right">
+                          <el-button size="small" type="success" round @click="addAiMusic">使用</el-button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div class="ai-tool">
@@ -126,11 +144,20 @@
                       </template>
                       <template v-else-if="aiVideoDownloadUrl">
                         <video :src="aiVideoDownloadUrl" controls class="video-player" />
-                        <el-button size="small" @click="addAiVideo">使用此视频</el-button>
+                        <div class="ai-preview-actions">
+                          <el-button size="small" @click="addAiVideo">添加到日记底部</el-button>
+                          <el-button size="small" @click="insertAiVideoIntoContent">📝 插入到内容中</el-button>
+                        </div>
                       </template>
                       <div v-else-if="aiVideoStatus === 'Fail'" class="ai-video-fail">
                         <span>❌ 视频生成失败</span>
                       </div>
+                    </div>
+                  </div>
+                  <div class="ai-tool">
+                    <div class="ai-tool-header">
+                      <span>✍️ AI 生成游记文本</span>
+                      <el-button size="small" type="primary" @click="openAiGenerateDialog">打开</el-button>
                     </div>
                   </div>
                 </div>
@@ -155,6 +182,66 @@
             </el-form-item>
           </el-form>
         </div>
+
+        <!-- AI 生成游记文本弹窗（在编辑器主体外部，居中于页面） -->
+        <el-dialog v-model="aiGenerateDialogVisible" class="ai-gen-dialog" title="✍️ AI 生成游记文本" width="620px" top="6vh" destroy-on-close>
+          <div class="ai-gen-body">
+            <div class="ai-gen-section">
+              <div class="ai-gen-section-title">📋 选择已有行程</div>
+              <el-select v-model="aiGenerateItineraryId" filterable remote clearable placeholder="搜索并选择行程…"
+                :remote-method="searchItineraries" :loading="itineraryLoading" class="ai-gen-select" @change="onItinerarySelected">
+                <el-option v-for="it in itineraryOptions" :key="it.id" :label="it.name" :value="it.id" />
+              </el-select>
+
+              <!-- 行程详情分页展示 -->
+              <div v-if="selectedItineraryDays.length > 0" class="itinerary-days-preview">
+                <div class="itinerary-days-header">
+                  <span>📅 行程预览（{{ selectedItineraryDays.length }} 天）</span>
+                </div>
+                <el-pagination
+                  v-if="selectedItineraryDays.length > 1"
+                  v-model:current-page="itineraryPreviewPage"
+                  :page-size="1"
+                  :total="selectedItineraryDays.length"
+                  layout="prev, pager, next"
+                  small
+                  class="itinerary-day-pager"
+                  :pager-count="5"
+                />
+                <div class="itinerary-day-card" v-if="currentPreviewDay">
+                  <div class="itinerary-day-title">Day {{ currentPreviewDay.dayIndex }} · {{ currentPreviewDay.date }}</div>
+                  <div class="itinerary-day-slots">
+                    <div v-for="(slot, si) in currentPreviewDay.slots" :key="slot.id" class="itinerary-slot-item">
+                      <span class="slot-time-badge">{{ slot.startTime }}–{{ slot.endTime }}</span>
+                      <span class="slot-type-icon">{{ slot.type === 'spot' ? '📍' : slot.type === 'food' ? '🍽️' : '📝' }}</span>
+                      <span class="slot-name">{{ slot.name || slot.spotName || slot.foodName || slot.text }}</span>
+                      <span v-if="slot.lat != null && slot.lng != null" class="slot-coord">{{ slot.lat.toFixed(4) }}, {{ slot.lng.toFixed(4) }}</span>
+                    </div>
+                    <div v-if="!currentPreviewDay.slots.length" class="itinerary-empty-slots">当天暂无活动</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ai-gen-divider">— 或 —</div>
+              <div class="ai-gen-section-title">✏️ 自定义提示词</div>
+              <el-input v-model="aiGeneratePrompt" type="textarea" :rows="4" class="ai-gen-textarea"
+                placeholder="描述你想写的游记内容，例如：&#10;描述一次在十三陵的旅行经历，感受历史文化……" />
+            </div>
+            <el-button type="primary" class="ai-gen-submit-btn" @click="generateDiaryText" :loading="aiGenerateLoading"
+              :disabled="!aiGeneratePrompt.trim() && !aiGenerateItineraryId">✨ 生成游记</el-button>
+          </div>
+          <div v-if="aiGeneratedText" class="ai-gen-result-card">
+            <div class="ai-gen-result-header">
+              <span>📝 生成结果</span>
+              <el-button size="small" text @click="aiGeneratedText = ''">重新生成</el-button>
+            </div>
+            <div class="ai-gen-result-text">{{ aiGeneratedText }}</div>
+            <div class="ai-gen-result-actions">
+              <el-button type="success" round @click="insertGeneratedText">📝 插入到内容</el-button>
+              <el-button round @click="aiGenerateDialogVisible = false">关闭</el-button>
+            </div>
+          </div>
+        </el-dialog>
 
         <!-- 右侧：预览面板 -->
         <div class="editor-preview-panel" v-show="isMobile ? previewMode : true">
@@ -233,7 +320,9 @@ import RichEditor from '@/components/RichEditor.vue'
 import { diaryApi } from '@/api/diaryApi'
 import { spotApi } from '@/api/spotApi'
 import { aiGenApi, fileApi } from '@/api/aiGenApi'
-import type { SpotResponse } from '@/types/api'
+import { aiApi } from '@/api/aiApi'
+import { itineraryApi } from '@/api/itineraryApi'
+import type { SpotResponse, TimelineDay, TimeSlot, TimelinePlan } from '@/types/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -339,6 +428,9 @@ async function onCoverSelected(e: Event) {
 }
 
 
+// ── RichEditor ref（用于插入内容） ──
+const richEditorRef = ref<InstanceType<typeof RichEditor>>()
+
 // ── AI Image generation ──
 const aiImagePrompt = ref('')
 const aiImageLoading = ref(false)
@@ -356,11 +448,19 @@ async function genImage() {
   finally { aiImageLoading.value = false }
 }
 
-function addAiImage() {
-  if (aiImageResult.value && !form.value.images.includes(aiImageResult.value)) {
-    form.value.images.push(aiImageResult.value)
-    ElMessage.success('已添加到日记')
-  }
+function setAiImageAsCover() {
+  if (!aiImageResult.value) return
+  // 把当前封面移到 images 数组后面，新图片做封面
+  const existing = form.value.images.filter(u => u !== aiImageResult.value)
+  form.value.images = [aiImageResult.value, ...existing]
+  ElMessage.success('已设为封面')
+}
+
+function insertAiImageIntoContent() {
+  if (!aiImageResult.value || !richEditorRef.value) return
+  const html = `<img src="${aiImageResult.value}" alt="AI生成图片" style="max-width:100%;border-radius:8px;margin:8px 0;display:block" />`
+  richEditorRef.value.insertHTML(html)
+  ElMessage.success('已插入到内容中')
 }
 
 // ── AI Music generation ──
@@ -430,8 +530,94 @@ function addAiVideo() {
   if (aiVideoDownloadUrl.value) {
     form.value.videoUrl = aiVideoDownloadUrl.value
     form.value.videoMeta = { url: aiVideoDownloadUrl.value, thumbnail: '' }
-    ElMessage.success('已添加到日记')
+    ElMessage.success('已添加到日记底部')
   }
+}
+
+function insertAiVideoIntoContent() {
+  if (!aiVideoDownloadUrl.value || !richEditorRef.value) return
+  const html = `<video src="${aiVideoDownloadUrl.value}" controls style="max-width:100%;max-height:400px;border-radius:8px;margin:8px 0;display:block" />`
+  richEditorRef.value.insertHTML(html)
+  ElMessage.success('已插入到内容中')
+}
+
+// ── AI 生成游记文本 ──
+const aiGenerateDialogVisible = ref(false)
+const aiGeneratePrompt = ref('')
+const aiGenerateItineraryId = ref<number | null>(null)
+const aiGenerateLoading = ref(false)
+const aiGeneratedText = ref('')
+const itineraryLoading = ref(false)
+const itineraryOptions = ref<{ id: number; name: string }[]>([])
+
+const selectedItineraryDays = ref<TimelineDay[]>([])
+const itineraryPreviewPage = ref(1)
+const currentPreviewDay = computed(() => {
+  const idx = itineraryPreviewPage.value - 1
+  return selectedItineraryDays.value[idx] || null
+})
+
+async function onItinerarySelected(id: number) {
+  selectedItineraryDays.value = []
+  itineraryPreviewPage.value = 1
+  if (!id) return
+  try {
+    const res = await itineraryApi.get(id)
+    const data = res.data.data
+    if (data.routeData) {
+      const parsed = JSON.parse(data.routeData) as TimelinePlan
+      if (parsed.days) {
+        selectedItineraryDays.value = parsed.days
+      }
+    }
+  } catch {
+    selectedItineraryDays.value = []
+  }
+}
+
+function openAiGenerateDialog() {
+  aiGenerateDialogVisible.value = true
+  aiGeneratePrompt.value = ''
+  aiGenerateItineraryId.value = null
+  aiGeneratedText.value = ''
+  selectedItineraryDays.value = []
+  itineraryPreviewPage.value = 1
+}
+
+async function searchItineraries(query: string) {
+  if (!query || query.length < 1) { itineraryOptions.value = []; return }
+  itineraryLoading.value = true
+  try {
+    const res = await itineraryApi.list({ keyword: query, size: 20 })
+    itineraryOptions.value = (res.data.data.content || []).map((it: any) => ({ id: it.id, name: it.name }))
+  } catch { itineraryOptions.value = [] }
+  finally { itineraryLoading.value = false }
+}
+
+async function generateDiaryText() {
+  if (!aiGeneratePrompt.value.trim() && !aiGenerateItineraryId.value) {
+    ElMessage.warning('请填写提示词或选择行程')
+    return
+  }
+  aiGenerateLoading.value = true
+  aiGeneratedText.value = ''
+  try {
+    const res = await aiApi.generateDiary({
+      prompt: aiGeneratePrompt.value,
+      itineraryId: aiGenerateItineraryId.value || undefined,
+    })
+    aiGeneratedText.value = res.data.data.text
+  } catch {
+    ElMessage.error('生成失败，请检查AI配置')
+  } finally { aiGenerateLoading.value = false }
+}
+
+function insertGeneratedText() {
+  if (!aiGeneratedText.value || !richEditorRef.value) return
+  const html = aiGeneratedText.value.replace(/\n/g, '<br>')
+  richEditorRef.value.insertHTML(`<p>${html}</p>`)
+  ElMessage.success('已插入到内容中')
+  aiGenerateDialogVisible.value = false
 }
 
 // ── Preview ──
@@ -802,38 +988,242 @@ watch(() => route.params.id, () => {
   border: 1px solid var(--frosted-border);
   border-radius: var(--radius-card);
   background: var(--frosted-bg);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   width: 100%;
   overflow: hidden;
+  box-shadow: var(--neu-shadow-sm);
 }
 .ai-tools-header {
-  padding: 10px 14px;
-  font-family: inherit;
+  padding: 10px 16px;
   font-weight: 700;
   font-size: 14px;
   background: rgba(167,111,215,0.15);
   border-bottom: 1px solid var(--frosted-border);
   color: var(--pop-yellow);
   letter-spacing: 1px;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer;
 }
-.ai-tools-body { padding: 14px; display: flex; flex-direction: column; gap: 16px; }
-.ai-tool { display: flex; flex-direction: column; gap: 6px; }
+.ai-tools-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+.ai-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
 .ai-tool-header { display: flex; justify-content: space-between; align-items: center; }
 .ai-tool-header span { font-weight: 700; font-size: 13px; color: var(--text-heading); }
-.ai-preview { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-.ai-thumb { width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--frosted-border); border-radius: 6px; }
-.ai-video-pending, .ai-video-fail { padding: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-body); }
+.ai-tool .el-button, .ai-tool .el-input, .music-player-card .el-button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+.ai-preview { margin-top: 8px; }
+.ai-thumb {
+  width: 80px; height: 80px; object-fit: cover;
+  border: 1px solid var(--frosted-border);
+  border-radius: 10px;
+  box-shadow: var(--neu-shadow-sm);
+  transition: transform 0.2s;
+}
+.ai-thumb:hover { transform: scale(1.05); }
+.ai-video-pending, .ai-video-fail {
+  padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text-body);
+  background: rgba(0,0,0,0.15); border-radius: 8px;
+}
+
+/* ── Music player card ── */
+.music-player-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(58,210,159,0.08) 0%, rgba(124,215,238,0.08) 100%);
+  border: 1px solid rgba(58,210,159,0.2);
+  border-radius: 12px;
+  box-shadow: var(--neu-inset-sm), var(--neu-shadow-sm);
+  width: 100%;
+}
+.music-player-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.music-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+}
+.eq-bar {
+  display: block;
+  width: 3px;
+  background: var(--pop-green);
+  border-radius: 2px;
+  animation: eqPulse 0.8s ease-in-out infinite alternate;
+}
+.eq-bar:nth-child(1) { height: 10px; }
+.eq-bar:nth-child(2) { height: 16px; }
+.eq-bar:nth-child(3) { height: 12px; }
+.eq-bar:nth-child(4) { height: 18px; }
+@keyframes eqPulse {
+  0% { opacity: 0.4; transform: scaleY(0.6); }
+  100% { opacity: 1; transform: scaleY(1); }
+}
+.music-label { font-size: 11px; color: var(--pop-green); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.music-player-center { flex: 1; min-width: 0; }
+.music-audio-el {
+  width: 100%; height: 32px;
+  border-radius: 6px;
+  filter: hue-rotate(140deg) saturate(0.8);
+}
+.music-player-right { flex-shrink: 0; }
 
 /* ── Video upload ── */
 .video-preview { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.video-player { max-width: 100%; max-height: 300px; border: 1px solid var(--frosted-border); border-radius: 8px; }
+.video-player {
+  max-width: 100%; max-height: 300px;
+  border: 1px solid var(--frosted-border);
+  border-radius: 10px;
+  box-shadow: var(--neu-shadow-sm);
+}
 .video-remove-btn { align-self: flex-start; }
 .upload-trigger--wide .upload-placeholder { width: 100%; min-width: 200px; }
 .upload-trigger--wide.is-uploading { opacity: 0.6; pointer-events: none; }
 .uploading-text { color: var(--pop-blue); font-weight: 600; }
 
-/* ── Audio player ── */
-.audio-player { width: 100%; max-width: 300px; }
+/* ── AI preview action buttons ── */
+.ai-preview-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; width: 100%; }
+.ai-preview-actions .el-button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+
+/* ── AI Generate diary text dialog ── */
+.ai-gen-dialog :deep(.el-dialog) {
+  background: rgba(35,34,34,0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--frosted-border);
+  border-radius: var(--radius-dialog) !important;
+  box-shadow: var(--neu-shadow);
+}
+.ai-gen-dialog :deep(.el-dialog__title) {
+  color: var(--pop-yellow);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.ai-gen-dialog :deep(.el-dialog__headerbtn) {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+.ai-gen-body { padding: 4px 0; }
+.ai-gen-section { margin-bottom: 16px; }
+.ai-gen-section-title {
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 8px; letter-spacing: 0.5px;
+}
+.ai-gen-select { width: 100%; }
+.ai-gen-divider {
+  text-align: center; font-size: 12px; color: var(--text-muted);
+  margin: 14px 0; letter-spacing: 2px;
+  position: relative;
+}
+.ai-gen-divider::before,
+.ai-gen-divider::after {
+  content: ''; position: absolute; top: 50%;
+  width: 35%; height: 1px; background: var(--frosted-border);
+}
+.ai-gen-divider::before { left: 0; }
+.ai-gen-divider::after { right: 0; }
+.ai-gen-textarea :deep(textarea) {
+  background: rgba(0,0,0,0.2) !important;
+  border: 1px solid var(--frosted-border) !important;
+  border-radius: 10px !important;
+  color: var(--text-regular) !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  resize: vertical !important;
+}
+.ai-gen-submit-btn {
+  width: 100%;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+  height: 42px !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow: var(--neu-shadow-sm);
+}
+.ai-gen-result-card {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(58,210,159,0.2);
+  border-radius: 14px;
+  box-shadow: var(--neu-inset-sm);
+}
+.ai-gen-result-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.ai-gen-result-header span { font-size: 14px; font-weight: 700; color: var(--pop-green); }
+.ai-gen-result-text {
+  font-size: 14px; line-height: 1.8; color: var(--text-regular);
+  white-space: pre-wrap; max-height: 280px; overflow-y: auto;
+  padding: 12px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+  border: 1px solid var(--frosted-border);
+}
+.ai-gen-result-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+
+/* ── Itinerary days preview inside AI gen dialog ── */
+.itinerary-days-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(58,210,159,0.15);
+  border-radius: 12px;
+}
+.itinerary-days-header {
+  font-size: 13px; font-weight: 600; color: var(--pop-green);
+  margin-bottom: 8px;
+}
+.itinerary-day-pager {
+  margin-bottom: 10px;
+  justify-content: center;
+}
+.itinerary-day-pager :deep(.el-pager li) {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+.itinerary-day-card {
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 10px;
+}
+.itinerary-day-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--frosted-border);
+}
+.itinerary-day-slots { display: flex; flex-direction: column; gap: 4px; }
+.itinerary-slot-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.itinerary-slot-item:hover { background: rgba(255,255,255,0.06); }
+.slot-time-badge {
+  font-size: 11px; color: var(--pop-green); font-weight: 600;
+  white-space: nowrap; flex-shrink: 0;
+}
+.slot-type-icon { flex-shrink: 0; font-size: 13px; }
+.slot-name {
+  flex: 1; color: var(--text-regular); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.slot-coord { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+.itinerary-empty-slots { text-align: center; padding: 16px; color: var(--text-muted); font-size: 12px; }
 
 /* 空预览 */
 .preview-empty {

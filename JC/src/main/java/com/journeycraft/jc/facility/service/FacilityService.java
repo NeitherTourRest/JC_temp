@@ -30,7 +30,7 @@ public class FacilityService {
             if (userNode != null && facNode != null) {
                 // Use actual path distance for sorting
                 var pathResult = DijkstraAlgorithm.findShortestPath(
-                        navigationGraph, userNode.getNodeId(), facNode.getNodeId(), "DISTANCE");
+                        navigationGraph, userNode.getNodeId(), facNode.getNodeId(), "DISTANCE", 40.0, "WALK");
                 if (pathResult.isReachable()) {
                     dist = pathResult.totalDistance();
                 } else {

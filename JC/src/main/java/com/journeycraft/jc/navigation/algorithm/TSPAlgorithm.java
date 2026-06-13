@@ -37,10 +37,12 @@ public class TSPAlgorithm {
      * @param transportSpeedKmh max transport speed in km/h
      * @param finalDestinationIdx index within targetNodeIds that is the final stop;
      *                            -1 or >= targetNodeIds.size() means return to origin
+     * @param transport transport mode string ("WALK", "BIKE", "SHUTTLE") or null for no filtering
      * @return TSPResult with optimal ordering
      */
     public static TSPResult solve(Graph graph, String originNodeId, List<String> targetNodeIds,
-                                   String strategy, double transportSpeedKmh, int finalDestinationIdx) {
+                                   String strategy, double transportSpeedKmh, int finalDestinationIdx,
+                                   String transport) {
         if (targetNodeIds == null || targetNodeIds.isEmpty()) {
             var originNode = graph.getNode(originNodeId);
             return new TSPResult(
@@ -66,7 +68,8 @@ public class TSPAlgorithm {
                     distMatrix[i][j] = 0;
                     continue;
                 }
-                var result = DijkstraAlgorithm.findShortestPath(graph, nodeList.get(i), nodeList.get(j), strategy, transportSpeedKmh);
+                var result = DijkstraAlgorithm.findShortestPath(graph, nodeList.get(i), nodeList.get(j),
+                        strategy, transportSpeedKmh, transport);
                 if (result.isReachable()) {
                     double weight = "TIME".equalsIgnoreCase(strategy) ? result.totalTime() : result.totalDistance();
                     distMatrix[i][j] = weight;
@@ -117,12 +120,18 @@ public class TSPAlgorithm {
     /** Backward-compatible: always return to origin */
     public static TSPResult solve(Graph graph, String originNodeId, List<String> targetNodeIds,
                                    String strategy, double transportSpeedKmh) {
-        return solve(graph, originNodeId, targetNodeIds, strategy, transportSpeedKmh, -1);
+        return solve(graph, originNodeId, targetNodeIds, strategy, transportSpeedKmh, -1, null);
+    }
+
+    /** Backward-compatible overload with finalDestinationIdx but default transport (null, no filtering). */
+    public static TSPResult solve(Graph graph, String originNodeId, List<String> targetNodeIds,
+                                   String strategy, double transportSpeedKmh, int finalDestinationIdx) {
+        return solve(graph, originNodeId, targetNodeIds, strategy, transportSpeedKmh, finalDestinationIdx, null);
     }
 
     /** Backward-compatible overload without transport speed */
     public static TSPResult solve(Graph graph, String originNodeId, List<String> targetNodeIds, String strategy) {
-        return solve(graph, originNodeId, targetNodeIds, strategy, 40.0, -1);
+        return solve(graph, originNodeId, targetNodeIds, strategy, 40.0, -1, null);
     }
 
     /**

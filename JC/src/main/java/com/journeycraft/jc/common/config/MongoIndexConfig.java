@@ -21,6 +21,7 @@ public class MongoIndexConfig {
             TextIndexDefinition textIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
                     .onField("title")
                     .onField("content")
+                    .onField("contentHtml")
                     .onField("destination")
                     .build();
             mongoTemplate.indexOps(Diary.class).ensureIndex(textIndex);

@@ -48,11 +48,10 @@ public class SearchService {
                     .stream().map(FoodResponse::from).toList();
         } catch (Exception ignored) {}
 
-        // Search diaries by title/content/destination (MongoDB $regex)
+        // Search diaries by full-text (MongoDB $text index — title, content, contentHtml, destination)
         List<DiaryResponse> diaries = List.of();
         try {
-            String escaped = keyword.replaceAll("[\\\\\\.\\*\\+\\?\\^\\(\\)\\[\\]\\{\\}\\|\\$]", "\\\\$0");
-            diaries = diaryRepository.searchFulltext(escaped, pageable)
+            diaries = diaryRepository.searchByFullText(keyword, pageable)
                     .stream().map(DiaryResponse::from).toList();
         } catch (Exception ignored) {}
 

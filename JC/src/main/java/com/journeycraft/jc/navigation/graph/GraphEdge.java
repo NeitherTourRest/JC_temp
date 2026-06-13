@@ -90,6 +90,26 @@ public class GraphEdge {
     }
 
     /**
+     * Check whether this edge is allowed for a given transport mode.
+     * Motorways and trunk roads are forbidden for WALK and BIKE.
+     * Steps are forbidden for BIKE.
+     * Foot-only paths are forbidden for SHUTTLE/ELECTRIC.
+     */
+    public boolean isAllowedForTransport(String transport) {
+        if (transport == null) return true;
+        String type = roadType != null ? roadType.toLowerCase() : "";
+        return switch (transport.toUpperCase()) {
+            case "WALK" -> !type.equals("motorway") && !type.equals("trunk");
+            case "BIKE" -> !type.equals("motorway") && !type.equals("trunk") && !type.equals("steps");
+            case "SHUTTLE", "ELECTRIC" ->
+                    !type.equals("footway") && !type.equals("path")
+                    && !type.equals("pedestrian") && !type.equals("steps")
+                    && !type.equals("cycleway");
+            default -> true;
+        };
+    }
+
+    /**
      * Get the weight for pathfinding with transport-aware time calculation.
      */
     public double getWeight(String strategy, double transportSpeedKmh) {

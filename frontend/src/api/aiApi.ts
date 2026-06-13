@@ -16,4 +16,6 @@ export const aiApi = {
     apiClient.post<ApiResponse<BudgetResult>>('/ai/budget', data),
   summary: (diaryId: string) =>
     apiClient.get<ApiResponse<{ summary: string; error?: string }>>(`/ai/summary/diary/${diaryId}`),
+  generateDiary: (data: { prompt?: string; itineraryId?: number }) =>
+    apiClient.post<ApiResponse<{ text: string }>>('/ai/generate/diary', data),
 }

@@ -222,6 +222,11 @@
           <div class="timeline-header">
             <h3>Day {{ activeDay.dayIndex }} · {{ activeDay.date }}</h3>
             <div class="timeline-header-actions">
+              <el-select v-model="routeTransport" size="small" style="width:100px" placeholder="交通方式">
+                <el-option label="🚶 步行" value="WALK" />
+                <el-option label="🚲 骑行" value="BIKE" />
+                <el-option label="🚌 巴士" value="SHUTTLE" />
+              </el-select>
               <el-button size="small" type="success" @click="routeDayPlan" :loading="routeLoading" :disabled="!activeDay || !activeDay.slots.length">
                 🚗 Route
               </el-button>
@@ -346,9 +351,9 @@
               <el-form-item label="Days"><el-input-number v-model="planForm.days" :min="1" :max="14" style="width:100%" /></el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="Budget"><el-select v-model="planForm.budget" style="width:100%">
-                <el-option label="Low" value="低" /><el-option label="Medium" value="中" /><el-option label="High" value="高" />
-              </el-select></el-form-item>
+              <el-form-item label="Budget (¥)"><el-input-number v-model="planForm.budget" :min="0" :step="500" :max="100000" style="width:100%" placeholder="预算金额" />
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">0 = 不限</div>
+              </el-form-item>
             </el-col>
           </el-row>
           <el-form-item label="Interests"><el-input v-model="planForm.interests" placeholder="e.g. nature, history, food" /></el-form-item>
@@ -356,6 +361,37 @@
             <el-option label="Walk" value="步行" /><el-option label="Bike" value="骑行" /><el-option label="Drive" value="驾车" />
           </el-select></el-form-item>
           <el-form-item label="Extra Requirements"><el-input v-model="planForm.additionalInfo" type="textarea" :rows="2" /></el-form-item>
+          <el-collapse class="diary-collapse" v-model="diaryCollapseOpen">
+            <el-collapse-item title="📝 根据游记生成计划" name="diary">
+              <div class="diary-inner">
+                <div class="diary-toolbar">
+                  <el-radio-group v-model="diaryPickerTab" size="small">
+                    <el-radio value="public">公开游记</el-radio>
+                    <el-radio value="mine">我的游记</el-radio>
+                  </el-radio-group>
+                  <el-input v-model="diarySearchKeyword" placeholder="搜索标题…" size="small" clearable
+                    @keyup.enter="loadDiaries" style="width:200px" />
+                </div>
+                <div v-if="diaries.length === 0 && !diaryLoading" class="empty-state" style="padding:24px 0">点击上方 » 加载游记</div>
+                <div v-if="diaryLoading" class="empty-state" style="padding:24px 0">加载中...</div>
+                <div class="diary-list" v-if="diaries.length > 0">
+                  <div v-for="d in diaries" :key="d.id" class="diary-card" @click="selectDiary(d)">
+                    <div class="diary-card-title">{{ d.title }}</div>
+                    <div class="diary-card-preview">{{ (d.content || '').substring(0, 100) }}</div>
+                    <div class="diary-card-meta">
+                      <span v-if="d.destination">📍 {{ d.destination }}</span>
+                      <span>⭐ {{ d.avgRating.toFixed(1) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="diary-pagination" v-if="diaryTotalElements > diaryPageSize">
+                  <el-pagination v-model:current-page="diaryPage" :page-size="diaryPageSize"
+                    :total="diaryTotalElements" layout="prev, pager, next" small
+                    @current-change="handleDiaryPageChange" />
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
           <el-button type="primary" @click="generatePlan" :loading="planLoading" style="width:100%">Generate Plan</el-button>
         </el-form>
         <div v-if="planResult && !planLoading" class="dialog-result">
@@ -526,12 +562,14 @@
           <el-button type="primary" @click="saveSlotEdit">Save</el-button>
         </template>
       </el-dialog>
+
+      <!-- (Diary picker merged into DIALOG 4 above) -->
     </div>
   </DefaultLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { itineraryApi, type ItineraryResponse } from '@/api/itineraryApi'
 import type { TimeSlot, TimelineDay, TimelinePlan, RouteRequest, PlanDaySchedule, PlanActivityItem } from '@/types/api'
@@ -539,6 +577,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { spotApi } from '@/api/spotApi'
 import { aiApi } from '@/api/aiApi'
+import { diaryApi } from '@/api/diaryApi'
 import { navigationApi } from '@/api/navigationApi'
 import InviteDialog from '@/components/InviteDialog.vue'
 import { useAuthStore } from '@/stores/authStore'
@@ -607,6 +646,7 @@ const routeSegments = ref<{ from: string; to: string; distance: number; time: nu
 const routeTotalDist = ref(0)
 const routeTotalTime = ref(0)
 const routePoints = ref<{ name: string; lat: number; lng: number }[]>([])
+const routeTransport = ref('WALK')
 const appliedBudget = ref<any>(null)
 
 /* ── Dialog 1: Map Picker state ──────────────────────── */
@@ -635,7 +675,7 @@ const aiChatRef = ref<HTMLElement>()
 
 /* ── Dialog 4: AI Plan state ──────────────────────────── */
 const aiPlanDialogVisible = ref(false)
-const planForm = ref({ days: 2, interests: '自然风光,历史古迹', budget: '中', transport: '步行', additionalInfo: '' })
+const planForm = ref({ days: 2, interests: '自然风光,历史古迹', budget: 0, transport: '步行', additionalInfo: '' })
 const planResult = ref<any>(null)
 const planLoading = ref(false)
 
@@ -644,6 +684,18 @@ const budgetDialogVisible = ref(false)
 const budgetForm = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' })
 const budgetResult = ref<any>(null)
 const budgetLoading = ref(false)
+
+/* ── Diary picker (inside Plan dialog) state ──────────── */
+const diaryCollapseOpen = ref<string[]>([])
+const diaryPickerTab = ref('public')
+const diarySearchKeyword = ref('')
+const diaries = ref<any[]>([])
+const diaryLoading = ref(false)
+const diaryPage = ref(1)
+const diaryPageSize = 10
+const diaryTotalElements = ref(0)
+watch(diaryPickerTab, () => { diaryPage.value = 1; diarySearchKeyword.value = ''; diaries.value = []; loadDiaries() })
+watch(diarySearchKeyword, (v) => { if (!v) { diaryPage.value = 1; diaries.value = []; } })
 
 /* ───────────────────────────────────────────────────────
    List mode: data fetching
@@ -941,12 +993,9 @@ function regenerateDays() {
 function addDay() {
   const lastDayIdx = tripPlan.days.length
   const isFirstDay = tripPlan.days.length === 0
-  // Compute base date
   let baseDate: Date
   if (isFirstDay) {
-    baseDate = tripPlan.startDate
-      ? new Date(tripPlan.startDate)
-      : new Date()
+    baseDate = tripPlan.startDate ? new Date(tripPlan.startDate) : new Date()
   } else {
     baseDate = new Date(tripPlan.days[tripPlan.days.length - 1].date)
     baseDate.setDate(baseDate.getDate() + 1)
@@ -956,29 +1005,21 @@ function addDay() {
   const d = String(baseDate.getDate()).padStart(2, '0')
   const dateStr = `${y}-${m}-${d}`
 
-  if (isFirstDay) {
-    // First day: set startDate to match
-    tripPlan.startDate = dateStr
-  }
-  tripPlan.days.push({
-    dayIndex: lastDayIdx + 1,
-    date: dateStr,
-    slots: []
-  })
-  // Update endDate to match new last day
-  tripPlan.endDate = dateStr
+  if (isFirstDay) tripPlan.startDate = dateStr
+  tripPlan.days.push({ dayIndex: lastDayIdx + 1, date: dateStr, slots: [] })
+  tripPlan.endDate = dateStr  // 同步结束日期
   activeDayIndex.value = tripPlan.days.length - 1
 }
 
 function removeDay(index: number) {
   if (tripPlan.days.length <= 1) return
   tripPlan.days.splice(index, 1)
-  // Re-number dayIndex sequentially
   tripPlan.days.forEach((day, i) => { day.dayIndex = i + 1 })
-  // Update endDate to match new last day
-  if (tripPlan.days.length > 0) {
-    tripPlan.endDate = tripPlan.days[tripPlan.days.length - 1].date
-  }
+  // 同步起止日期
+  const firstDate = tripPlan.days[0]?.date
+  const lastDate = tripPlan.days[tripPlan.days.length - 1]?.date
+  if (firstDate) tripPlan.startDate = firstDate
+  if (lastDate) tripPlan.endDate = lastDate
   if (activeDayIndex.value >= tripPlan.days.length) {
     activeDayIndex.value = tripPlan.days.length - 1
   }
@@ -1218,6 +1259,11 @@ function scrollAiDown() {
 function openAiPlanDialog() {
   aiPlanDialogVisible.value = true
   planResult.value = null
+  diaryCollapseOpen.value = []
+  diaries.value = []
+  diarySearchKeyword.value = ''
+  diaryPage.value = 1
+  diaryTotalElements.value = 0
 }
 function openBudgetDialog() {
   budgetDialogVisible.value = true
@@ -1241,12 +1287,60 @@ async function generatePlan() {
   planLoading.value = true
   planResult.value = null
   try {
-    const res = await aiApi.plan(planForm.value)
+    // 将数字预算转为字符串传给后端（0 表示不限预算）
+    const payload = { ...planForm.value, budget: planForm.value.budget > 0 ? String(planForm.value.budget) : '不限' }
+    const res = await aiApi.plan(payload)
     planResult.value = res.data.data
   } catch {
     planResult.value = { title: '请求失败', days: [], tips: ['请检查AI配置'], estimatedCost: '' }
   } finally { planLoading.value = false }
 }
+async function loadDiaries() {
+  diaryLoading.value = true
+  try {
+    const pageZeroIdx = diaryPage.value - 1  // backend is 0-indexed
+    let res: any
+    if (diaryPickerTab.value === 'mine') {
+      res = await diaryApi.mine({ page: pageZeroIdx, size: diaryPageSize })
+    } else if (diarySearchKeyword.value.trim()) {
+      res = await diaryApi.search(diarySearchKeyword.value.trim(), pageZeroIdx, diaryPageSize)
+    } else {
+      res = await diaryApi.list({ page: pageZeroIdx, size: diaryPageSize })
+    }
+    diaries.value = res.data.data.content || []
+    diaryTotalElements.value = res.data.data.totalElements || 0
+  } catch { diaries.value = [] }
+  finally { diaryLoading.value = false }
+}
+function handleDiaryPageChange(page: number) {
+  diaryPage.value = page
+  loadDiaries()
+}
+async function selectDiary(diary: any) {
+  planLoading.value = true
+  planResult.value = null
+  diaryCollapseOpen.value = []
+  try {
+    // Fetch full diary content
+    const detailRes = await diaryApi.get(diary.id)
+    const full = detailRes.data.data
+    const diaryContent = full.contentHtml || full.content || ''
+    // Call AI plan with diary as context
+    const payload = {
+      days: 3,
+      interests: full.destination ? `${full.title}, ${full.destination}` : full.title,
+      budget: '不限',
+      transport: '步行',
+      additionalInfo: `请根据以下游记内容生成旅行计划：\n标题：${full.title}\n目的地：${full.destination || '未指定'}\n内容：${diaryContent.substring(0, 2000)}`
+    }
+    const res = await aiApi.plan(payload)
+    planResult.value = res.data.data
+    ElMessage.success('AI 已根据游记生成行程计划')
+  } catch {
+    planResult.value = { title: '生成失败', days: [], tips: ['请检查AI配置或游记内容'], estimatedCost: '' }
+  } finally { planLoading.value = false }
+}
+
 async function estimateBudget() {
   budgetLoading.value = true
   budgetResult.value = null
@@ -1294,6 +1388,11 @@ function applyPlanResult() {
       return base
     }),
   }))
+  // 同步起止日期：根据AI计划的天数自动推算
+  if (tripPlan.days.length > 0) {
+    tripPlan.startDate = tripPlan.days[0].date
+    tripPlan.endDate = tripPlan.days[tripPlan.days.length - 1].date
+  }
   ElMessage.success('已应用AI规划至行程 — 已关联 ' + countMatched(planResult.value.days) + ' 个地点')
   aiPlanDialogVisible.value = false
 }
@@ -1308,17 +1407,30 @@ function countMatched(days: PlanDaySchedule[]): number {
   return n
 }
 
+/** 昌平区边界（从高德 POI 覆盖范围确定） */
+const CHANGPING_BOUNDS = { minLat: 40.0, maxLat: 40.3, minLng: 115.9, maxLng: 116.5 }
+function isInChangping(lat: number, lng: number): boolean {
+  return lat >= CHANGPING_BOUNDS.minLat && lat <= CHANGPING_BOUNDS.maxLat
+    && lng >= CHANGPING_BOUNDS.minLng && lng <= CHANGPING_BOUNDS.maxLng
+}
+
 /* ───────────────────────────────────────────────────────
    Planning mode: save
    ─────────────────────────────────────────────────────── */
 async function routeDayPlan() {
   if (!activeDay.value) return
-  const withCoords = [...activeDay.value.slots]
+  const allWithCoords = [...activeDay.value.slots]
     .filter(s => s.lat != null && s.lng != null)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
+  // 过滤不在昌平区的点
+  const withCoords = allWithCoords.filter(s => isInChangping(s.lat!, s.lng!))
+  const skipped = allWithCoords.length - withCoords.length
+  if (skipped > 0) {
+    ElMessage.info(`已跳过 ${skipped} 个不在昌平区的地点（坐标超出范围）`)
+  }
 
   if (withCoords.length < 2) {
-    ElMessage.warning(withCoords.length === 0 ? 'No locations with coordinates — add spots/food first' : 'Need at least 2 locations with coordinates')
+    ElMessage.warning(withCoords.length === 0 ? '没有在昌平区内的可规划地点' : '昌平区内至少需要 2 个地点')
     return
   }
   routeLoading.value = true
@@ -1337,7 +1449,7 @@ async function routeDayPlan() {
         startLng: from.lng!,
         targets: [{ lat: to.lat!, lng: to.lng!, name: to.name || '' }],
         strategy: 'DISTANCE',
-        transports: ['WALK'],
+        transports: [routeTransport.value],
         finalDestinationIdx: isLast ? 0 : undefined,
       })
       const rd = res.data.data
@@ -2371,4 +2483,25 @@ onMounted(() => {
     margin-left: 0;
   }
 }
+
+/* ── Dialog 8: Diary Picker ── */
+.diary-picker-tabs { padding: 8px 0; }
+.diary-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.diary-card {
+  padding: 12px;
+  border: 1px solid var(--frosted-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--frosted-bg);
+}
+.diary-card:hover {
+  border-color: var(--pop-green);
+  background: rgba(58, 210, 159, 0.06);
+}
+.diary-card-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.diary-card-preview { font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 6px; }
+.diary-card-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-secondary); }
+.empty-state { text-align: center; padding: 48px 0; color: var(--text-secondary); }
+.diary-pagination { display: flex; justify-content: center; padding: 12px 0 4px; }
 </style>
