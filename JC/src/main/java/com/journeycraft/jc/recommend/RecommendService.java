@@ -3,7 +3,9 @@ package com.journeycraft.jc.recommend;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -18,20 +20,19 @@ import java.util.stream.Collectors;
 @Service
 public class RecommendService {
 
+    private final SpotRecommendationEngine spotRecommendationEngine;
     private final com.journeycraft.jc.spot.repository.SpotRepository spotRepo;
     private final com.journeycraft.jc.food.repository.FoodRepository foodRepo;
     private final com.journeycraft.jc.diary.repository.DiaryRepository diaryRepo;
-    private final com.journeycraft.jc.user.repository.UserPreferenceRepository prefRepo;
-    private final com.journeycraft.jc.favorite.repository.FavoriteRepository favRepo;
 
     public RecommendService(
+            SpotRecommendationEngine spotRecommendationEngine,
             com.journeycraft.jc.spot.repository.SpotRepository spotRepo,
             com.journeycraft.jc.food.repository.FoodRepository foodRepo,
-            com.journeycraft.jc.diary.repository.DiaryRepository diaryRepo,
-            com.journeycraft.jc.user.repository.UserPreferenceRepository prefRepo,
-            com.journeycraft.jc.favorite.repository.FavoriteRepository favRepo) {
+            com.journeycraft.jc.diary.repository.DiaryRepository diaryRepo) {
+        this.spotRecommendationEngine = spotRecommendationEngine;
         this.spotRepo = spotRepo; this.foodRepo = foodRepo;
-        this.diaryRepo = diaryRepo; this.prefRepo = prefRepo; this.favRepo = favRepo;
+        this.diaryRepo = diaryRepo;
     }
 
     public record RecommendResult(
@@ -45,45 +46,15 @@ public class RecommendService {
      */
     @Transactional(readOnly = true)
     public RecommendResult recommend(Long userId, int topK) {
-        // 1. 读取用户兴趣偏好
-        Set<String> interestCats = new HashSet<>();
-        if (userId != null) {
-            prefRepo.findByUserId(userId).ifPresent(pref -> {
-                if (pref.getInterestCategories() != null) {
-                    Collections.addAll(interestCats, pref.getInterestCategories().split(","));
-                }
-            });
-        }
+        int safeTopK = Math.max(1, topK);
 
-        // 2. 读取用户收藏过的内容 (行为信号)
-        Set<Long> favoritedSpotIds = new HashSet<>();
-        if (userId != null) {
-            var favs = favRepo.findByUserId(userId,
-                    org.springframework.data.domain.PageRequest.of(0, 100));
-            for (var f : favs.getContent()) {
-                if ("SPOT".equals(f.getType())) favoritedSpotIds.add(Long.parseLong(f.getTargetId()));
-            }
-        }
-
-        Set<String> finalInterestCats = interestCats;
-        Set<Long> finalFavIds = favoritedSpotIds;
-
-        // 3. 景点推荐：兴趣匹配+收藏加分+热度兜底
-        List<Map<String, Object>> spotResults = spotRepo.findAll().stream()
-                .map(s -> {
-                    double score = s.getPopularity() * 0.01;
-                    if (finalInterestCats.contains(s.getCategory())) score += 50;
-                    if (finalFavIds.contains(s.getId())) score += 100;
-                    return scoreEntry("spot", s.getId(), s.getName(), s.getCategory(), s.getAvgRating(), score);
-                })
-                .sorted((a,b) -> Double.compare((Double)b.get("_score"), (Double)a.get("_score")))
-                .limit(topK)
-                .peek(m -> m.remove("_score"))
+        List<Map<String, Object>> spotResults = spotRecommendationEngine.recommendForUser(userId, safeTopK).stream()
+                .map(this::toSpotMap)
                 .collect(Collectors.toList());
 
         // 4. 美食推荐：按热度
         List<Map<String, Object>> foodResults = foodRepo.findAll(
-                org.springframework.data.domain.PageRequest.of(0, topK,
+                org.springframework.data.domain.PageRequest.of(0, safeTopK,
                 org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "popularity")))
                 .stream().map(f -> {
                     Map<String, Object> m = new LinkedHashMap<>();
@@ -96,7 +67,7 @@ public class RecommendService {
 
         // 5. 日记推荐：公开日记按热度
         List<Map<String, Object>> diaryResults = diaryRepo.findByIsPublicTrue(
-                org.springframework.data.domain.PageRequest.of(0, topK,
+                org.springframework.data.domain.PageRequest.of(0, safeTopK,
                 org.springframework.data.domain.Sort.by(
                         org.springframework.data.domain.Sort.Direction.DESC, "popularity")))
                 .stream().map(d -> {
@@ -110,11 +81,23 @@ public class RecommendService {
         return new RecommendResult(spotResults, foodResults, diaryResults);
     }
 
-    private Map<String, Object> scoreEntry(String type, Long id, String name, String category,
-                                             java.math.BigDecimal rating, double score) {
+    private Map<String, Object> toSpotMap(SpotRecommendationEngine.RecommendedSpot recommendedSpot) {
+        var spot = recommendedSpot.spot();
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", id); m.put("name", name); m.put("category", category);
-        m.put("avgRating", rating); m.put("_score", score);
+        m.put("id", spot.getId());
+        m.put("name", spot.getName());
+        m.put("category", spot.getCategory());
+        m.put("description", spot.getDescription());
+        m.put("address", spot.getAddress());
+        m.put("latitude", spot.getLatitude());
+        m.put("longitude", spot.getLongitude());
+        m.put("popularity", spot.getPopularity());
+        m.put("avgRating", spot.getAvgRating());
+        m.put("ratingCount", spot.getRatingCount());
+        m.put("imageUrl", spot.getImageUrl());
+        m.put("openingHours", spot.getOpeningHours());
+        m.put("ticketPrice", spot.getTicketPrice());
+        m.put("reason", recommendedSpot.reason());
         return m;
     }
 }

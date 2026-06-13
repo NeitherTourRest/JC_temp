@@ -98,10 +98,13 @@
 import { ref, computed, onMounted } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { diaryApi } from '@/api/diaryApi'
+import { recommendApi } from '@/api/recommendApi'
 import { spotApi } from '@/api/spotApi'
-import type { SpotResponse, DiaryResponse } from '@/types/api'
+import type { RecommendedSpotResponse, DiaryResponse } from '@/types/api'
+import { useAuthStore } from '@/stores/authStore'
 
-const featuredSpots = ref<SpotResponse[]>([])
+const authStore = useAuthStore()
+const featuredSpots = ref<RecommendedSpotResponse[]>([])
 const recentDiaries = ref<DiaryResponse[]>([])
 const pageLoading = ref(true)
 const pageError = ref('')
@@ -125,14 +128,20 @@ async function loadAll() {
   pageLoading.value = true
   pageError.value = ''
   try {
-    const [s, d] = await Promise.all([
-      spotApi.search({ size: 8 }).catch(() => null),
+    const currentUserId = authStore.user?.id
+    const [r, d, sc] = await Promise.all([
+      recommendApi.get(currentUserId, 8).catch(() => null),
       diaryApi.list({ size: 5 }).catch(() => null),
+      spotApi.search({ size: 1 }).catch(() => null),
     ])
-    if (s?.data?.data?.content) featuredSpots.value = s.data.data.content
+    if (r?.data?.data?.spots?.length) {
+      featuredSpots.value = r.data.data.spots
+    } else {
+      const fallback = await spotApi.search({ size: 8 }).catch(() => null)
+      if (fallback?.data?.data?.content) featuredSpots.value = fallback.data.data.content
+    }
     if (d?.data?.data?.content) recentDiaries.value = d.data.data.content
 
-    const sc = await spotApi.search({ size: 1 }).catch(() => null)
     if (sc?.data?.data?.totalElements != null) stats.value.spots = sc.data.data.totalElements
     if (d?.data?.data?.totalElements != null) stats.value.diaries = d.data.data.totalElements
   } catch (e: any) {

@@ -241,9 +241,13 @@ async function loadProfile() {
     Object.assign(profile, data)
     // 同步更新 auth store 中的用户信息（触发 sidebar 响应式更新）
     if (auth.user) {
+      auth.user.id = data.id || auth.user.id
+      auth.user.username = data.username || ''
       auth.user.nickname = data.nickname || ''
       auth.user.avatar = data.avatar || ''
     }
+    if (data.id) localStorage.setItem('userId', String(data.id))
+    if (data.username) localStorage.setItem('username', data.username)
     // 持久化到 localStorage（页面刷新后 sidebar 也能恢复）
     if (data.nickname) localStorage.setItem('nickname', data.nickname)
     if (data.avatar) localStorage.setItem('avatar', data.avatar)
@@ -311,10 +315,13 @@ async function handleSaveProfile() {
       const data = res.data.data
       Object.assign(profile, data)
       if (auth.user) {
+        auth.user.id = data.id || auth.user.id
         auth.user.nickname = data.nickname || ''
         auth.user.username = data.username || ''
         auth.user.avatar = data.avatar || ''
       }
+      if (data.id) localStorage.setItem('userId', String(data.id))
+      if (data.username) localStorage.setItem('username', data.username)
       // Sync to localStorage
       if (data.nickname) localStorage.setItem('nickname', data.nickname)
       if (data.avatar) localStorage.setItem('avatar', data.avatar)

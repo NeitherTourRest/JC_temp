@@ -70,6 +70,7 @@
         <section class="detail-section">
           <div class="section-header">
             <h3 class="section-title">📍 位置</h3>
+            <el-button v-if="spot?.latitude != null && spot?.longitude != null" size="small" type="success" @click="goToUniversalNavigation">🧭 前往导航页</el-button>
             <el-button v-if="facilities.length" size="small" type="primary" @click="openNavDialog">🚶 景区内导航</el-button>
           </div>
           <div id="spot-map-container" class="spot-map"></div>
@@ -373,6 +374,18 @@ function walkingDistance(f: FoodItem): number {
 
 function highlightFacility(f: FacilityItem) {
   ElMessage.info(`${f.name} (${f.category})`)
+}
+
+function goToUniversalNavigation() {
+  if (!spot.value) return
+  router.push({
+    path: '/navigation',
+    query: {
+      targetLat: String(spot.value.latitude),
+      targetLng: String(spot.value.longitude),
+      targetName: spot.value.name || '目的地',
+    },
+  })
 }
 
 function openNavDialog() {

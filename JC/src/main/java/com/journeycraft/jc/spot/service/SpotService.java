@@ -11,6 +11,7 @@ import com.journeycraft.jc.food.entity.Food;
 import com.journeycraft.jc.food.repository.FoodRepository;
 import com.journeycraft.jc.navigation.algorithm.FuzzyMatcher;
 import com.journeycraft.jc.navigation.algorithm.TopKSorter;
+import com.journeycraft.jc.recommend.SpotRecommendationEngine;
 import com.journeycraft.jc.spot.dto.*;
 import com.journeycraft.jc.spot.entity.Spot;
 import com.journeycraft.jc.spot.entity.SpotReview;
@@ -18,7 +19,6 @@ import com.journeycraft.jc.spot.entity.SpotReview;
 import com.journeycraft.jc.spot.repository.SpotRepository;
 import com.journeycraft.jc.spot.repository.SpotReviewRepository;
 import com.journeycraft.jc.user.entity.User;
-import com.journeycraft.jc.user.repository.UserPreferenceRepository;
 import com.journeycraft.jc.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +41,7 @@ public class SpotService {
     private final FacilityRepository facilityRepository;
     private final CongestionService congestionService;
     private final UserRepository userRepository;
-    private final UserPreferenceRepository userPreferenceRepository;
+    private final SpotRecommendationEngine spotRecommendationEngine;
 
     @Transactional(readOnly = true)
     public PageResponse<SpotResponse> searchSpots(SpotSearchRequest request) {
@@ -84,32 +84,9 @@ public class SpotService {
 
     @Transactional(readOnly = true)
     public List<SpotResponse> recommendTopK(int topK, Long userId) {
-        var allSpots = spotRepository.findAll();
-
-        // If userId is provided, personalize by matching interest categories
-        Set<String> userInterestCats = new HashSet<>();
-        if (userId != null) {
-            userPreferenceRepository.findByUserId(userId).ifPresent(pref -> {
-                if (pref.getInterestCategories() != null) {
-                    userInterestCats.addAll(Arrays.asList(pref.getInterestCategories().split(",")));
-                }
-            });
-        }
-
-        // Score: popularity base + interest match bonus
-        var scored = allSpots.stream().map(spot -> {
-            double score = spot.getPopularity();
-            if (!userInterestCats.isEmpty() && spot.getCategory() != null
-                    && userInterestCats.contains(spot.getCategory())) {
-                score += 500; // Interest match bonus
-            }
-            return new AbstractMap.SimpleEntry<>(spot, score);
-        }).sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
-          .limit(topK)
-          .map(e -> SpotResponse.from(e.getKey()))
-          .toList();
-
-        return scored;
+        return spotRecommendationEngine.recommendForUser(userId, topK).stream()
+                .map(recommendedSpot -> SpotResponse.from(recommendedSpot.spot()))
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -8,10 +8,11 @@ export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
   const refreshToken = ref<string | null>(localStorage.getItem('refreshToken'))
   const isAuthenticated = computed(() => !!accessToken.value)
+  const storedUserId = Number(localStorage.getItem('userId') || '0')
   const user = ref<UserResponse | null>(
     isAuthenticated.value ? {
-      id: 0,
-      username: localStorage.getItem('nickname') || '',
+      id: storedUserId > 0 ? storedUserId : 0,
+      username: localStorage.getItem('username') || '',
       nickname: localStorage.getItem('nickname') || '',
       avatar: localStorage.getItem('avatar') || ''
     } as UserResponse : null
@@ -65,6 +66,8 @@ export const useAuthStore = defineStore('auth', () => {
       refreshToken.value = data.refreshToken
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
+      if (data.userId) localStorage.setItem('userId', String(data.userId))
+      if (data.username) localStorage.setItem('username', data.username)
       if (data.nickname) {
         localStorage.setItem('nickname', data.nickname)
         user.value = { id: data.userId, username: data.username, nickname: data.nickname, avatar: data.avatar || '' } as UserResponse
@@ -92,6 +95,8 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken.value = data.refreshToken
     localStorage.setItem('accessToken', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)
+    if (data.userId) localStorage.setItem('userId', String(data.userId))
+    localStorage.setItem('username', data.username || '')
     const nick = data.nickname || data.username
     localStorage.setItem('nickname', nick)
     localStorage.setItem('avatar', data.avatar || '')
@@ -104,6 +109,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('username')
     localStorage.removeItem('nickname')
     localStorage.removeItem('avatar')
   }

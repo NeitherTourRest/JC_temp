@@ -230,7 +230,8 @@
 
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { navigationApi } from '@/api/navigationApi'
 import { itineraryApi } from '@/api/itineraryApi'
@@ -254,6 +255,8 @@ interface Waypoint {
 // ── 扩展 RouteResponse（保留兼容旧版可能无分段的后端）───
 interface RouteResponseExt extends RouteResponse {}
 
+const route = useRoute()
+
 // AMap 实例
 let map: any = null
 let AMapInstance: any = null
@@ -274,6 +277,7 @@ const transports = ref<string[]>(['WALK']) // 默认步行
 const startPoint = ref<{ lng: number; lat: number; name?: string } | null>(null)
 const waypoints = ref<Waypoint[]>([])
 const routeResult = ref<RouteResponseExt | null>(null)
+const bootstrappedQueryKey = ref('')
 
 // --- POI search ---
 const poiKeyword = ref('')
@@ -443,6 +447,7 @@ function initMap() {
       }
     })
     mapReady.value = true
+    void bootstrapFromRouteQuery()
   } catch (e) { console.error('AMap init failed:', e); setTimeout(initMap, 1000) }
 }
 
@@ -462,6 +467,98 @@ function setStartPoint(lng: number, lat: number) {
   })
   map.add(startMarker)
   map.setCenter([lng, lat])
+}
+
+function parseQueryNumber(value: unknown): number | null {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (raw == null || raw === '') return null
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function parseQueryString(value: unknown): string {
+  const raw = Array.isArray(value) ? value[0] : value
+  return typeof raw === 'string' ? raw.trim() : ''
+}
+
+function getRouteTarget() {
+  const lat = parseQueryNumber(route.query.targetLat)
+  const lng = parseQueryNumber(route.query.targetLng)
+  if (lat == null || lng == null) return null
+  return {
+    lat,
+    lng,
+    name: parseQueryString(route.query.targetName) || '目的地',
+  }
+}
+
+async function locateBrowserStartPoint(): Promise<boolean> {
+  if (!navigator.geolocation) {
+    ElMessage.warning('当前浏览器不支持定位，请手动选择起点')
+    return false
+  }
+
+  return await new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const applyLocation = (lng: number, lat: number) => {
+          setStartPoint(lng, lat)
+          reverseGeocode(lng, lat, (name) => {
+            if (startPoint.value) startPoint.value.name = name || '当前位置'
+          })
+          resolve(true)
+        }
+
+        const rawLng = position.coords.longitude
+        const rawLat = position.coords.latitude
+
+        if (AMapInstance?.convertFrom) {
+          AMapInstance.convertFrom([rawLng, rawLat], 'gps', (status: string, result: any) => {
+            const loc = result?.locations?.[0]
+            if (status === 'complete' && loc) {
+              applyLocation(loc.lng, loc.lat)
+              return
+            }
+            applyLocation(rawLng, rawLat)
+          })
+          return
+        }
+
+        applyLocation(rawLng, rawLat)
+      },
+      (error) => {
+        console.error('Browser geolocation failed:', error)
+        ElMessage.warning('无法获取当前位置，请手动选择起点')
+        resolve(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    )
+  })
+}
+
+async function bootstrapFromRouteQuery() {
+  if (!mapReady.value || !AMapInstance) return
+
+  const target = getRouteTarget()
+  const targetKey = target ? `${target.lat},${target.lng},${target.name}` : ''
+  if (!target || bootstrappedQueryKey.value === targetKey) return
+
+  clearPolyline()
+  clearAllWaypointMarkers()
+  routeResult.value = null
+  waypoints.value = [{ lat: target.lat, lng: target.lng, name: target.name }]
+  finalDestinationIdx.value = 0
+  setWaypoint(0, target.lng, target.lat)
+
+  if (!startPoint.value) {
+    await locateBrowserStartPoint()
+  }
+
+  bootstrappedQueryKey.value = targetKey
+
+  if (startPoint.value) {
+    await planRoute()
+  }
 }
 
 function setWaypoint(idx: number, lng: number, lat: number) {
@@ -578,6 +675,7 @@ async function saveItinerary() { if (!routeResult.value) return; saving.value = 
 
 onMounted(() => { nextTick(initMap) })
 onBeforeUnmount(() => { if (map) map.destroy() })
+watch(() => route.fullPath, () => { void bootstrapFromRouteQuery() })
 </script>
 
 <style scoped>
