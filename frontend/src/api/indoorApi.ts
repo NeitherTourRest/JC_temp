@@ -8,6 +8,13 @@ export interface IndoorNode {
   y: number
   name: string
   type: string
+  wing?: string
+  zone?: string
+  roomCategory?: string
+  anchorNodeId?: string
+  doorNodeId?: string
+  aliases?: string[]
+  accessible?: boolean
 }
 
 export interface NavigationStep {
@@ -30,8 +37,18 @@ export interface NavigationResult {
   success: boolean
   error?: string
   steps: NavigationStep[]
+  nodePath?: string[]
+  textInstructions?: string[]
   totalDistance: number
   floorPlans: Record<string, string>
+}
+
+export interface IndoorBuildingMetadata {
+  nodes: IndoorNode[]
+  edges: { from: string; to: string; dist: number; floor: string }[]
+  crossFloorEdges: { from: string; to: string; type: string; dist: number }[]
+  floorPlans: Record<string, string>
+  floors?: string[]
 }
 
 export const indoorApi = {
@@ -40,7 +57,7 @@ export const indoorApi = {
       params: { buildingId, from, to }
     }),
   getBuilding: (buildingId: string) =>
-    apiClient.get<ApiResponse<{ nodes: IndoorNode[]; edges: { from: string; to: string; dist: number; floor: string }[]; crossFloorEdges: { from: string; to: string; type: string; dist: number }[]; floorPlans: Record<string, string> }>>('/indoor/building', {
+    apiClient.get<ApiResponse<IndoorBuildingMetadata>>('/indoor/building', {
       params: { buildingId }
     })
 }

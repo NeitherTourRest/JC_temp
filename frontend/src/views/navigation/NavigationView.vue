@@ -175,7 +175,12 @@
           <template v-if="indoorRoute">
             <h4>🚶 导航路线</h4>
             <span class="indoor-dist">全程约 {{ indoorRoute.totalDistance.toFixed(0) }} 米</span>
-            <div class="indoor-route-text">{{ indoorRouteText }}</div>
+            <div v-if="indoorRoute.textInstructions?.length" class="indoor-text-route">
+              <div v-for="(text, i) in indoorRoute.textInstructions" :key="'text-' + i" class="indoor-text-step">
+                {{ i + 1 }}. {{ text }}
+              </div>
+            </div>
+            <div v-else class="indoor-route-text">{{ indoorRouteText }}</div>
             <div class="indoor-actions">
               <el-button @click="clearIndoor">清除重选</el-button>
             </div>
@@ -186,8 +191,15 @@
               <el-button size="small" type="primary" @click="doIndoorNav" :loading="indoorLoading" :disabled="!modeStart || !modeEnd">开始导航</el-button>
             </div>
             <h4 class="indoor-section-title">{{ indoorFloor }} 层节点</h4>
-            <div class="indoor-node-list">
-              <div v-for="n in indoorFloorNodes" :key="n.id"
+            <input
+              v-model="indoorNodeKeyword"
+              class="indoor-node-search"
+              type="search"
+              placeholder="搜索房间 / 楼梯 / 电梯"
+            />
+            <div class="indoor-node-list" @wheel.stop>
+              <div v-if="!filteredIndoorFloorNodes.length" class="indoor-empty">没有匹配节点</div>
+              <div v-for="n in filteredIndoorFloorNodes" :key="n.id"
                 :class="['indoor-node-item', { 'is-start': n.id === modeStart?.id, 'is-end': n.id === modeEnd?.id }]"
                 @click="onIndoorNodeClick(n)">
                 <span class="node-icon">{{ iconOf(n.type) }}</span>
@@ -209,7 +221,7 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { navigationApi } from '@/api/navigationApi'
 import { itineraryApi } from '@/api/itineraryApi'
 import { indoorApi } from '@/api/indoorApi'
-import type { IndoorNode } from '@/api/indoorApi'
+import type { IndoorBuildingMetadata, IndoorNode } from '@/api/indoorApi'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { poiApi } from '@/api/poiApi'
@@ -269,8 +281,25 @@ const modeEnd = ref<IndoorNode | null>(null)
 const indoorRoute = ref<any>(null)
 const indoorLoading = ref(false)
 const indoorCanvasRef = ref<HTMLCanvasElement>()
+const indoorNodeKeyword = ref('')
 
-const indoorFloorNodes = computed(() => indoorNodes.value.filter(n => n.floor === indoorFloor.value && n.type !== 'CORRIDOR'))
+const indoorFloorNodes = computed(() =>
+  indoorNodes.value.filter(n => n.floor === indoorFloor.value && !['CORRIDOR', 'DOOR'].includes(n.type))
+)
+
+const filteredIndoorFloorNodes = computed(() => {
+  const keyword = indoorNodeKeyword.value.trim().toLowerCase()
+  if (!keyword) return indoorFloorNodes.value
+  return indoorFloorNodes.value.filter((node) => {
+    const searchable = [
+      node.name,
+      node.type,
+      node.id,
+      ...(node.aliases ?? []),
+    ].join(' ').toLowerCase()
+    return searchable.includes(keyword)
+  })
+})
 
 function clearIndoor() { modeStart.value = null; modeEnd.value = null; indoorMode.value = null; indoorRoute.value = null }
 function onIndoorNodeClick(n: IndoorNode) { handleNodePick(n) }
@@ -362,18 +391,37 @@ async function doIndoorNav() {
   finally { indoorLoading.value = false }
 }
 
-function iconOf(type: string) { const m: Record<string, string> = { ENTRANCE: '🚪', CLASSROOM: '📚', LAB: '🔬', TOILET: '🚻', STAIRS: '🪜', ELEVATOR: '🛗', LOBBY: '🏛', OFFICE: '📋' }; return m[type] || '📍' }
+function iconOf(type: string) {
+  const m: Record<string, string> = { ENTRANCE: '🚪', EXIT: '🚪', CLASSROOM: '📚', LAB: '🔬', TOILET: '🚻', STAIRS: '🪜', ELEVATOR: '🛗', LOBBY: '🏛', OFFICE: '📋', DOOR: '🚪' }
+  return m[type] || '📍'
+}
+
+function parseFloorOrder(floor: string): number {
+  if (floor.startsWith('B')) return -Number.parseInt(floor.slice(1), 10)
+  if (floor.startsWith('F')) return Number.parseInt(floor.slice(1), 10)
+  return Number.MAX_SAFE_INTEGER
+}
+
+function deriveIndoorFloors(meta: IndoorBuildingMetadata): string[] {
+  const floorSet = new Set<string>()
+  for (const node of meta.nodes ?? []) floorSet.add(node.floor)
+  for (const floor of Object.keys(meta.floorPlans ?? {})) floorSet.add(floor)
+  for (const floor of meta.floors ?? []) floorSet.add(floor)
+  return Array.from(floorSet).sort((left, right) => parseFloorOrder(left) - parseFloorOrder(right))
+}
 
 async function loadIndoorNodes() {
   try {
     const r = await indoorApi.getBuilding('BUPT_ZHONGHE_ZONGHE')
     if (r.data.data?.nodes) {
-      indoorNodes.value = r.data.data.nodes
-      indoorEdges.value = r.data.data.edges || []
+      const meta = r.data.data
+      indoorNodes.value = meta.nodes
+      indoorEdges.value = meta.edges ?? []
       indoorFloors.length = 0
-      const seen = new Set<string>()
-      for (const n of r.data.data.nodes) { if (!seen.has(n.floor)) { seen.add(n.floor); indoorFloors.push(n.floor) } }
-      indoorFloors.sort()
+      indoorFloors.push(...deriveIndoorFloors(meta))
+      if (!indoorFloors.includes(indoorFloor.value) && indoorFloors.length > 0) {
+        indoorFloor.value = indoorFloors[0]
+      }
       nextTick(drawIndoorCanvas)
     }
   } catch (e) { console.error(e) }
@@ -918,4 +966,49 @@ watch(() => route.fullPath, () => { void bootstrapFromRouteQuery() })
 .sel-btn { padding: 4px 10px; border: 1px solid rgba(255,255,255,0.06); background: rgba(42,40,40,0.55); cursor: pointer; font-weight: bold; font-size: 11px; border-radius: 40px; color: #e8e8e8; transition: all 0.2s; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sel-btn:hover { background: rgba(42,40,40,0.7); }
 .sel-btn.active { background: rgba(58,210,159,0.15); color: #3ad29f; border-color: rgba(58,210,159,0.4); }
+.indoor-text-route {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.indoor-text-step {
+  padding: 8px 10px;
+  border-left: 3px solid #3ad29f;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e8e8e8;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.indoor-node-search {
+  width: 100%;
+  flex-shrink: 0;
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(42, 40, 40, 0.55);
+  color: #e8e8e8;
+  font-size: 13px;
+  outline: none;
+  box-shadow: inset 1px 1px 4px #191919;
+}
+.indoor-node-search:focus {
+  border-color: rgba(58, 210, 159, 0.45);
+}
+.indoor-node-search::placeholder {
+  color: #888;
+}
+.indoor-node-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+.indoor-empty {
+  padding: 12px 8px;
+  color: #999;
+  font-size: 13px;
+}
 </style>
