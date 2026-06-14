@@ -117,4 +117,42 @@ public class AIBudgetService {
     private String getStr(com.fasterxml.jackson.databind.JsonNode node, String field) {
         return node.has(field) && !node.get(field).isNull() ? node.get(field).asText() : "";
     }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> estimatePerEvent(Map<String, Object> body) {
+        List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
+        if (items == null || items.isEmpty()) {
+            return Map.of("budgets", Map.of());
+        }
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("为以下每个事件估算费用（元），每行输出 slotId:金额\n\n");
+        int n = 1;
+        for (var item : items) {
+            String sid = String.valueOf(item.getOrDefault("slotId", ""));
+            prompt.append(n++).append(". ").append(sid).append(" | ")
+                  .append(item.getOrDefault("name", "")).append(" (")
+                  .append(item.getOrDefault("type", "")).append(") ")
+                  .append(item.getOrDefault("time", "")).append("\n");
+        }
+        prompt.append("\n只输出纯文本，每行格式：slotId:金额\n例如：abc123:60\n不要JSON，不要任何其他文字。");
+
+        String reply = deepSeek.chat(
+            List.of(Map.of("role", "user", "content", prompt.toString())),
+            "你是旅行预算助手，快速估算景点门票和餐饮费用。只输出 slotId:金额，不要其他文字。"
+        );
+
+        // Parse plain text: "slotId:金额" per line
+        Map<String, Object> budgets = new java.util.LinkedHashMap<>();
+        for (String line : reply.split("\\n")) {
+            String[] parts = line.trim().split(":");
+            if (parts.length >= 2) {
+                try {
+                    budgets.put(parts[0].trim(), Integer.parseInt(parts[1].trim().replaceAll("[^0-9]", "")));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        log.info("Per-event budget parsed: {} entries", budgets.size());
+        return Map.of("budgets", budgets);
+    }
 }

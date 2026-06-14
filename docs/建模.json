@@ -1,0 +1,1561 @@
+{
+  "buildingId": "BUPT_ZHONGHE_ZONGHE",
+  "buildingName": "综合实验教学楼",
+  "campus": "北京邮电大学沙河校区",
+  "floors": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "floorPlans": {
+    "F1": "base64_F1",
+    "F2": "base64_F2",
+    "F3": "base64_F3",
+    "F4": "base64_F4",
+    "F5": "base64_F5"
+  },
+  "nodes": [
+    {
+      "id": "F1_ENTRANCE",
+      "floor": "F1",
+      "x": 120,
+      "y": 420,
+      "name": "正门入口",
+      "type": "ENTRANCE"
+    },
+    {
+      "id": "F1_CORRIDOR_1",
+      "floor": "F1",
+      "x": 300,
+      "y": 360,
+      "name": "南侧走廊入口",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F1_CORRIDOR_2",
+      "floor": "F1",
+      "x": 600,
+      "y": 360,
+      "name": "南中走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F1_CORRIDOR_3",
+      "floor": "F1",
+      "x": 900,
+      "y": 360,
+      "name": "中央走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F1_CORRIDOR_4",
+      "floor": "F1",
+      "x": 1200,
+      "y": 360,
+      "name": "北侧走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F1_CORRIDOR_5",
+      "floor": "F1",
+      "x": 1500,
+      "y": 360,
+      "name": "北端走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F1_CLASSROOM_101",
+      "floor": "F1",
+      "x": 320,
+      "y": 200,
+      "name": "101教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F1_CLASSROOM_102",
+      "floor": "F1",
+      "x": 520,
+      "y": 200,
+      "name": "102教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F1_CLASSROOM_103",
+      "floor": "F1",
+      "x": 720,
+      "y": 200,
+      "name": "103教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F1_CLASSROOM_104",
+      "floor": "F1",
+      "x": 920,
+      "y": 200,
+      "name": "104教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F1_CLASSROOM_105",
+      "floor": "F1",
+      "x": 1120,
+      "y": 200,
+      "name": "105教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F1_LAB_101",
+      "floor": "F1",
+      "x": 450,
+      "y": 520,
+      "name": "基础实验室A",
+      "type": "LAB"
+    },
+    {
+      "id": "F1_LAB_102",
+      "floor": "F1",
+      "x": 1050,
+      "y": 520,
+      "name": "基础实验室B",
+      "type": "LAB"
+    },
+    {
+      "id": "F1_OFFICE_101",
+      "floor": "F1",
+      "x": 800,
+      "y": 520,
+      "name": "教师办公室",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F1_TOILET_L",
+      "floor": "F1",
+      "x": 260,
+      "y": 520,
+      "name": "男卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F1_TOILET_R",
+      "floor": "F1",
+      "x": 1380,
+      "y": 520,
+      "name": "女卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F1_ELEVATOR_L",
+      "floor": "F1",
+      "x": 260,
+      "y": 300,
+      "name": "左电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F1_ELEVATOR_R",
+      "floor": "F1",
+      "x": 1380,
+      "y": 300,
+      "name": "右电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F1_STAIRS_L",
+      "floor": "F1",
+      "x": 220,
+      "y": 600,
+      "name": "左楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F1_STAIRS_R",
+      "floor": "F1",
+      "x": 1420,
+      "y": 600,
+      "name": "右楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F2_CORRIDOR_1",
+      "floor": "F2",
+      "x": 300,
+      "y": 360,
+      "name": "南侧走廊入口",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F2_CORRIDOR_2",
+      "floor": "F2",
+      "x": 600,
+      "y": 360,
+      "name": "南中走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F2_CORRIDOR_3",
+      "floor": "F2",
+      "x": 900,
+      "y": 360,
+      "name": "中央走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F2_CORRIDOR_4",
+      "floor": "F2",
+      "x": 1200,
+      "y": 360,
+      "name": "北侧走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F2_CORRIDOR_5",
+      "floor": "F2",
+      "x": 1500,
+      "y": 360,
+      "name": "北端走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F2_CLASSROOM_201",
+      "floor": "F2",
+      "x": 300,
+      "y": 200,
+      "name": "201教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_CLASSROOM_202",
+      "floor": "F2",
+      "x": 500,
+      "y": 200,
+      "name": "202教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_CLASSROOM_203",
+      "floor": "F2",
+      "x": 700,
+      "y": 200,
+      "name": "203教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_CLASSROOM_204",
+      "floor": "F2",
+      "x": 900,
+      "y": 200,
+      "name": "204教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_CLASSROOM_205",
+      "floor": "F2",
+      "x": 1100,
+      "y": 200,
+      "name": "205教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_CLASSROOM_206",
+      "floor": "F2",
+      "x": 1300,
+      "y": 200,
+      "name": "206教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F2_LAB_201",
+      "floor": "F2",
+      "x": 450,
+      "y": 520,
+      "name": "计算机实验室A",
+      "type": "LAB"
+    },
+    {
+      "id": "F2_LAB_202",
+      "floor": "F2",
+      "x": 1050,
+      "y": 520,
+      "name": "通信实验室B",
+      "type": "LAB"
+    },
+    {
+      "id": "F2_OFFICE_201",
+      "floor": "F2",
+      "x": 800,
+      "y": 520,
+      "name": "教师办公室A",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F2_OFFICE_202",
+      "floor": "F2",
+      "x": 1000,
+      "y": 520,
+      "name": "教师办公室B",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F2_TOILET_L",
+      "floor": "F2",
+      "x": 260,
+      "y": 520,
+      "name": "男卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F2_TOILET_R",
+      "floor": "F2",
+      "x": 1380,
+      "y": 520,
+      "name": "女卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F2_ELEVATOR_L",
+      "floor": "F2",
+      "x": 260,
+      "y": 300,
+      "name": "左电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F2_ELEVATOR_R",
+      "floor": "F2",
+      "x": 1380,
+      "y": 300,
+      "name": "右电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F2_STAIRS_L",
+      "floor": "F2",
+      "x": 220,
+      "y": 600,
+      "name": "左楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F2_STAIRS_R",
+      "floor": "F2",
+      "x": 1420,
+      "y": 600,
+      "name": "右楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F3_CORRIDOR_1",
+      "floor": "F3",
+      "x": 300,
+      "y": 360,
+      "name": "南侧走廊入口",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F3_CORRIDOR_2",
+      "floor": "F3",
+      "x": 600,
+      "y": 360,
+      "name": "南中走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F3_CORRIDOR_3",
+      "floor": "F3",
+      "x": 900,
+      "y": 360,
+      "name": "中央走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F3_CORRIDOR_4",
+      "floor": "F3",
+      "x": 1200,
+      "y": 360,
+      "name": "北侧走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F3_CORRIDOR_5",
+      "floor": "F3",
+      "x": 1500,
+      "y": 360,
+      "name": "北端走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F3_CLASSROOM_301",
+      "floor": "F3",
+      "x": 300,
+      "y": 200,
+      "name": "301教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_CLASSROOM_302",
+      "floor": "F3",
+      "x": 500,
+      "y": 200,
+      "name": "302教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_CLASSROOM_303",
+      "floor": "F3",
+      "x": 700,
+      "y": 200,
+      "name": "303教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_CLASSROOM_304",
+      "floor": "F3",
+      "x": 900,
+      "y": 200,
+      "name": "304教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_CLASSROOM_305",
+      "floor": "F3",
+      "x": 1100,
+      "y": 200,
+      "name": "305教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_CLASSROOM_306",
+      "floor": "F3",
+      "x": 1300,
+      "y": 200,
+      "name": "306教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F3_LAB_301",
+      "floor": "F3",
+      "x": 450,
+      "y": 520,
+      "name": "通信实验室A",
+      "type": "LAB"
+    },
+    {
+      "id": "F3_LAB_302",
+      "floor": "F3",
+      "x": 1050,
+      "y": 520,
+      "name": "网络实验室B",
+      "type": "LAB"
+    },
+    {
+      "id": "F3_OFFICE_301",
+      "floor": "F3",
+      "x": 800,
+      "y": 520,
+      "name": "教师办公室A",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F3_OFFICE_302",
+      "floor": "F3",
+      "x": 1000,
+      "y": 520,
+      "name": "教师办公室B",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F3_TOILET_L",
+      "floor": "F3",
+      "x": 260,
+      "y": 520,
+      "name": "男卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F3_TOILET_R",
+      "floor": "F3",
+      "x": 1380,
+      "y": 520,
+      "name": "女卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F3_ELEVATOR_L",
+      "floor": "F3",
+      "x": 260,
+      "y": 300,
+      "name": "左电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F3_ELEVATOR_R",
+      "floor": "F3",
+      "x": 1380,
+      "y": 300,
+      "name": "右电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F3_STAIRS_L",
+      "floor": "F3",
+      "x": 220,
+      "y": 600,
+      "name": "左楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F3_STAIRS_R",
+      "floor": "F3",
+      "x": 1420,
+      "y": 600,
+      "name": "右楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F4_CORRIDOR_1",
+      "floor": "F4",
+      "x": 300,
+      "y": 360,
+      "name": "南侧走廊入口",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F4_CORRIDOR_2",
+      "floor": "F4",
+      "x": 600,
+      "y": 360,
+      "name": "南中走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F4_CORRIDOR_3",
+      "floor": "F4",
+      "x": 900,
+      "y": 360,
+      "name": "中央走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F4_CORRIDOR_4",
+      "floor": "F4",
+      "x": 1200,
+      "y": 360,
+      "name": "北侧走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F4_CORRIDOR_5",
+      "floor": "F4",
+      "x": 1500,
+      "y": 360,
+      "name": "北端走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F4_CLASSROOM_401",
+      "floor": "F4",
+      "x": 300,
+      "y": 200,
+      "name": "401教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_CLASSROOM_402",
+      "floor": "F4",
+      "x": 500,
+      "y": 200,
+      "name": "402教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_CLASSROOM_403",
+      "floor": "F4",
+      "x": 700,
+      "y": 200,
+      "name": "403教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_CLASSROOM_404",
+      "floor": "F4",
+      "x": 900,
+      "y": 200,
+      "name": "404教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_CLASSROOM_405",
+      "floor": "F4",
+      "x": 1100,
+      "y": 200,
+      "name": "405教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_CLASSROOM_406",
+      "floor": "F4",
+      "x": 1300,
+      "y": 200,
+      "name": "406教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F4_LAB_401",
+      "floor": "F4",
+      "x": 450,
+      "y": 520,
+      "name": "嵌入式实验室A",
+      "type": "LAB"
+    },
+    {
+      "id": "F4_LAB_402",
+      "floor": "F4",
+      "x": 1050,
+      "y": 520,
+      "name": "AI实验室B",
+      "type": "LAB"
+    },
+    {
+      "id": "F4_OFFICE_401",
+      "floor": "F4",
+      "x": 800,
+      "y": 520,
+      "name": "教师办公室A",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F4_OFFICE_402",
+      "floor": "F4",
+      "x": 1000,
+      "y": 520,
+      "name": "教师办公室B",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F4_TOILET_L",
+      "floor": "F4",
+      "x": 260,
+      "y": 520,
+      "name": "男卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F4_TOILET_R",
+      "floor": "F4",
+      "x": 1380,
+      "y": 520,
+      "name": "女卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F4_ELEVATOR_L",
+      "floor": "F4",
+      "x": 260,
+      "y": 300,
+      "name": "左电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F4_ELEVATOR_R",
+      "floor": "F4",
+      "x": 1380,
+      "y": 300,
+      "name": "右电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F4_STAIRS_L",
+      "floor": "F4",
+      "x": 220,
+      "y": 600,
+      "name": "左楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F4_STAIRS_R",
+      "floor": "F4",
+      "x": 1420,
+      "y": 600,
+      "name": "右楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F5_CORRIDOR_1",
+      "floor": "F5",
+      "x": 300,
+      "y": 360,
+      "name": "南侧走廊入口",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F5_CORRIDOR_2",
+      "floor": "F5",
+      "x": 600,
+      "y": 360,
+      "name": "南中走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F5_CORRIDOR_3",
+      "floor": "F5",
+      "x": 900,
+      "y": 360,
+      "name": "中央走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F5_CORRIDOR_4",
+      "floor": "F5",
+      "x": 1200,
+      "y": 360,
+      "name": "北侧走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F5_CORRIDOR_5",
+      "floor": "F5",
+      "x": 1500,
+      "y": 360,
+      "name": "北端走廊",
+      "type": "CORRIDOR"
+    },
+    {
+      "id": "F5_CLASSROOM_501",
+      "floor": "F5",
+      "x": 300,
+      "y": 200,
+      "name": "501教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_CLASSROOM_502",
+      "floor": "F5",
+      "x": 500,
+      "y": 200,
+      "name": "502教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_CLASSROOM_503",
+      "floor": "F5",
+      "x": 700,
+      "y": 200,
+      "name": "503教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_CLASSROOM_504",
+      "floor": "F5",
+      "x": 900,
+      "y": 200,
+      "name": "504教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_CLASSROOM_505",
+      "floor": "F5",
+      "x": 1100,
+      "y": 200,
+      "name": "505教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_CLASSROOM_506",
+      "floor": "F5",
+      "x": 1300,
+      "y": 200,
+      "name": "506教室",
+      "type": "CLASSROOM"
+    },
+    {
+      "id": "F5_LAB_501",
+      "floor": "F5",
+      "x": 450,
+      "y": 520,
+      "name": "高级计算实验室A",
+      "type": "LAB"
+    },
+    {
+      "id": "F5_LAB_502",
+      "floor": "F5",
+      "x": 1050,
+      "y": 520,
+      "name": "AI研究实验室B",
+      "type": "LAB"
+    },
+    {
+      "id": "F5_OFFICE_501",
+      "floor": "F5",
+      "x": 800,
+      "y": 520,
+      "name": "研究员办公室A",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F5_OFFICE_502",
+      "floor": "F5",
+      "x": 1000,
+      "y": 520,
+      "name": "研究员办公室B",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F5_MEETING_501",
+      "floor": "F5",
+      "x": 600,
+      "y": 520,
+      "name": "学术会议室",
+      "type": "OFFICE"
+    },
+    {
+      "id": "F5_TOILET_L",
+      "floor": "F5",
+      "x": 260,
+      "y": 520,
+      "name": "男卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F5_TOILET_R",
+      "floor": "F5",
+      "x": 1380,
+      "y": 520,
+      "name": "女卫生间",
+      "type": "TOILET"
+    },
+    {
+      "id": "F5_ELEVATOR_L",
+      "floor": "F5",
+      "x": 260,
+      "y": 300,
+      "name": "左电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F5_ELEVATOR_R",
+      "floor": "F5",
+      "x": 1380,
+      "y": 300,
+      "name": "右电梯厅",
+      "type": "ELEVATOR"
+    },
+    {
+      "id": "F5_STAIRS_L",
+      "floor": "F5",
+      "x": 220,
+      "y": 600,
+      "name": "左楼梯",
+      "type": "STAIRS"
+    },
+    {
+      "id": "F5_STAIRS_R",
+      "floor": "F5",
+      "x": 1420,
+      "y": 600,
+      "name": "右楼梯",
+      "type": "STAIRS"
+    }
+  ],
+  "edges": [
+    {
+      "from": "F1_ENTRANCE",
+      "to": "F1_CORRIDOR_1",
+      "dist": 5,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CORRIDOR_1",
+      "to": "F1_CORRIDOR_2",
+      "dist": 6,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CORRIDOR_2",
+      "to": "F1_CORRIDOR_3",
+      "dist": 6,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CORRIDOR_3",
+      "to": "F1_CORRIDOR_4",
+      "dist": 6,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CORRIDOR_4",
+      "to": "F1_CORRIDOR_5",
+      "dist": 6,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CLASSROOM_101",
+      "to": "F1_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CLASSROOM_102",
+      "to": "F1_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CLASSROOM_103",
+      "to": "F1_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CLASSROOM_104",
+      "to": "F1_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_CLASSROOM_105",
+      "to": "F1_CORRIDOR_5",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_LAB_101",
+      "to": "F1_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_LAB_102",
+      "to": "F1_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_OFFICE_101",
+      "to": "F1_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_TOILET_L",
+      "to": "F1_CORRIDOR_2",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_TOILET_R",
+      "to": "F1_CORRIDOR_4",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_ELEVATOR_L",
+      "to": "F1_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_ELEVATOR_R",
+      "to": "F1_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_STAIRS_L",
+      "to": "F1_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F1_STAIRS_R",
+      "to": "F1_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F1"
+    },
+    {
+      "from": "F2_CORRIDOR_1",
+      "to": "F2_CORRIDOR_2",
+      "dist": 6,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CORRIDOR_2",
+      "to": "F2_CORRIDOR_3",
+      "dist": 6,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CORRIDOR_3",
+      "to": "F2_CORRIDOR_4",
+      "dist": 6,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CORRIDOR_4",
+      "to": "F2_CORRIDOR_5",
+      "dist": 6,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_201",
+      "to": "F2_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_202",
+      "to": "F2_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_203",
+      "to": "F2_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_204",
+      "to": "F2_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_205",
+      "to": "F2_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_CLASSROOM_206",
+      "to": "F2_CORRIDOR_5",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_LAB_201",
+      "to": "F2_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_LAB_202",
+      "to": "F2_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_OFFICE_201",
+      "to": "F2_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_OFFICE_202",
+      "to": "F2_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_TOILET_L",
+      "to": "F2_CORRIDOR_2",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_TOILET_R",
+      "to": "F2_CORRIDOR_4",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_ELEVATOR_L",
+      "to": "F2_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_ELEVATOR_R",
+      "to": "F2_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_STAIRS_L",
+      "to": "F2_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F2_STAIRS_R",
+      "to": "F2_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F2"
+    },
+    {
+      "from": "F3_CORRIDOR_1",
+      "to": "F3_CORRIDOR_2",
+      "dist": 6,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CORRIDOR_2",
+      "to": "F3_CORRIDOR_3",
+      "dist": 6,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CORRIDOR_3",
+      "to": "F3_CORRIDOR_4",
+      "dist": 6,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CORRIDOR_4",
+      "to": "F3_CORRIDOR_5",
+      "dist": 6,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_301",
+      "to": "F3_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_302",
+      "to": "F3_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_303",
+      "to": "F3_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_304",
+      "to": "F3_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_305",
+      "to": "F3_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_CLASSROOM_306",
+      "to": "F3_CORRIDOR_5",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_LAB_301",
+      "to": "F3_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_LAB_302",
+      "to": "F3_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_OFFICE_301",
+      "to": "F3_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_OFFICE_302",
+      "to": "F3_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_TOILET_L",
+      "to": "F3_CORRIDOR_2",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_TOILET_R",
+      "to": "F3_CORRIDOR_4",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_ELEVATOR_L",
+      "to": "F3_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_ELEVATOR_R",
+      "to": "F3_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_STAIRS_L",
+      "to": "F3_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F3_STAIRS_R",
+      "to": "F3_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F3"
+    },
+    {
+      "from": "F4_CORRIDOR_1",
+      "to": "F4_CORRIDOR_2",
+      "dist": 6,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CORRIDOR_2",
+      "to": "F4_CORRIDOR_3",
+      "dist": 6,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CORRIDOR_3",
+      "to": "F4_CORRIDOR_4",
+      "dist": 6,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CORRIDOR_4",
+      "to": "F4_CORRIDOR_5",
+      "dist": 6,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_401",
+      "to": "F4_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_402",
+      "to": "F4_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_403",
+      "to": "F4_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_404",
+      "to": "F4_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_405",
+      "to": "F4_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_CLASSROOM_406",
+      "to": "F4_CORRIDOR_5",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_LAB_401",
+      "to": "F4_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_LAB_402",
+      "to": "F4_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_OFFICE_401",
+      "to": "F4_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_OFFICE_402",
+      "to": "F4_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_TOILET_L",
+      "to": "F4_CORRIDOR_2",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_TOILET_R",
+      "to": "F4_CORRIDOR_4",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_ELEVATOR_L",
+      "to": "F4_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_ELEVATOR_R",
+      "to": "F4_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_STAIRS_L",
+      "to": "F4_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F4_STAIRS_R",
+      "to": "F4_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F4"
+    },
+    {
+      "from": "F5_CORRIDOR_1",
+      "to": "F5_CORRIDOR_2",
+      "dist": 6,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CORRIDOR_2",
+      "to": "F5_CORRIDOR_3",
+      "dist": 6,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CORRIDOR_3",
+      "to": "F5_CORRIDOR_4",
+      "dist": 6,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CORRIDOR_4",
+      "to": "F5_CORRIDOR_5",
+      "dist": 6,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_501",
+      "to": "F5_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_502",
+      "to": "F5_CORRIDOR_1",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_503",
+      "to": "F5_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_504",
+      "to": "F5_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_505",
+      "to": "F5_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_CLASSROOM_506",
+      "to": "F5_CORRIDOR_5",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_LAB_501",
+      "to": "F5_CORRIDOR_2",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_LAB_502",
+      "to": "F5_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_OFFICE_501",
+      "to": "F5_CORRIDOR_3",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_OFFICE_502",
+      "to": "F5_CORRIDOR_4",
+      "dist": 3,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_MEETING_501",
+      "to": "F5_CORRIDOR_3",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_TOILET_L",
+      "to": "F5_CORRIDOR_2",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_TOILET_R",
+      "to": "F5_CORRIDOR_4",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_ELEVATOR_L",
+      "to": "F5_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_ELEVATOR_R",
+      "to": "F5_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_STAIRS_L",
+      "to": "F5_CORRIDOR_1",
+      "dist": 2,
+      "floor": "F5"
+    },
+    {
+      "from": "F5_STAIRS_R",
+      "to": "F5_CORRIDOR_5",
+      "dist": 2,
+      "floor": "F5"
+    }
+  ],
+  "crossFloorEdges": [
+    {
+      "from": "F1_ELEVATOR_L",
+      "to": "F2_ELEVATOR_L",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F2_ELEVATOR_L",
+      "to": "F3_ELEVATOR_L",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F3_ELEVATOR_L",
+      "to": "F4_ELEVATOR_L",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F4_ELEVATOR_L",
+      "to": "F5_ELEVATOR_L",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F1_ELEVATOR_R",
+      "to": "F2_ELEVATOR_R",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F2_ELEVATOR_R",
+      "to": "F3_ELEVATOR_R",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F3_ELEVATOR_R",
+      "to": "F4_ELEVATOR_R",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F4_ELEVATOR_R",
+      "to": "F5_ELEVATOR_R",
+      "dist": 3,
+      "type": "ELEVATOR"
+    },
+    {
+      "from": "F1_STAIRS_L",
+      "to": "F2_STAIRS_L",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F2_STAIRS_L",
+      "to": "F3_STAIRS_L",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F3_STAIRS_L",
+      "to": "F4_STAIRS_L",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F4_STAIRS_L",
+      "to": "F5_STAIRS_L",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F1_STAIRS_R",
+      "to": "F2_STAIRS_R",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F2_STAIRS_R",
+      "to": "F3_STAIRS_R",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F3_STAIRS_R",
+      "to": "F4_STAIRS_R",
+      "dist": 4,
+      "type": "STAIRS"
+    },
+    {
+      "from": "F4_STAIRS_R",
+      "to": "F5_STAIRS_R",
+      "dist": 4,
+      "type": "STAIRS"
+    }
+  ]
+}

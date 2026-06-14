@@ -34,6 +34,8 @@ export interface TimeSlot {
   lat?: number           // NEW: coordinate for map rendering
   lng?: number           // NEW: coordinate for map rendering
   routeOrder?: number    // NEW: order in the walking route
+  budget?: number        // 预算（元）
+  actualCost?: number    // 实际花费（元）
 }
 
 export interface TimelineDay {

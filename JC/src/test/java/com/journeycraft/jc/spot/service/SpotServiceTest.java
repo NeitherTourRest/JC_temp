@@ -14,8 +14,7 @@ import com.journeycraft.jc.spot.dto.SpotSearchRequest;
 import com.journeycraft.jc.spot.entity.Spot;
 import com.journeycraft.jc.spot.repository.SpotRepository;
 import com.journeycraft.jc.spot.repository.SpotReviewRepository;
-import com.journeycraft.jc.user.entity.UserPreference;
-import com.journeycraft.jc.user.repository.UserPreferenceRepository;
+import com.journeycraft.jc.recommend.SpotRecommendationEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ class SpotServiceTest {
     @Mock private FacilityRepository facilityRepository;
     @Mock private CongestionService congestionService;
     @Mock private UserRepository userRepository;
-    @Mock private UserPreferenceRepository userPreferenceRepository;
+    @Mock private SpotRecommendationEngine spotRecommendationEngine;
 
     private SpotService spotService;
 
@@ -52,7 +51,7 @@ class SpotServiceTest {
 
     @BeforeEach
     void setUp() {
-        spotService = new SpotService(spotRepository, spotReviewRepository, foodRepository, facilityRepository, congestionService, userRepository, userPreferenceRepository);
+        spotService = new SpotService(spotRepository, spotReviewRepository, foodRepository, facilityRepository, congestionService, userRepository, spotRecommendationEngine);
 
         spot1 = Spot.builder().id(1L).name("Great Wall").category("scenic")
                 .popularity(100).avgRating(BigDecimal.valueOf(4.5)).latitude(40.0).longitude(116.0)
@@ -169,15 +168,14 @@ class SpotServiceTest {
     }
 
     @Test
-    @DisplayName("recommendTopK adds bonus for matching user interests")
+    @DisplayName("recommendTopK returns spots from recommendation engine")
     void recommendTopKWithInterest() {
-        when(spotRepository.findAll()).thenReturn(List.of(spot1, spot2));
-        var pref = UserPreference.builder().interestCategories("scenic").build();
-        when(userPreferenceRepository.findByUserId(10L)).thenReturn(Optional.of(pref));
+        var rec1 = new SpotRecommendationEngine.RecommendedSpot(spot1, 0.9, "匹配兴趣");
+        var rec2 = new SpotRecommendationEngine.RecommendedSpot(spot2, 0.5, "热门景点");
+        when(spotRecommendationEngine.recommendForUser(10L, 2)).thenReturn(List.of(rec1, rec2));
 
         var result = spotService.recommendTopK(2, 10L);
         assertEquals(2, result.size());
-        // Great Wall matches interest (scenic) → higher score
         assertEquals("Great Wall", result.get(0).name());
     }
 
@@ -205,10 +203,10 @@ class SpotServiceTest {
     }
 
     @Test
-    @DisplayName("recommendTopK with non-existent user returns default top K")
+    @DisplayName("recommendTopK returns default top K when engine returns results")
     void recommendTopKUserNoPref() {
-        when(spotRepository.findAll()).thenReturn(List.of(spot1, spot2));
-        when(userPreferenceRepository.findByUserId(99L)).thenReturn(Optional.empty());
+        var rec = new SpotRecommendationEngine.RecommendedSpot(spot1, 0.5, "默认推荐");
+        when(spotRecommendationEngine.recommendForUser(99L, 2)).thenReturn(List.of(rec, rec));
 
         var result = spotService.recommendTopK(2, 99L);
         assertEquals(2, result.size());

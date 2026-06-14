@@ -210,17 +210,15 @@
         <button class="add-day-btn" @click="addDay" title="Add day">+</button>
       </div>
 
-      <!-- ── Budget Summary Bar ────────────────────── -->
-      <div v-if="appliedBudget" class="budget-summary-bar">
-        💰 Budget: {{ appliedBudget.totalBudget }} · {{ appliedBudget.categories?.length || 0 }} categories
-        <button class="route-clear-btn" @click="appliedBudget = null">✕</button>
-      </div>
-
       <!-- ── Day Content (Timeline) ────────────────────── -->
       <div v-if="activeDay" class="day-content">
         <div class="timeline-container">
           <div class="timeline-header">
-            <h3>Day {{ activeDay.dayIndex }} · {{ activeDay.date }}</h3>
+            <h3>Day {{ activeDay.dayIndex }} · {{ activeDay.date }}
+              <span v-if="activeDayBudget || activeDayActual" class="day-totals">
+                💰 预算 ¥{{ activeDayBudget }} / 实际 ¥{{ activeDayActual }}
+              </span>
+            </h3>
             <div class="timeline-header-actions">
               <el-select v-model="routeTransport" size="small" style="width:100px" placeholder="交通方式">
                 <el-option label="🚶 步行" value="WALK" />
@@ -253,6 +251,9 @@
               <span class="slot-time">{{ slot.startTime }}–{{ slot.endTime }}</span>
               <span class="slot-name">{{ slot.name || slot.text || 'New Activity' }}</span>
               <span class="slot-icon">{{ slot.type === 'spot' ? '📍' : slot.type === 'food' ? '🍽️' : '📝' }}</span>
+              <span class="slot-budget-inline" v-if="slot.budget != null || slot.actualCost != null">
+                ¥{{ slot.budget ?? '-' }} / ¥{{ slot.actualCost ?? '-' }}
+              </span>
               <button class="slot-delete" @click.stop="deleteSlot(slot.id)">×</button>
             </div>
           </div>
@@ -267,7 +268,7 @@
       <!-- ── Floating AI Buttons ────────────────────────── -->
       <div class="ai-float-group">
         <button class="ai-float-btn" title="AI Plan" @click="openAiPlanDialog">📋 Plan</button>
-        <button class="ai-float-btn" title="预算" @click="openBudgetDialog">💰 预算</button>
+        <button class="ai-float-btn" title="预算" @click="openBudgetDialog" :disabled="predictBudgetLoading">💰 预算</button>
         <button class="ai-float-btn" title="AI Assistant" @click="openAiDialog">🤖 Chat</button>
       </div>
 
@@ -423,55 +424,6 @@
       </el-dialog>
 
       <!-- ══════════════════════════════════════════════════════
-           DIALOG 5: Budget 💰
-           ══════════════════════════════════════════════════════ -->
-      <el-dialog v-model="budgetDialogVisible" title="💰 Budget Estimate" width="700px" top="5vh" destroy-on-close>
-        <el-form label-position="top">
-          <el-row :gutter="16">
-            <el-col :span="12">
-              <el-form-item label="Days"><el-input-number v-model="budgetForm.days" :min="1" :max="30" style="width:100%" /></el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="People"><el-input-number v-model="budgetForm.peopleCount" :min="1" :max="20" style="width:100%" /></el-form-item>
-            </el-col>
-          </el-row>
-          <el-form-item label="游览景点"><el-input v-model="budgetForm.spots" placeholder="例如：十三陵、居庸关" /></el-form-item>
-          <el-row :gutter="16">
-            <el-col :span="8">
-              <el-form-item label="Transport"><el-select v-model="budgetForm.transport" style="width:100%">
-                <el-option label="Public" value="公共交通" /><el-option label="Self-drive" value="自驾" /><el-option label="Mixed" value="混合" />
-              </el-select></el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="Dining"><el-select v-model="budgetForm.diningPref" style="width:100%">
-                <el-option label="Simple" value="简餐" /><el-option label="Normal" value="普通" /><el-option label="Gourmet" value="美食体验" />
-              </el-select></el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="Accommodation"><el-select v-model="budgetForm.accommodation" style="width:100%">
-                <el-option label="Budget" value="经济型" /><el-option label="Comfort" value="舒适型" /><el-option label="Luxury" value="高档" />
-              </el-select></el-form-item>
-            </el-col>
-          </el-row>
-          <el-button type="primary" @click="estimateBudget" :loading="budgetLoading" style="width:100%">Estimate Budget</el-button>
-        </el-form>
-        <div v-if="budgetResult && !budgetLoading" class="dialog-result">
-          <h4 class="budget-total">💰 Total: <span class="total-amount">{{ budgetResult.totalBudget }}</span></h4>
-          <div v-for="cat in budgetResult.categories" :key="cat.name" class="cat-row">
-            <span class="cat-name">{{ cat.name }}</span>
-            <span class="cat-amount">¥{{ cat.amount }}</span>
-            <span class="cat-detail">{{ cat.details }}</span>
-          </div>
-          <div v-if="budgetResult.suggestions?.length" class="plan-tips">
-            <p v-for="(s, i) in budgetResult.suggestions" :key="i">• {{ s }}</p>
-          </div>
-        </div>
-        <div v-if="budgetResult && !budgetLoading" class="budget-apply-row">
-          <el-button type="success" @click="applyBudgetResult">✅ Apply to Trip</el-button>
-        </div>
-      </el-dialog>
-
-      <!-- ══════════════════════════════════════════════════════
            DIALOG 7: Route Result 🗺️
            ══════════════════════════════════════════════════════ -->
       <el-dialog v-model="routeDialogVisible" title="🗺️ Route Plan" width="750px" top="3vh" destroy-on-close @opened="onRouteDialogOpened" @closed="destroyRouteMap">
@@ -556,6 +508,20 @@
             <label>Notes</label>
             <el-input v-model="slotEditText" type="textarea" :rows="3" placeholder="What do you want to do?" />
           </div>
+          <!-- Budget & Actual Cost -->
+          <div class="slot-edit-row">
+            <label>💰 预算与实际花费（元）</label>
+            <div class="slot-budget-row">
+              <div class="slot-budget-item">
+                <span class="slot-budget-label">预算</span>
+                <el-input-number v-model="slotEditBudget" :min="0" :step="10" size="small" style="width:140px" placeholder="预算" />
+              </div>
+              <div class="slot-budget-item">
+                <span class="slot-budget-label">实际</span>
+                <el-input-number v-model="slotEditActual" :min="0" :step="10" size="small" style="width:140px" placeholder="实际花费" />
+              </div>
+            </div>
+          </div>
         </div>
         <template #footer>
           <el-button @click="slotEditVisible = false">Cancel</el-button>
@@ -639,6 +605,10 @@ const tripPlan = reactive<TimelinePlan>({
 const activeDayIndex = ref(0)
 
 const activeDay = computed(() => tripPlan.days[activeDayIndex.value] ?? null)
+const activeDayBudget = computed(() => activeDay.value?.slots.reduce((s, sl) => s + (sl.budget || 0), 0) ?? 0)
+const activeDayActual = computed(() => activeDay.value?.slots.reduce((s, sl) => s + (sl.actualCost || 0), 0) ?? 0)
+const tripTotalBudget = computed(() => tripPlan.days.reduce((s, d) => s + d.slots.reduce((ss, sl) => ss + (sl.budget || 0), 0), 0))
+const tripTotalActual = computed(() => tripPlan.days.reduce((s, d) => s + d.slots.reduce((ss, sl) => ss + (sl.actualCost || 0), 0), 0))
 
 const routeLoading = ref(false)
 const routeDialogVisible = ref(false)
@@ -647,7 +617,6 @@ const routeTotalDist = ref(0)
 const routeTotalTime = ref(0)
 const routePoints = ref<{ name: string; lat: number; lng: number }[]>([])
 const routeTransport = ref('WALK')
-const appliedBudget = ref<any>(null)
 
 /* ── Dialog 1: Map Picker state ──────────────────────── */
 const mapDialogVisible = ref(false)
@@ -662,6 +631,8 @@ const slotEditType = ref<'spot' | 'food' | 'text'>('text')
 const slotEditStart = ref<Date | null>(null)
 const slotEditEnd = ref<Date | null>(null)
 const slotEditText = ref('')
+const slotEditBudget = ref<number | undefined>(undefined)
+const slotEditActual = ref<number | undefined>(undefined)
 const slotSearchKeyword = ref('')
 const slotSpotResults = ref<any[]>([])
 const slotFoodResults = ref<any[]>([])
@@ -678,12 +649,6 @@ const aiPlanDialogVisible = ref(false)
 const planForm = ref({ days: 2, interests: '自然风光,历史古迹', budget: 0, transport: '步行', additionalInfo: '' })
 const planResult = ref<any>(null)
 const planLoading = ref(false)
-
-/* ── Dialog 5: Budget state ──────────────────────────── */
-const budgetDialogVisible = ref(false)
-const budgetForm = ref({ days: 2, peopleCount: 2, spots: '十三陵,居庸关长城', transport: '公共交通', diningPref: '普通', accommodation: '经济型' })
-const budgetResult = ref<any>(null)
-const budgetLoading = ref(false)
 
 /* ── Diary picker (inside Plan dialog) state ──────────── */
 const diaryCollapseOpen = ref<string[]>([])
@@ -1084,6 +1049,8 @@ function openSlotEditor(slot: TimeSlot) {
   slotEditStart.value = new Date(d.getFullYear(), d.getMonth(), d.getDate(), sh, sm)
   slotEditEnd.value = new Date(d.getFullYear(), d.getMonth(), d.getDate(), eh, em)
   slotEditText.value = slot.text || ''
+  slotEditBudget.value = slot.budget
+  slotEditActual.value = slot.actualCost
   slotSearchKeyword.value = ''
   slotSpotResults.value = []
   slotFoodResults.value = []
@@ -1110,6 +1077,8 @@ function saveSlotEdit() {
   }
   if (slotEditType.value === 'spot') { slot.name = editingSlot.value.name }
   if (slotEditType.value === 'food') { slot.name = editingSlot.value.name }
+  slot.budget = slotEditBudget.value
+  slot.actualCost = slotEditActual.value
   slotEditVisible.value = false
 }
 async function doSlotSpotSearch() {
@@ -1265,24 +1234,38 @@ function openAiPlanDialog() {
   diaryPage.value = 1
   diaryTotalElements.value = 0
 }
-function openBudgetDialog() {
-  budgetDialogVisible.value = true
-  budgetResult.value = null
-  budgetLoading.value = false
-  // Auto-fill from trip data
-  budgetForm.value.days = tripPlan.days.length || 2
-  const allSpotNames: string[] = []
+const predictBudgetLoading = ref(false)
+
+async function openBudgetDialog() {
+  // Collect all slots across all days with spots/foods
+  const items: { day: number; date: string; slotId: string; name: string; type: string; time: string }[] = []
   for (const day of tripPlan.days) {
     for (const slot of day.slots) {
-      if (slot.spotName && !allSpotNames.includes(slot.spotName)) {
-        allSpotNames.push(slot.spotName)
-      }
+      const n = slot.spotName || slot.foodName || slot.name || slot.text
+      if (!n || slot.type === 'text') continue
+      items.push({ day: day.dayIndex, date: day.date, slotId: slot.id, name: n, type: slot.type, time: slot.startTime })
     }
   }
-  if (allSpotNames.length > 0) {
-    budgetForm.value.spots = allSpotNames.join(',')
-  }
+  if (!items.length) { ElMessage.warning('没有可预测的事件，请先添加景点或美食'); return }
+  predictBudgetLoading.value = true
+  ElMessage.info('AI 正在估算每个事件的预算…')
+  try {
+    const res = await aiApi.budgetPerEvent({ items })
+    const budgets: Record<string, number> = res.data.data?.budgets || {}
+    for (const day of tripPlan.days) {
+      for (const slot of day.slots) {
+        if (budgets[slot.id] != null) slot.budget = budgets[slot.id]
+      }
+    }
+    ElMessage.success(`已为 ${Object.keys(budgets).length} 个事件估算了预算`)
+  } catch (e: any) {
+    ElMessage.error('AI 预算预测失败：' + (e?.message || '请检查AI配置'))
+  } finally { predictBudgetLoading.value = false }
 }
+
+// Remove old budget dialog functions
+// estimateBudget, applyBudgetResult, etc are no longer needed
+
 async function generatePlan() {
   planLoading.value = true
   planResult.value = null
@@ -1341,16 +1324,6 @@ async function selectDiary(diary: any) {
   } finally { planLoading.value = false }
 }
 
-async function estimateBudget() {
-  budgetLoading.value = true
-  budgetResult.value = null
-  try {
-    const res = await aiApi.budget(budgetForm.value)
-    budgetResult.value = res.data.data
-  } catch {
-    budgetResult.value = { totalBudget: 'N/A', categories: [], suggestions: ['Check AI config'] }
-  } finally { budgetLoading.value = false }
-}
 function applyPlanResult() {
   if (!planResult.value || !planResult.value.days) return
   tripPlan.days = planResult.value.days.map((day: PlanDaySchedule, di: number) => ({
@@ -1528,13 +1501,6 @@ function clearDayRoute() {
   activeDay.value.slots.forEach(s => { s.routeOrder = undefined })
   activeDay.value.routeDistance = undefined
   activeDay.value.routeTime = undefined
-}
-
-function applyBudgetResult() {
-  if (!budgetResult.value) return
-  appliedBudget.value = budgetResult.value
-  ElMessage.success('Budget applied to trip')
-  budgetDialogVisible.value = false
 }
 
 async function handleSave() {
@@ -2068,6 +2034,11 @@ onMounted(() => {
 .timeline-container { position: relative; padding: 8px 0; }
 .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .timeline-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-heading); margin: 0; }
+.day-totals { font-size: 12px; color: #3ad29f; font-weight: 400; margin-left: 12px; }
+.slot-budget-inline { font-size: 11px; color: var(--pop-green); white-space: nowrap; margin-left: auto; }
+.slot-budget-row { display: flex; gap: 12px; }
+.slot-budget-item { display: flex; flex-direction: column; gap: 2px; }
+.slot-budget-label { font-size: 11px; color: var(--text-secondary); }
 
 .timeline-header-actions { display: flex; gap: 8px; align-items: center; }
 

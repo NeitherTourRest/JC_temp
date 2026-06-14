@@ -39,7 +39,7 @@
           </div>
         </template>
 
-        <div v-if="diary.musicUrl" class="glass" style="padding:20px"><audio :src="diary.musicUrl" controls style="width:100%" /></div>
+        <div v-if="diary.musicUrl" class="glass music-player-section"><MusicPlayer :src="diary.musicUrl" /></div>
         <div class="glass rating-card">
           <h3>给这篇游记评分</h3>
           <div class="rate-row">
@@ -59,10 +59,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElImageViewer, ElMessageBox } from 'element-plus'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import MusicPlayer from '@/components/MusicPlayer.vue'
 import { diaryApi } from '@/api/diaryApi'
+import { useAuthStore } from '@/stores/authStore'
 import type { DiaryResponse } from '@/types/api'
 
 const route = useRoute(); const router = useRouter()
+const authStore = useAuthStore()
 const diary = ref<DiaryResponse | null>(null)
 const loading = ref(true)
 const rating = ref(0)
@@ -71,7 +74,7 @@ const rateLoading = ref(false)
 const previewIdx = ref(0)
 const showPreview = ref(false)
 
-const isOwner = computed(() => diary.value?.userId === 1) // simplified
+const isOwner = computed(() => diary.value?.userId != null && diary.value.userId === authStore.user?.id)
 const renderedHtml = computed(() => {
   // If rich HTML content exists, use it directly
   if (diary.value?.contentHtml) return diary.value.contentHtml
@@ -166,6 +169,7 @@ onMounted(async () => {
 .detail-video {
   width: 100%; max-height: 400px; border-radius: 8px;
 }
+.music-player-section { padding: 16px 20px; margin-bottom: 16px; }
 
 @media (max-width: 768px) { .hero h1 { font-size: 1.4rem; } }
 

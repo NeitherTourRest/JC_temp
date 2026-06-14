@@ -155,73 +155,46 @@
     </div>
 
     <!-- 室内导航弹窗 -->
-    <el-dialog v-model="indoorDialogVisible" title="🏛 综合实验教学楼 · 室内导航" width="75%" top="4vh" destroy-on-close
-      @close="clearIndoor">
+    <el-dialog v-model="indoorDialogVisible" title="🏛 综合实验教学楼 · 室内导航" width="80%" top="4vh" destroy-on-close @close="clearIndoor">
       <div class="indoor-dialog-body">
         <div class="indoor-left">
           <div class="indoor-toolbar">
             <button v-for="f in indoorFloors" :key="f" :class="['floor-tab', { active: indoorFloor === f }]" @click="indoorFloor = f">{{ f }}</button>
             <div class="indoor-toolbar-spacer"></div>
-            <button :class="['sel-btn', { active: indoorSelectMode === 'start' }]" @click="indoorSelectMode = indoorSelectMode === 'start' ? null : 'start'">
-              {{ indoorStart ? 'S:' + indoorStart.name : '选起点' }}
+            <button :class="['sel-btn', { active: indoorMode === 'start' }]" @click="indoorMode = indoorMode === 'start' ? null : 'start'">
+              {{ modeStart && indoorMode !== 'start' ? '✓ ' + modeStart.name : '选起点' }}
             </button>
-            <button :class="['sel-btn', { active: indoorSelectMode === 'end' }]" @click="indoorSelectMode = indoorSelectMode === 'end' ? null : 'end'">
-              {{ indoorEnd ? 'E:' + indoorEnd.name : '选终点' }}
+            <button :class="['sel-btn', { active: indoorMode === 'end' }]" @click="indoorMode = indoorMode === 'end' ? null : 'end'">
+              {{ modeEnd && indoorMode !== 'end' ? '✓ ' + modeEnd.name : '选终点' }}
             </button>
+            <span class="indoor-mode-hint" v-if="indoorMode">点击图上节点</span>
           </div>
-          <div class="indoor-plan-wrap" @click="indoorSvgClicked">
-            <svg :viewBox="indoorSvgViewBox" class="indoor-svg">
-              <line v-for="e in indoorFloorEdges" :key="e.from + e.to"
-                :x1="indoorNodePos(e.from).x" :y1="indoorNodePos(e.from).y"
-                :x2="indoorNodePos(e.to).x" :y2="indoorNodePos(e.to).y"
-                :class="['indoor-edge', { 'on-path': indoorPathEdgeSet.has(e.from + '-' + e.to) }]" />
-              <line v-for="e in indoorPathEdges" :key="e.from + e.to"
-                :x1="indoorNodePos(e.from).x" :y1="indoorNodePos(e.from).y"
-                :x2="indoorNodePos(e.to).x" :y2="indoorNodePos(e.to).y"
-                class="indoor-route-line" />
-              <g v-for="n in indoorFloorNodes" :key="n.id" class="indoor-svg-node"
-                :transform="'translate(' + n.x + ',' + n.y + ')'">
-                <title>{{ n.name }}</title>
-                <rect v-if="n.type === 'STAIRS' || n.type === 'ELEVATOR'" x="-8" y="-8" width="16" height="16" rx="3" :class="'ns-' + indoorNodeType(n.type)" />
-                <polygon v-else-if="n.type === 'ENTRANCE'" points="-10,8 0,-10 10,8" :class="'ns-' + indoorNodeType(n.type)" />
-                <rect v-else x="-6" y="-6" width="12" height="12" :class="'ns-' + indoorNodeType(n.type)" />
-                <text x="14" y="4" class="indoor-node-label">{{ n.name }}</text>
-                <text v-if="indoorStart && n.id === indoorStart.id" x="0" y="-14" class="indoor-marker-start">起</text>
-                <text v-if="indoorEnd && n.id === indoorEnd.id" x="0" y="-14" class="indoor-marker-end">终</text>
-              </g>
-            </svg>
-          </div>
-          <div class="indoor-action-bar">
-            <el-button size="small" @click="clearIndoor">清除</el-button>
-            <el-button size="small" type="primary" @click="doIndoorNav" :loading="indoorLoading">导航</el-button>
-          </div>
+          <canvas ref="indoorCanvasRef" class="indoor-canvas-main" @click="onIndoorCanvasClick" />
         </div>
         <div class="indoor-right">
-          <div v-if="indoorRoute">
-            <h4>导航步骤</h4>
-            <p>距离: {{ indoorRoute.totalDistance.toFixed(0) }}m</p>
-            <div class="indoor-step-list">
-              <div v-for="(s, i) in indoorRoute.steps" :key="i" :class="['step-item', { 'cf': s.crossFloor }]">
-                <div class="step-num">{{ i + 1 }}</div>
-                <div>
-                  <div>{{ s.instruction }}</div>
-                  <div class="step-meta">{{ s.fromFloor }} {{ s.crossFloor ? dirText(s.fromFloor, s.toFloor) : s.distance.toFixed(0) + 'm' }}</div>
-                </div>
-                <el-tag v-if="s.crossFloor" type="warning" size="small">跨层</el-tag>
-              </div>
+          <template v-if="indoorRoute">
+            <h4>🚶 导航路线</h4>
+            <span class="indoor-dist">全程约 {{ indoorRoute.totalDistance.toFixed(0) }} 米</span>
+            <div class="indoor-route-text">{{ indoorRouteText }}</div>
+            <div class="indoor-actions">
+              <el-button @click="clearIndoor">清除重选</el-button>
             </div>
-            <el-button size="small" class="indoor-back-btn" @click="indoorRoute = null">返回</el-button>
-          </div>
-          <div v-else>
-            <h4>{{ indoorFloor }}层 节点</h4>
+          </template>
+          <template v-else>
+            <div class="indoor-actions">
+              <el-button size="small" @click="clearIndoor">清除</el-button>
+              <el-button size="small" type="primary" @click="doIndoorNav" :loading="indoorLoading" :disabled="!modeStart || !modeEnd">开始导航</el-button>
+            </div>
+            <h4 class="indoor-section-title">{{ indoorFloor }} 层节点</h4>
             <div class="indoor-node-list">
-              <div v-for="n in indoorFloorNodes" :key="n.id" :class="['indoor-node-item', { 'is-start': n.id === indoorStart?.id, 'is-end': n.id === indoorEnd?.id }]" @click="pickNode(n)">
-                <span>{{ iconOf(n.type) }}</span>
+              <div v-for="n in indoorFloorNodes" :key="n.id"
+                :class="['indoor-node-item', { 'is-start': n.id === modeStart?.id, 'is-end': n.id === modeEnd?.id }]"
+                @click="onIndoorNodeClick(n)">
+                <span class="node-icon">{{ iconOf(n.type) }}</span>
                 <span class="node-name">{{ n.name }}</span>
-                <span class="node-type">{{ n.type }}</span>
               </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </el-dialog>
@@ -284,135 +257,131 @@ const poiKeyword = ref('')
 const poiResults = ref<any[]>([])
 const searchPOILoading = ref(false)
 
-// ── Indoor navigation ──
+// ── Indoor navigation (clean rewrite) ──
 const indoorDialogVisible = ref(false)
 const indoorFloor = ref('F1')
-const indoorFloors = ['B1', 'F1', 'F2', 'F3', 'F4', 'F5']
+const indoorFloors: string[] = []
 const indoorNodes = ref<IndoorNode[]>([])
 const indoorEdges = ref<{ from: string; to: string; floor: string }[]>([])
-const indoorStart = ref<IndoorNode | null>(null)
-const indoorEnd = ref<IndoorNode | null>(null)
-const indoorSelectMode = ref<'start' | 'end' | null>(null)
+const indoorMode = ref<'start' | 'end' | null>(null)
+const modeStart = ref<IndoorNode | null>(null)
+const modeEnd = ref<IndoorNode | null>(null)
 const indoorRoute = ref<any>(null)
 const indoorLoading = ref(false)
+const indoorCanvasRef = ref<HTMLCanvasElement>()
 
-const indoorFloorNodes = computed(() =>
-  indoorNodes.value.filter(n => n.floor === indoorFloor.value && n.type !== 'CORRIDOR')
-)
+const indoorFloorNodes = computed(() => indoorNodes.value.filter(n => n.floor === indoorFloor.value && n.type !== 'CORRIDOR'))
 
-const indoorFloorEdges = computed(() =>
-  indoorEdges.value.filter(e => e.floor === indoorFloor.value)
-)
+function clearIndoor() { modeStart.value = null; modeEnd.value = null; indoorMode.value = null; indoorRoute.value = null }
+function onIndoorNodeClick(n: IndoorNode) { handleNodePick(n) }
+function onIndoorCanvasClick(e: MouseEvent) {
+  const canvas = indoorCanvasRef.value; if (!canvas || !indoorMode.value) return
+  const rect = canvas.getBoundingClientRect()
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width)
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height)
+  // Build same bbox as draw to transform coordinates
+  const floorNodes = indoorNodes.value.filter(n => n.floor === indoorFloor.value)
+  if (!floorNodes.length) return
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const n of floorNodes) { if (n.x < minX) minX = n.x; if (n.y < minY) minY = n.y; if (n.x > maxX) maxX = n.x; if (n.y > maxY) maxY = n.y }
+  const pad = 60, bboxW = maxX - minX + pad * 2, bboxH = maxY - minY + pad * 2
+  const scale = Math.min(canvas.width / bboxW, canvas.height / bboxH) * 0.85
+  const ox = (canvas.width - (maxX - minX) * scale) / 2, oy = (canvas.height - (maxY - minY) * scale) / 2
+  const tx = (x: number) => (x - minX) * scale + ox
+  const ty = (y: number) => (y - minY) * scale + oy
+  let best: IndoorNode | null = null, bestDist = 50
+  for (const n of floorNodes) { const d = Math.hypot(mx - tx(n.x), my - ty(n.y)); if (d < bestDist) { best = n; bestDist = d } }
+  if (best) handleNodePick(best)
+}
 
-const indoorSvgViewBox = computed(() => {
-  let mx = 300, my = 300
-  for (const n of indoorFloorNodes.value) {
-    if (n.x > mx) mx = n.x
-    if (n.y > my) my = n.y
+function handleNodePick(n: IndoorNode) {
+  if (indoorMode.value === 'start') { modeStart.value = n; indoorMode.value = null }
+  else if (indoorMode.value === 'end') { modeEnd.value = n; indoorMode.value = null }
+  drawIndoorCanvas()
+}
+
+function drawIndoorCanvas() {
+  const canvas = indoorCanvasRef.value; if (!canvas) return
+  const ctx = canvas.getContext('2d'); if (!ctx) return
+  const parent = canvas.parentElement
+  if (parent) { canvas.width = parent.clientWidth; canvas.height = parent.clientHeight }
+  const w = canvas.width, h = canvas.height
+  const sid = modeStart.value?.id ?? null, eid = modeEnd.value?.id ?? null
+  ctx.clearRect(0, 0, w, h)
+  const floorNodes = indoorNodes.value.filter(n => n.floor === indoorFloor.value)
+  if (!floorNodes.length) return
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const n of floorNodes) { if (n.x < minX) minX = n.x; if (n.y < minY) minY = n.y; if (n.x > maxX) maxX = n.x; if (n.y > maxY) maxY = n.y }
+  const pad = 60, bboxW = maxX - minX + pad * 2, bboxH = maxY - minY + pad * 2
+  const scale = Math.min(w / bboxW, h / bboxH) * 0.85
+  const ox = (w - (maxX - minX) * scale) / 2, oy = (h - (maxY - minY) * scale) / 2
+  const tx = (x: number) => (x - minX) * scale + ox, ty = (y: number) => (y - minY) * scale + oy
+  // Edges
+  ctx.strokeStyle = 'rgba(58,210,159,0.1)'; ctx.lineWidth = 1
+  for (const e of indoorEdges.value.filter(e => e.floor === indoorFloor.value)) {
+    const a = indoorNodes.value.find(n => n.id === e.from), b = indoorNodes.value.find(n => n.id === e.to)
+    if (!a || !b) continue
+    ctx.beginPath(); ctx.moveTo(tx(a.x), ty(a.y)); ctx.lineTo(tx(b.x), ty(b.y)); ctx.stroke()
   }
-  return `0 0 ${mx + 100} ${my + 100}`
-})
-
-const indoorPathEdgeSet = computed(() => {
-  if (!indoorRoute.value) return new Set<string>()
-  const s = new Set<string>()
-  for (const step of indoorRoute.value.steps) {
-    if (!step.crossFloor) {
-      s.add(step.fromNodeId + '-' + step.toNodeId)
-      s.add(step.toNodeId + '-' + step.fromNodeId)
+  // Nodes
+  for (const n of floorNodes) {
+    const cx = tx(n.x), cy = ty(n.y), sel = n.id === sid || n.id === eid
+    const sz = Math.max(3, 6 * scale / 2)
+    ctx.globalAlpha = sel ? 1 : 0.3
+    if (n.type === 'CORRIDOR') ctx.fillStyle = '#3ad29f'
+    else if (n.type === 'STAIRS') ctx.fillStyle = '#dc3545'
+    else if (n.type === 'ELEVATOR') ctx.fillStyle = '#a76fd7'
+    else ctx.fillStyle = '#7cd7ee'
+    ctx.beginPath()
+    if (n.type === 'ENTRANCE') { ctx.moveTo(cx, cy - sz); ctx.lineTo(cx - sz, cy + sz); ctx.lineTo(cx + sz, cy + sz) }
+    else ctx.rect(cx - sz/2, cy - sz/2, sz, sz)
+    ctx.fill()
+    if (sel) { ctx.strokeStyle = '#3ad29f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, sz + 4, 0, Math.PI*2); ctx.stroke() }
+    ctx.globalAlpha = 1
+    if (n.type !== 'CORRIDOR' || sel) {
+      ctx.fillStyle = '#e8e8e8'; ctx.font = `${Math.max(9, 10*scale/1.5)}px sans-serif`; ctx.textBaseline = 'middle'
+      ctx.fillText(n.name || n.id, cx + sz + 3, cy)
     }
   }
-  return s
+}
+
+const indoorRouteText = computed(() => {
+  if (!indoorRoute.value?.steps?.length) return ''
+  return indoorRoute.value.steps.map((s: any) =>
+    s.crossFloor ? `${s.toNodeId?.includes('ELEVATOR')?'乘电梯':'走楼梯'}从${s.fromFloor}到${s.toFloor}` : `前往${s.toName}（${s.distance.toFixed(0)}m）`
+  ).join(' → ')
 })
-
-const indoorPathEdges = computed(() => {
-  if (!indoorRoute.value) return []
-  const edges: { from: string; to: string }[] = []
-  for (const step of indoorRoute.value.steps) {
-    if (!step.crossFloor) edges.push({ from: step.fromNodeId, to: step.toNodeId })
-  }
-  return edges
-})
-
-function indoorNodePos(nodeId: string) {
-  const n = indoorNodes.value.find(n => n.id === nodeId)
-  return n ? { x: n.x, y: n.y } : { x: 0, y: 0 }
-}
-
-function pickNode(node: IndoorNode) {
-  if (indoorSelectMode.value === 'start') {
-    indoorStart.value = node
-    indoorSelectMode.value = null
-    indoorFloor.value = node.floor
-  } else if (indoorSelectMode.value === 'end') {
-    indoorEnd.value = node
-    indoorSelectMode.value = null
-    indoorFloor.value = node.floor
-  }
-}
-
-function indoorSvgClicked(e: MouseEvent) {
-  if (!indoorSelectMode.value) return
-  const svg = e.currentTarget as SVGElement
-  const rect = svg.getBoundingClientRect()
-  const vb = svg.getAttribute('viewBox')?.split(' ').map(Number) || [0, 0, 2000, 1500]
-  const cx = ((e.clientX - rect.left) / rect.width) * vb[2]
-  const cy = ((e.clientY - rect.top) / rect.height) * vb[3]
-  let best: IndoorNode | null = null
-  let bestDist = 80
-  for (const n of indoorFloorNodes.value) {
-    const d = Math.hypot(n.x - cx, n.y - cy)
-    if (d < bestDist) { best = n; bestDist = d }
-  }
-  if (best) pickNode(best)
-}
-
-function clearIndoor() {
-  indoorStart.value = null
-  indoorEnd.value = null
-  indoorSelectMode.value = null
-  indoorRoute.value = null
-}
 
 async function doIndoorNav() {
-  if (!indoorStart.value || !indoorEnd.value) return
-  if (indoorStart.value.id === indoorEnd.value.id) return
+  if (!modeStart.value || !modeEnd.value || modeStart.value.id === modeEnd.value.id) return
   indoorLoading.value = true
   try {
-    const r = await indoorApi.navigate('BUPT_ZHONGHE_ZONGHE', indoorStart.value.id, indoorEnd.value.id)
-    if (r.data.data.success && r.data.data.steps.length > 0) {
-      indoorRoute.value = r.data.data
-      indoorFloor.value = indoorStart.value.floor
-    }
-  } catch (e) { console.error('Indoor navigation error:', e) }
-  indoorLoading.value = false
+    const r = await indoorApi.navigate('BUPT_ZHONGHE_ZONGHE', modeStart.value.id, modeEnd.value.id)
+    if (r.data.data?.success) indoorRoute.value = r.data.data
+  } catch (e) { console.error(e) }
+  finally { indoorLoading.value = false }
 }
 
-function dirText(from: string, to: string) {
-  const f = parseInt(from.replace('F', '').replace('B', '-'))
-  const t = parseInt(to.replace('F', '').replace('B', '-'))
-  return t > f ? `⬆上到${to}层` : `⬇下到${to}层`
-}
-
-function iconOf(type: string) {
-  const m: Record<string, string> = { ENTRANCE: '🚪', CLASSROOM: '📚', LAB: '🔬', TOILET: '🚻', STAIRS: '🪜', ELEVATOR: '🛗', LOBBY: '🏛', OFFICE: '📋' }
-  return m[type] || '📍'
-}
-
-function indoorNodeType(type: string) {
-  const m: Record<string, string> = { ENTRANCE: 'entrance', CLASSROOM: 'room', LAB: 'lab', TOILET: 'toilet', STAIRS: 'stairs', ELEVATOR: 'elevator', LOBBY: 'lobby', OFFICE: 'office' }
-  return m[type] || ''
-}
+function iconOf(type: string) { const m: Record<string, string> = { ENTRANCE: '🚪', CLASSROOM: '📚', LAB: '🔬', TOILET: '🚻', STAIRS: '🪜', ELEVATOR: '🛗', LOBBY: '🏛', OFFICE: '📋' }; return m[type] || '📍' }
 
 async function loadIndoorNodes() {
   try {
     const r = await indoorApi.getBuilding('BUPT_ZHONGHE_ZONGHE')
     if (r.data.data?.nodes) {
       indoorNodes.value = r.data.data.nodes
-      if (r.data.data.edges) indoorEdges.value = r.data.data.edges
+      indoorEdges.value = r.data.data.edges || []
+      indoorFloors.length = 0
+      const seen = new Set<string>()
+      for (const n of r.data.data.nodes) { if (!seen.has(n.floor)) { seen.add(n.floor); indoorFloors.push(n.floor) } }
+      indoorFloors.sort()
+      nextTick(drawIndoorCanvas)
     }
-  } catch (e) { console.error('Load indoor nodes error:', e) }
+  } catch (e) { console.error(e) }
 }
+
+// Redraw on floor switch
+const _indoorFloorWatcher = watch(indoorFloor, () => nextTick(drawIndoorCanvas))
+
 
 
 // ── Map initialization ──
@@ -914,286 +883,39 @@ watch(() => route.fullPath, () => { void bootstrapFromRouteQuery() })
 .save-btn { margin-top: 8px; }
 
 /* ── 室内导航弹窗 ── */
-.indoor-dialog-body {
-  display: flex;
-  gap: 16px;
-  height: 65vh;
-}
-.indoor-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.indoor-floor-bar, .indoor-toolbar {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-}
+.indoor-dialog-body { display: flex; gap: 16px; height: 65vh; }
+.indoor-left { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.indoor-right { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; }
+.indoor-right h4 { margin: 0 0 4px; font-size: 14px; color: #e8e8e8; }
+.indoor-section-title { margin-top: 12px !important; }
+
+.indoor-toolbar { display: flex; gap: 2px; align-items: center; }
 .indoor-toolbar-spacer { flex: 1; }
+.indoor-mode-hint { font-size: 11px; color: #3ad29f; padding: 0 4px; }
 
-/* ── 室内选择按钮（起点/终点） ── */
-.sel-btn {
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(42, 40, 40, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-radius: 40px;
-  box-shadow: 2px 2px 6px #191919, -2px -2px 6px #514b51;
-  color: #e8e8e8;
-  transition: all 0.2s;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sel-btn:hover {
-  background: rgba(42, 40, 40, 0.7);
-  border-color: rgba(58, 210, 159, 0.3);
-}
-.sel-btn.active {
-  background: rgba(58, 210, 159, 0.15);
-  color: #3ad29f;
-  border-color: rgba(58, 210, 159, 0.4);
-  box-shadow: none;
+.indoor-canvas-main {
+  flex: 1; width: 100%;
+  background: rgba(26,26,26,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+  cursor: crosshair;
 }
 
-/* ── 楼层标签 ── */
-.floor-tab {
-  padding: 6px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(42, 40, 40, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  text-transform: uppercase;
-  border-radius: 8px;
-  box-shadow: 2px 2px 6px #191919, -2px -2px 6px #514b51;
-  color: #e8e8e8;
-  transition: all 0.2s;
-}
-.floor-tab:hover {
-  background: rgba(42, 40, 40, 0.7);
-}
-.floor-tab.active {
-  background: rgba(58, 210, 159, 0.15);
-  color: #3ad29f;
-  border-color: rgba(58, 210, 159, 0.4);
-  box-shadow: none;
-}
+.indoor-node-list { flex: 1; overflow-y: auto; margin-top: 8px; }
+.indoor-node-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; cursor: pointer; border: 1px solid transparent; border-radius: 8px; transition: all 0.2s; }
+.indoor-node-item:hover { background: rgba(58,210,159,0.08); border-color: rgba(58,210,159,0.25); }
+.indoor-node-item.is-start { background: rgba(58,210,159,0.18); color: #3ad29f; border-color: rgba(58,210,159,0.5); }
+.indoor-node-item.is-end { background: rgba(220,53,69,0.18); color: #dc3545; border-color: rgba(220,53,69,0.5); }
+.node-icon { font-size: 14px; flex-shrink: 0; }
+.node-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: bold; color: #e8e8e8; }
 
-/* ── 室内平面图区域 ── */
-.indoor-plan-wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  background: rgba(26, 26, 26, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.indoor-svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
+.indoor-route-text { padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text-regular); background: rgba(0,0,0,0.2); border: 1px solid var(--frosted-border); border-radius: 10px; flex: 1; overflow-y: auto; }
+.indoor-dist { font-size: 12px; color: #3ad29f; font-weight: 600; margin: 4px 0 8px; }
+.indoor-actions { display: flex; gap: 8px; padding: 8px 0; }
 
-/* ── 室内路径（SVG） ── */
-.indoor-edge {
-  stroke: #3ad29f;
-  stroke-width: 2;
-  stroke-opacity: 0.4;
-}
-.indoor-edge.on-path { stroke-opacity: 0.1; }
-.indoor-route-line {
-  stroke: #dc3545;
-  stroke-width: 4;
-  stroke-opacity: 0.85;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.indoor-svg-node { cursor: pointer; }
-.indoor-svg-node:hover .ns-room { fill: #6fcf97; }
-.indoor-svg-node:hover .ns-stairs { fill: #6fcf97; }
-.ns-room       { fill: #7cd7ee;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-lab        { fill: #6fcf97;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-toilet     { fill: #909090;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-stairs     { fill: #dc3545;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-elevator   { fill: #a76fd7;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-entrance   { fill: #3ad29f;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-lobby      { fill: #e8e8e8;       stroke: #e8e8e8; stroke-width: 1.5; }
-.ns-office     { fill: #1ABC9C;       stroke: #e8e8e8; stroke-width: 1.5; }
-
-.indoor-node-label {
-  fill: #e8e8e8;
-  font-size: 11px;
-  font-weight: bold;
-  pointer-events: none;
-}
-.indoor-node-highlight {
-  fill: none;
-  stroke: #dc3545;
-  stroke-width: 3;
-  stroke-dasharray: 4 3;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* ── 室内路径信息栏 ── */
-.indoor-path-info {
-  padding: 6px 10px;
-  background: rgba(42, 40, 40, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: #3ad29f;
-  font-size: 12px;
-  text-align: center;
-  border-top: 1px solid rgba(58, 210, 159, 0.3);
-}
-.indoor-action-bar {
-  display: flex;
-  gap: 8px;
-  padding: 6px 0;
-  justify-content: flex-end;
-}
-
-/* ── 室内标记点 ── */
-.indoor-marker-start, .indoor-marker-end {
-  font-size: 11px;
-  font-weight: bold;
-  text-anchor: middle;
-  pointer-events: none;
-}
-.indoor-marker-start { fill: #3ad29f; }
-.indoor-marker-end   { fill: #dc3545; }
-
-/* ── 室内步骤列表 ── */
-.indoor-step-list {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 8px;
-}
-.indoor-back-btn { width: 100%; }
-
-/* ── 室内节点列表项 ── */
-.indoor-node-item.selected {
-  background: rgba(58, 210, 159, 0.12) !important;
-  color: #3ad29f !important;
-  border-color: rgba(58, 210, 159, 0.3) !important;
-}
-.indoor-node-item.selected .node-name { color: #3ad29f; }
-.indoor-node-item.selected .node-type-tag {
-  background: rgba(58, 210, 159, 0.15);
-  color: #3ad29f;
-  border-color: rgba(58, 210, 159, 0.4);
-}
-.indoor-node-item.is-start {
-  background: rgba(58, 210, 159, 0.18) !important;
-  color: #3ad29f !important;
-  border-color: rgba(58, 210, 159, 0.5) !important;
-}
-.indoor-node-item.is-end {
-  background: rgba(220, 53, 69, 0.18) !important;
-  color: #dc3545 !important;
-  border-color: rgba(220, 53, 69, 0.5) !important;
-}
-
-/* ── 导航步骤 ── */
-.step-item {
-  display: flex;
-  gap: 10px;
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  align-items: flex-start;
-}
-.step-item.cf { background: rgba(255, 248, 225, 0.05); }
-.step-num {
-  width: 24px;
-  height: 24px;
-  background: rgba(58, 210, 159, 0.15);
-  color: #3ad29f;
-  text-align: center;
-  line-height: 24px;
-  font-size: 12px;
-  font-weight: bold;
-  flex-shrink: 0;
-  border-radius: 6px;
-}
-.step-meta { font-size: 12px; color: #999; margin-top: 2px; }
-.cf .step-num { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-
-/* ── 室内右侧面板 ── */
-.indoor-right {
-  width: 300px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.indoor-right h4 {
-  margin: 0 0 4px;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #e8e8e8;
-}
-.indoor-hint { font-size: 12px; color: #999; margin: 0 0 8px; }
-.indoor-node-list { flex: 1; overflow-y: auto; }
-.indoor-floor-group { margin-bottom: 12px; }
-.floor-group-title {
-  font-weight: bold;
-  font-size: 14px;
-  text-transform: uppercase;
-  color: #e8e8e8;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 4px;
-}
-.indoor-node-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-.indoor-node-item:hover {
-  background: rgba(58, 210, 159, 0.08);
-  border-color: rgba(58, 210, 159, 0.25);
-}
-.node-icon { font-size: 14px; }
-.node-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: bold;
-  color: #e8e8e8;
-}
-.node-type-tag {
-  font-size: 10px;
-  color: #3ad29f;
-  background: rgba(42, 40, 40, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  padding: 0 6px;
-}
+/* Common to both sections */
+.floor-tab { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(42,40,40,0.55); cursor: pointer; font-weight: bold; font-size: 13px; border-radius: 8px; color: #e8e8e8; transition: all 0.2s; }
+.floor-tab:hover { background: rgba(42,40,40,0.7); }
+.floor-tab.active { background: rgba(58,210,159,0.15); color: #3ad29f; border-color: rgba(58,210,159,0.4); }
+.sel-btn { padding: 4px 10px; border: 1px solid rgba(255,255,255,0.06); background: rgba(42,40,40,0.55); cursor: pointer; font-weight: bold; font-size: 11px; border-radius: 40px; color: #e8e8e8; transition: all 0.2s; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-btn:hover { background: rgba(42,40,40,0.7); }
+.sel-btn.active { background: rgba(58,210,159,0.15); color: #3ad29f; border-color: rgba(58,210,159,0.4); }
 </style>

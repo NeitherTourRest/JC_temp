@@ -105,32 +105,6 @@
                   </div>
                   <div class="ai-tool">
                     <div class="ai-tool-header">
-                      <span>🎵 AI 生成音乐</span>
-                      <el-button size="small" type="primary" @click="genMusic" :loading="aiMusicLoading" :disabled="!aiMusicPrompt.trim()">生成</el-button>
-                    </div>
-                    <el-input v-model="aiMusicPrompt" placeholder="描述音乐风格，如：轻快的吉他曲" />
-                    <div v-if="aiMusicResult" class="ai-preview">
-                      <div class="music-player-card">
-                        <div class="music-player-left">
-                          <span class="music-eq">
-                            <span class="eq-bar" style="animation-delay:0s"></span>
-                            <span class="eq-bar" style="animation-delay:0.15s"></span>
-                            <span class="eq-bar" style="animation-delay:0.3s"></span>
-                            <span class="eq-bar" style="animation-delay:0.45s"></span>
-                          </span>
-                          <span class="music-label">AI 生成</span>
-                        </div>
-                        <div class="music-player-center">
-                          <audio :src="aiMusicResult" controls class="music-audio-el" />
-                        </div>
-                        <div class="music-player-right">
-                          <el-button size="small" type="success" round @click="addAiMusic">使用</el-button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="ai-tool">
-                    <div class="ai-tool-header">
                       <span>🎬 AI 生成视频</span>
                       <el-button size="small" type="primary" @click="genVideo" :loading="aiVideoLoading" :disabled="!aiVideoPrompt.trim()">生成</el-button>
                     </div>
@@ -188,7 +162,7 @@
           <div class="ai-gen-body">
             <div class="ai-gen-section">
               <div class="ai-gen-section-title">📋 选择已有行程</div>
-              <el-select v-model="aiGenerateItineraryId" filterable remote clearable placeholder="搜索并选择行程…"
+              <el-select v-model="aiGenerateItineraryId" value-key="id" filterable remote clearable placeholder="搜索并选择行程…"
                 :remote-method="searchItineraries" :loading="itineraryLoading" class="ai-gen-select" @change="onItinerarySelected">
                 <el-option v-for="it in itineraryOptions" :key="it.id" :label="it.name" :value="it.id" />
               </el-select>
@@ -295,7 +269,7 @@
               <video :src="form.videoUrl" controls class="preview-video" />
             </div>
             <div class="preview-media" v-if="form.musicUrl">
-              <audio :src="form.musicUrl" controls class="preview-audio" />
+              <MusicPlayer :src="form.musicUrl" />
             </div>
           </div>
 
@@ -317,6 +291,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, Delete, Location, Flag, Document } from '@element-plus/icons-vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import RichEditor from '@/components/RichEditor.vue'
+import MusicPlayer from '@/components/MusicPlayer.vue'
 import { diaryApi } from '@/api/diaryApi'
 import { spotApi } from '@/api/spotApi'
 import { aiGenApi, fileApi } from '@/api/aiGenApi'
@@ -463,29 +438,6 @@ function insertAiImageIntoContent() {
   ElMessage.success('已插入到内容中')
 }
 
-// ── AI Music generation ──
-const aiMusicPrompt = ref('')
-const aiMusicLoading = ref(false)
-const aiMusicResult = ref('')
-
-async function genMusic() {
-  if (!aiMusicPrompt.value.trim()) return
-  aiMusicLoading.value = true
-  aiMusicResult.value = ''
-  try {
-    const r = await aiGenApi.generateMusic(aiMusicPrompt.value, '', true)
-    if (r.data.data?.audioUrl) aiMusicResult.value = r.data.data.audioUrl
-    else ElMessage.error(r.data.message || '音乐生成失败')
-  } catch { ElMessage.error('音乐生成请求失败') }
-  finally { aiMusicLoading.value = false }
-}
-
-function addAiMusic() {
-  if (aiMusicResult.value) {
-    form.value.musicUrl = aiMusicResult.value
-    ElMessage.success('已添加到日记')
-  }
-}
 
 // ── AI Video generation ──
 const aiVideoPrompt = ref('')
@@ -606,9 +558,15 @@ async function generateDiaryText() {
       prompt: aiGeneratePrompt.value,
       itineraryId: aiGenerateItineraryId.value || undefined,
     })
-    aiGeneratedText.value = res.data.data.text
-  } catch {
-    ElMessage.error('生成失败，请检查AI配置')
+    const data = res.data
+    if (!data.success || !data.data?.text) {
+      ElMessage.error(data.message || '生成失败')
+      return
+    }
+    aiGeneratedText.value = data.data.text
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || e?.message || '未知错误'
+    ElMessage.error('生成失败：' + msg)
   } finally { aiGenerateLoading.value = false }
 }
 
@@ -1015,7 +973,7 @@ watch(() => route.params.id, () => {
 }
 .ai-tool-header { display: flex; justify-content: space-between; align-items: center; }
 .ai-tool-header span { font-weight: 700; font-size: 13px; color: var(--text-heading); }
-.ai-tool .el-button, .ai-tool .el-input, .music-player-card .el-button {
+.ai-tool .el-button, .ai-tool .el-input {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='rgba(124,215,238,0.9)' stroke-width='2'/%3E%3Cline x1='11' y1='16' x2='21' y2='16' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='21' stroke='rgba(124,215,238,1)' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer !important;
 }
 .ai-preview { margin-top: 8px; }
@@ -1032,54 +990,6 @@ watch(() => route.params.id, () => {
   font-size: 13px; color: var(--text-body);
   background: rgba(0,0,0,0.15); border-radius: 8px;
 }
-
-/* ── Music player card ── */
-.music-player-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: linear-gradient(135deg, rgba(58,210,159,0.08) 0%, rgba(124,215,238,0.08) 100%);
-  border: 1px solid rgba(58,210,159,0.2);
-  border-radius: 12px;
-  box-shadow: var(--neu-inset-sm), var(--neu-shadow-sm);
-  width: 100%;
-}
-.music-player-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.music-eq {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 20px;
-}
-.eq-bar {
-  display: block;
-  width: 3px;
-  background: var(--pop-green);
-  border-radius: 2px;
-  animation: eqPulse 0.8s ease-in-out infinite alternate;
-}
-.eq-bar:nth-child(1) { height: 10px; }
-.eq-bar:nth-child(2) { height: 16px; }
-.eq-bar:nth-child(3) { height: 12px; }
-.eq-bar:nth-child(4) { height: 18px; }
-@keyframes eqPulse {
-  0% { opacity: 0.4; transform: scaleY(0.6); }
-  100% { opacity: 1; transform: scaleY(1); }
-}
-.music-label { font-size: 11px; color: var(--pop-green); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
-.music-player-center { flex: 1; min-width: 0; }
-.music-audio-el {
-  width: 100%; height: 32px;
-  border-radius: 6px;
-  filter: hue-rotate(140deg) saturate(0.8);
-}
-.music-player-right { flex-shrink: 0; }
 
 /* ── Video upload ── */
 .video-preview { display: flex; flex-direction: column; gap: 6px; width: 100%; }

@@ -18,4 +18,6 @@ export const aiApi = {
     apiClient.get<ApiResponse<{ summary: string; error?: string }>>(`/ai/summary/diary/${diaryId}`),
   generateDiary: (data: { prompt?: string; itineraryId?: number }) =>
     apiClient.post<ApiResponse<{ text: string }>>('/ai/generate/diary', data),
+  budgetPerEvent: (data: { items: { day: number; date: string; slotId: string; name: string; type: string; time: string }[] }) =>
+    apiClient.post<ApiResponse<{ budgets: Record<string, number> }>>('/ai/budget/per-event', data),
 }
