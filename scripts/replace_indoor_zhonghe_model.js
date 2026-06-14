@@ -394,6 +394,8 @@ function main() {
   if (outIndex >= 0) {
     const outPath = path.resolve(process.argv[outIndex + 1])
     fs.writeFileSync(outPath, `${JSON.stringify(doc, null, 2)}\n`)
+    console.log(`Written to ${outPath}`)
+    process.exit(0)
   }
 
   const summary = {

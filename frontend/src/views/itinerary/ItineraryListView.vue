@@ -469,7 +469,7 @@
             <label>Type</label>
             <el-radio-group v-model="slotEditType">
               <el-radio value="spot">📍 Spot</el-radio>
-              <el-radio value="food">🍽️ Food</el-radio>
+              <el-radio value="food">🍽️ 餐馆</el-radio>
               <el-radio value="text">📝 Notes</el-radio>
             </el-radio-group>
           </div>
@@ -490,9 +490,9 @@
           </div>
           <!-- Food search (if type=food) -->
           <div v-if="slotEditType === 'food'" class="slot-edit-row">
-            <label>Food</label>
-            <el-input v-model="slotSearchKeyword" placeholder="Search food..." size="small" />
-            <el-button size="small" @click="doSlotFoodSearch">Search</el-button>
+            <label>餐馆</label>
+            <el-input v-model="slotSearchKeyword" placeholder="搜索餐馆…" size="small" />
+            <el-button size="small" @click="doSlotShopSearch">搜索</el-button>
             <div v-if="slotFoodResults.length" class="slot-search-results">
               <div v-for="r in slotFoodResults" :key="r.id" class="slot-search-item"
                 :class="{ selected: editingSlot?.foodId === r.id }"
@@ -501,7 +501,7 @@
                 <span class="text-sm">{{ r.cuisine }}</span>
               </div>
             </div>
-            <div v-if="editingSlot?.foodName" class="slot-selected">Selected: {{ editingSlot.foodName }}</div>
+            <div v-if="editingSlot?.foodName" class="slot-selected">已选: {{ editingSlot.foodName }}</div>
           </div>
           <!-- Notes — always visible, any type can have notes -->
           <div class="slot-edit-row">
@@ -542,6 +542,7 @@ import type { TimeSlot, TimelineDay, TimelinePlan, RouteRequest, PlanDaySchedule
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { spotApi } from '@/api/spotApi'
+import { shopApi } from '@/api/shopApi'
 import { aiApi } from '@/api/aiApi'
 import { diaryApi } from '@/api/diaryApi'
 import { navigationApi } from '@/api/navigationApi'
@@ -1086,11 +1087,12 @@ async function doSlotSpotSearch() {
   const r = await spotApi.search({ keyword: slotSearchKeyword.value.trim(), size: 10 })
   slotSpotResults.value = r.data.data?.content || []
 }
-async function doSlotFoodSearch() {
+async function doSlotShopSearch() {
   if (!slotSearchKeyword.value.trim()) return
-  const { foodApi } = await import('@/api/foodApi')
-  const r = await foodApi.search({ keyword: slotSearchKeyword.value.trim(), size: 10 })
-  slotFoodResults.value = r.data.data?.content || []
+  try {
+    const r = await shopApi.search({ keyword: slotSearchKeyword.value.trim(), size: 10 })
+    slotFoodResults.value = r.data.data?.content || []
+  } catch { slotFoodResults.value = [] }
 }
 function selectSlotSpot(spot: any) {
   if (!editingSlot.value) return

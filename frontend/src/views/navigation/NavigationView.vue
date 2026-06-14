@@ -89,13 +89,13 @@
         <div class="poi-search-section">
           <span class="section-label">搜索地点</span>
           <div class="poi-search-row">
-            <el-input v-model="poiKeyword" placeholder="输入景点/地名..." size="small" clearable @keyup.enter="searchPOI" />
+            <el-input v-model="poiKeyword" placeholder="搜索景点/餐馆/地名…" size="small" clearable @keyup.enter="searchPOI" />
             <el-button size="small" type="primary" @click="searchPOI">搜索</el-button>
           </div>
           <div v-if="poiResults.length" class="poi-results">
             <div v-for="(poi, idx) in poiResults" :key="idx" class="poi-result-item" @click="selectPOI(poi)">
               <span class="poi-name">{{ poi.name }}</span>
-              <span class="poi-coord">{{ poi.lat.toFixed(4) }}, {{ poi.lon.toFixed(4) }}</span>
+              <span class="poi-cat">{{ poi.type === 'spot' ? '📍景点' : poi.type === 'shop' ? '🍽️餐馆' : poi.cat || '地名' }}</span>
               <el-button size="small" type="success" plain @click.stop="setStartFromPOI(poi)">起点</el-button>
               <el-button size="small" type="danger" plain @click.stop="setTargetFromPOI(poi)">终点</el-button>
             </div>
@@ -225,6 +225,8 @@ import type { IndoorBuildingMetadata, IndoorNode } from '@/api/indoorApi'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { poiApi } from '@/api/poiApi'
+import { shopApi } from '@/api/shopApi'
+import { spotApi } from '@/api/spotApi'
 import type { POIResponse } from '@/api/poiApi'
 import type { RouteResponse, RouteSegment } from '@/types/api'
 
@@ -678,7 +680,7 @@ function formatTime(seconds: number) { if (seconds < 60) return seconds + '秒';
 function formatTransport(t?: string): string { const m: Record<string, string> = { WALK: '步行', BIKE: '骑行', SHUTTLE: '穿梭巴士' }; return m[t || 'WALK'] || t || '步行' }
 function transportIcon(t?: string): string { const m: Record<string, string> = { WALK: '🚶', BIKE: '🚲', SHUTTLE: '🚌' }; return m[t || 'WALK'] || '🚶' }
 
-async function searchPOI() { if (!poiKeyword.value.trim()) { poiResults.value = []; return }; try { const r = await poiApi.search(poiKeyword.value.trim(), 15); poiResults.value = r.data.data } catch (e) { console.error('POI search error:', e); poiResults.value = [] } }
+async function searchPOI() { if (!poiKeyword.value.trim()) { poiResults.value = []; return }; try { const kw = poiKeyword.value.trim(); const [poiRes, spotRes, shopRes] = await Promise.all([poiApi.search(kw, 8), spotApi.search({ keyword: kw, size: 5 }), shopApi.search({ keyword: kw, size: 5 })]); const spots = (spotRes.data.data?.content || []).map((s: any) => ({ name: s.name, cat: s.category, lat: s.latitude, lon: s.longitude, type: 'spot' })); const shops = (shopRes.data.data?.content || []).map((s: any) => ({ name: s.name, cat: s.cuisine || '餐馆', lat: s.latitude, lon: s.longitude, type: 'shop' })); const pois = (poiRes.data.data || []).map((p: any) => ({ ...p, cat: 'POI', type: 'poi' })); poiResults.value = [...spots, ...shops, ...pois].slice(0, 15) } catch { poiResults.value = [] } }
 
 function selectPOI(poi: any) { poiKeyword.value = poi.name; map.setCenter([poi.lon, poi.lat]); map.setZoom(16) }
 
@@ -860,6 +862,7 @@ watch(() => route.fullPath, () => { void bootstrapFromRouteQuery() })
   color: #e8e8e8;
 }
 .poi-coord { font-size: 11px; color: #3ad29f; }
+.poi-cat { font-size: 11px; color: var(--pop-green); white-space: nowrap; }
 
 /* ── 规划按钮 ── */
 .plan-btn { margin-top: 4px; width: 100%; }

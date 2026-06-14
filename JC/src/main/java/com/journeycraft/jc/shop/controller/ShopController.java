@@ -25,12 +25,17 @@ public class ShopController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PageResponse<ShopResponse>>> searchShops(
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String cuisine,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         var pageable = PageRequest.of(page, size);
         Page<Shop> result;
-        if (keyword != null && !keyword.isBlank()) {
+        if (keyword != null && !keyword.isBlank() && cuisine != null && !cuisine.isBlank()) {
+            result = shopRepository.searchByKeywordAndCuisine(keyword, cuisine, pageable);
+        } else if (keyword != null && !keyword.isBlank()) {
             result = shopRepository.searchByKeyword(keyword, pageable);
+        } else if (cuisine != null && !cuisine.isBlank()) {
+            result = shopRepository.findByCuisine(cuisine, pageable);
         } else {
             result = shopRepository.findAll(pageable);
         }
