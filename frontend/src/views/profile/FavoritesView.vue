@@ -16,7 +16,7 @@
         >
           <el-tab-pane label="全部" name="" />
           <el-tab-pane label="地点" name="SPOT" />
-          <el-tab-pane label="美食" name="FOOD" />
+          <el-tab-pane label="餐馆" name="SPOT" />
           <el-tab-pane label="日记" name="DIARY" />
           <el-tab-pane label="行程" name="ITINERARY" />
         </el-tabs>
@@ -89,7 +89,7 @@
               <div class="fav-card__target-label">收藏目标</div>
               <div class="fav-card__target-id">
                 <span class="fav-card__target-icon">{{ getTypeIcon(item.type) }}</span>
-                <span class="fav-card__target-text">{{ item.targetId }}</span>
+                <span class="fav-card__target-text">{{ item.targetName || item.targetId }}</span>
               </div>
             </div>
 

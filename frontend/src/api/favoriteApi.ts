@@ -5,11 +5,12 @@ export interface FavoriteResponse {
   id: number
   type: string
   targetId: string
+  targetName?: string
   createdAt: string
 }
 
 export const favoriteApi = {
-  add: (data: { type: string; targetId: string }) =>
+  add: (data: { type: string; targetId: string; targetName?: string }) =>
     apiClient.post<ApiResponse<FavoriteResponse>>('/favorites', data),
 
   list: (params?: { type?: string; page?: number; size?: number }) =>

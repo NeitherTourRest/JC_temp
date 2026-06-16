@@ -42,9 +42,9 @@ public class HistoryService {
     }
 
     @Transactional
-    public void recordBrowse(String type, String targetId) {
+    public void recordBrowse(String type, String targetId, String targetName) {
         var user = getCurrentUser();
-        browseRepo.save(BrowseHistory.builder().userId(user.getId()).type(type).targetId(targetId).build());
+        browseRepo.save(BrowseHistory.builder().userId(user.getId()).type(type).targetId(targetId).targetName(targetName).build());
     }
 
     @Transactional(readOnly = true)

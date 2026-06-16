@@ -43,6 +43,11 @@
               <span v-if="rated" class="rated-badge">你的评分 {{ userRating }}/5</span>
             </div>
           </div>
+          <div class="fav-row" style="margin-top:8px">
+            <el-button :type="isFaved ? 'warning' : 'default'" size="small" @click="toggleFavorite" :loading="favLoading">
+              {{ isFaved ? '❤️ 已收藏' : '🤍 收藏' }}
+            </el-button>
+          </div>
         </section>
 
         <!-- Congestion report -->
@@ -266,6 +271,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { spotApi } from '@/api/spotApi'
+import { favoriteApi } from '@/api/favoriteApi'
 import { navigationApi } from '@/api/navigationApi'
 import apiClient from '@/api/axios'
 import { ElMessage } from 'element-plus'
@@ -285,6 +291,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const spot = ref<SpotResponse | null>(null)
+const isFaved = ref(false)
+const favLoading = ref(false)
 const reviews = ref<any[]>([])
 const facilities = ref<FacilityItem[]>([])
 const walkingFoods = ref<FoodItem[]>([])
@@ -780,8 +788,29 @@ onMounted(async () => {
       const all = s.data.data?.content || []
       featuredSpots.value = all.filter((x: any) => x.id !== id).slice(0, 4)
     } catch { /* okay */ }
+    // 记录浏览历史
+    try { await apiClient.post('/history/browse', { type: 'SPOT', targetId: String(id), targetName: spot.value?.name || '' }) } catch { /* ok */ }
   }
 })
+
+async function toggleFavorite() {
+  if (!spot.value) return
+  const type = 'SPOT'
+  const targetId = String(spot.value.id)
+  favLoading.value = true
+  try {
+    if (isFaved.value) {
+      await favoriteApi.remove(type, targetId)
+      isFaved.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await favoriteApi.add({ type, targetId, targetName: spot.value.name || '' })
+      isFaved.value = true
+      ElMessage.success('已加入收藏')
+    }
+  } catch (e: any) { ElMessage.error(e?.response?.data?.message || '操作失败') }
+  finally { favLoading.value = false }
+}
 
 onBeforeUnmount(() => {
   if (mapInstance) { mapInstance.destroy(); mapInstance = null }

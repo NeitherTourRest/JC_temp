@@ -89,7 +89,7 @@
                     >
                       {{ getTypeLabel(item.type) }}
                     </el-tag>
-                    <span class="history-target">{{ item.targetId }}</span>
+                    <span class="history-target">{{ item.targetName || item.targetId }}</span>
                   </div>
                   <div class="history-item-meta">
                     <span class="history-date">{{ formatDate(item.createdAt) }}</span>
@@ -221,6 +221,7 @@ interface BrowseHistoryItem {
   id: number
   type: string
   targetId: string
+  targetName?: string
   createdAt: string
 }
 

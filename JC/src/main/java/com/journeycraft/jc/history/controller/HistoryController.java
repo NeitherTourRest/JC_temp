@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController @RequestMapping("/api/v1/history") @RequiredArgsConstructor
 public class HistoryController {
     private final HistoryService historyService;
@@ -35,5 +37,17 @@ public class HistoryController {
     public ResponseEntity<ApiResponse<PageResponse<FacilityQueryHistory>>> facilityHistory(
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(historyService.getFacilityQueryHistory(page, size)));
+    }
+
+    @PostMapping("/browse")
+    public ResponseEntity<ApiResponse<Void>> recordBrowse(@RequestBody Map<String, String> body) {
+        historyService.recordBrowse(body.get("type"), body.get("targetId"), body.getOrDefault("targetName", ""));
+        return ResponseEntity.ok(ApiResponse.success(null, "Recorded"));
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse<Void>> recordSearch(@RequestBody Map<String, String> body) {
+        historyService.recordSearch(body.get("keyword"), body.get("type"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Recorded"));
     }
 }

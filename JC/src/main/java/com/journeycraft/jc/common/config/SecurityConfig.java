@@ -45,6 +45,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/recommend/**").permitAll()
                 .requestMatchers("/api/v1/ai/generate/diary").permitAll()
                 .requestMatchers("/api/v1/ai/budget/per-event").permitAll()
+                .requestMatchers("/api/v1/history/browse").permitAll()
+                .requestMatchers("/api/v1/history/search").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
                 .anyRequest().authenticated()

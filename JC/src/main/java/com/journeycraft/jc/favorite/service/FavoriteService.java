@@ -25,7 +25,7 @@ public class FavoriteService {
         if (favoriteRepository.findByUserIdAndTypeAndTargetId(user.getId(), request.type(), request.targetId()).isPresent()) {
             throw new BadRequestException("Already favorited");
         }
-        var fav = Favorite.builder().userId(user.getId()).type(request.type()).targetId(request.targetId()).build();
+        var fav = Favorite.builder().userId(user.getId()).type(request.type()).targetId(request.targetId()).targetName(request.targetName()).build();
         return FavoriteResponse.from(favoriteRepository.save(fav));
     }
 

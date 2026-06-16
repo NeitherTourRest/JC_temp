@@ -18,6 +18,8 @@ public class Favorite {
     private String type;
     @Column(name = "target_id", nullable = false, length = 100)
     private String targetId;
+    @Column(name = "target_name", length = 200)
+    private String targetName;
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @PrePersist protected void onCreate() { createdAt = LocalDateTime.now(); }
